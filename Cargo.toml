@@ -7,3 +7,4 @@ edition = "2021"
 ratatui = "0.29.0"
 crossterm = "0.28.1"
 color-eyre = "0.6.2"
+strum = { version = "0.26.3", features = ["derive"] }
