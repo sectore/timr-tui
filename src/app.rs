@@ -2,40 +2,47 @@ use color_eyre::{eyre::Context, Result};
 use crossterm::event;
 use ratatui::{
     buffer::Buffer,
-    crossterm::event::{Event, KeyCode, KeyEvent, KeyEventKind},
+    crossterm::event::{Event, KeyCode, KeyEventKind},
     layout::{Constraint, Layout, Rect},
     widgets::{Block, Paragraph, Widget},
     DefaultTerminal, Frame,
 };
-use std::time::Duration;
 use strum::{Display, EnumIter, FromRepr};
 
+use crate::footer::Footer;
 use crate::pomodoro::Pomodoro;
 use crate::timer::Timer;
 use crate::{countdown::Countdown, utils::center};
 
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Mode {
-    #[default]
     Running,
     Quit,
 }
 
-#[derive(Debug, Clone, Copy, Default, Display, EnumIter, FromRepr, PartialEq, Eq)]
-enum Content {
-    #[default]
+#[derive(Debug, Clone, Copy, Display, EnumIter, FromRepr, PartialEq, Eq, PartialOrd, Ord)]
+pub enum Content {
     Countdown,
     Timer,
     Pomodoro,
 }
 
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct App {
     content: Content,
     mode: Mode,
+    show_menu: bool,
 }
 
 impl App {
+    pub const fn new() -> Self {
+        Self {
+            content: Content::Countdown,
+            mode: Mode::Running,
+            show_menu: false,
+        }
+    }
+
     pub fn run(mut self, mut terminal: DefaultTerminal) -> Result<()> {
         while self.is_running() {
             terminal
@@ -56,25 +63,20 @@ impl App {
     }
 
     fn handle_events(&mut self) -> Result<()> {
-        let timeout = Duration::from_secs_f64(1.0 / 50.0);
-        if !event::poll(timeout)? {
-            return Ok(());
-        }
-        match event::read()? {
-            Event::Key(key) if key.kind == KeyEventKind::Press => self.handle_key_press(key),
-            _ => {}
+        if let Event::Key(key) = event::read()? {
+            if key.kind != KeyEventKind::Press {
+                return Ok(());
+            }
+            match key.code {
+                KeyCode::Char('q') | KeyCode::Esc => self.mode = Mode::Quit,
+                KeyCode::Char('c') => self.content = Content::Countdown,
+                KeyCode::Char('t') => self.content = Content::Timer,
+                KeyCode::Char('p') => self.content = Content::Pomodoro,
+                KeyCode::Char('m') => self.show_menu = !self.show_menu,
+                _ => {}
+            };
         }
         Ok(())
-    }
-
-    fn handle_key_press(&mut self, key: KeyEvent) {
-        match key.code {
-            KeyCode::Char('q') | KeyCode::Esc => self.mode = Mode::Quit,
-            KeyCode::Char('c') => self.content = Content::Countdown,
-            KeyCode::Char('t') => self.content = Content::Timer,
-            KeyCode::Char('p') => self.content = Content::Pomodoro,
-            _ => {}
-        };
     }
 }
 
@@ -82,24 +84,21 @@ impl Widget for &App {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let vertical = Layout::vertical([
             Constraint::Length(1),
-            Constraint::Min(0),
-            Constraint::Length(1),
+            Constraint::Fill(0),
+            Constraint::Length(if self.show_menu { 2 } else { 1 }),
         ]);
         let [header_area, content_area, footer_area] = vertical.areas(area);
 
         Block::new().render(area, buf);
         self.render_header(header_area, buf);
         self.render_content(content_area, buf);
-        self.render_footer(footer_area, buf);
+        Footer::new(self.show_menu, self.content).render(footer_area, buf);
     }
 }
 
 impl App {
     fn render_header(&self, area: Rect, buf: &mut Buffer) {
         Paragraph::new("tim:r").render(area, buf);
-    }
-    fn render_footer(&self, area: Rect, buf: &mut Buffer) {
-        Paragraph::new("footer").render(area, buf);
     }
 
     fn render_content(&self, area: Rect, buf: &mut Buffer) {
