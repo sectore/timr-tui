@@ -1,0 +1,30 @@
+name: lint, format, test, build
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+
+jobs:
+
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+      - name: Check formatting
+        run: nix develop --command cargo fmt --all -- --check
+      - name: Run clippy
+        run: nix develop --command cargo clippy -- -D warnings
+      - name: Run tests
+        run: nix develop --command cargo test
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+      - name: Build project
+        run: nix build .#timr
