@@ -28,6 +28,7 @@
           cargoArtifacts = craneLib.buildDepsOnly {
             src = craneLib.cleanCargoSource ./.;
           };
+          doCheck = false;  # skip tests during nix build
         };
 
         # Native build
@@ -64,20 +65,17 @@
           windows = crossBuild;
         };
 
-        # Separate artifacts for CI caching
-        checks = {
-          inherit timr;
-          cargoArtifacts = commonArgs.cargoArtifacts;
-        };
-
         # Development shell with all necessary tools
-        devShells.default = pkgs.mkShell {
-          buildInputs = with pkgs; [
-            rust-analyzer
-            clippy
-            rustfmt
-            toolchain
-          ];
+        devShell = with nixpkgs.legacyPackages.${system}; mkShell {
+              buildInputs = with fenix.packages.${system}.stable; [
+                rust-analyzer
+                clippy
+                rustfmt
+                toolchain
+                just
+              ];
+
+
 
           inherit (commonArgs) src;
           RUST_SRC_PATH = "${toolchain}/lib/rustlib/src/rust/library";

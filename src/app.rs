@@ -7,27 +7,28 @@ use ratatui::{
     widgets::{Block, Paragraph, Widget},
     DefaultTerminal, Frame,
 };
-use strum::{Display, EnumIter, FromRepr};
 
 use crate::footer::Footer;
 use crate::pomodoro::Pomodoro;
 use crate::timer::Timer;
 use crate::{countdown::Countdown, utils::center};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 enum Mode {
+    #[default]
     Running,
     Quit,
 }
 
-#[derive(Debug, Clone, Copy, Display, EnumIter, FromRepr, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Content {
+    #[default]
     Countdown,
     Timer,
     Pomodoro,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub struct App {
     content: Content,
     mode: Mode,
@@ -35,14 +36,6 @@ pub struct App {
 }
 
 impl App {
-    pub const fn new() -> Self {
-        Self {
-            content: Content::Countdown,
-            mode: Mode::Running,
-            show_menu: false,
-        }
-    }
-
     pub fn run(mut self, mut terminal: DefaultTerminal) -> Result<()> {
         while self.is_running() {
             terminal
