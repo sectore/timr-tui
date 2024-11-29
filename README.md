@@ -1,6 +1,6 @@
 # tim:r
 
-## Development
+## Build from source
 
 ### Requirements
 
@@ -13,17 +13,20 @@ If `direnv` is installed, run `direnv allow` once to install dependencies. Other
 
 #### Non Nix user
 
-- [`Rust`](https://www.rust-lang.org/)
+- [`Rust`](https://www.rust-lang.org/learn/get-started)
+- [`Clippy`](https://github.com/rust-lang/rust-clippy)
+- [`rustfmt`](https://github.com/rust-lang/rustfmt)
+- [`just`](https://just.systems)
 
 
-#### Build/run
+#### Run
 
 ```sh
 cargo run
 ```
 
 
-## Build release
+#### Build
 
 - Linux
 ```sh
@@ -33,4 +36,23 @@ nix build
 - Windows (cross-compilation)
 ```sh
 nix build .#windows
+```
+
+#### Commands to `run`, `build` etc.
+
+```sh
+just --list
+
+Available recipes:
+    build   # build app
+    b       # alias for `build`
+    default
+    format  # format files
+    f       # alias for `format`
+    lint    # lint
+    l       # alias for `lint`
+    run     # run app
+    r       # alias for `run`
+    test    # run tests
+    t       # alias for `test`
 ```
