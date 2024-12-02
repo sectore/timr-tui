@@ -5,28 +5,26 @@ use ratatui::{
     widgets::Widget,
 };
 
-use crate::utils::format_ms;
-
 #[derive(Debug, Clone)]
 pub struct Header {
-    tick: u128,
+    show_fps: bool,
 }
 
 impl Header {
-    pub fn new(tick: u128) -> Self {
-        Self { tick }
+    pub fn new(show_fps: bool) -> Self {
+        Self { show_fps }
     }
 }
 
 impl Widget for Header {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        let time_string = format_ms(self.tick * 100, true);
-        let tick_span = Span::raw(time_string);
-        let tick_width = tick_span.width().try_into().unwrap_or(0);
+        let fps_txt = if self.show_fps { "FPS (soon)" } else { "" };
+        let fps_span = Span::raw(fps_txt);
+        let fps_width = fps_span.width().try_into().unwrap_or(0);
         let [h1, h2] =
-            Layout::horizontal([Constraint::Fill(1), Constraint::Length(tick_width)]).areas(area);
+            Layout::horizontal([Constraint::Fill(1), Constraint::Length(fps_width)]).areas(area);
 
         Span::raw("tim:r").render(h1, buf);
-        tick_span.render(h2, buf);
+        fps_span.render(h2, buf);
     }
 }
