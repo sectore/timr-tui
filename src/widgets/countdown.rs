@@ -1,23 +1,21 @@
 use ratatui::{
     buffer::Buffer,
     layout::Rect,
-    text::Text,
     widgets::{Paragraph, Widget},
 };
 
 #[derive(Debug, Default, Clone, PartialEq, Eq)]
-pub struct Timer<'a> {
-    value: u64,
-    headline: Text<'a>,
+pub struct Countdown {
+    headline: String,
 }
 
-impl<'a> Timer<'a> {
-    pub const fn new(value: u64, headline: Text<'a>) -> Self {
-        Self { value, headline }
+impl Countdown {
+    pub const fn new(headline: String) -> Self {
+        Self { headline }
     }
 }
 
-impl Widget for Timer<'_> {
+impl Widget for Countdown {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let h = Paragraph::new(self.headline).centered();
         h.render(area, buf);
