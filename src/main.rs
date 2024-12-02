@@ -1,4 +1,6 @@
 mod app;
+mod clock;
+mod constants;
 mod events;
 mod terminal;
 mod utils;

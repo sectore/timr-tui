@@ -4,6 +4,8 @@ use std::{pin::Pin, time::Duration};
 use tokio::time::interval;
 use tokio_stream::{wrappers::IntervalStream, StreamMap};
 
+use crate::constants::{FPS_VALUE_MS, TICK_VALUE_MS};
+
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
 enum StreamKey {
     Ticks,
@@ -48,12 +50,12 @@ impl Events {
 }
 
 fn tick_stream() -> Pin<Box<dyn Stream<Item = Event>>> {
-    let tick_interval = interval(Duration::from_secs_f64(1.0 / 10.0));
+    let tick_interval = interval(Duration::from_millis(TICK_VALUE_MS));
     Box::pin(IntervalStream::new(tick_interval).map(|_| Event::Tick))
 }
 
 fn render_stream() -> Pin<Box<dyn Stream<Item = Event>>> {
-    let render_interval = interval(Duration::from_secs_f64(1.0 / 60.0)); // 60 FPS
+    let render_interval = interval(Duration::from_millis(FPS_VALUE_MS));
     Box::pin(IntervalStream::new(render_interval).map(|_| Event::Render))
 }
 
