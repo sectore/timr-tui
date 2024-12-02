@@ -1,8 +1,9 @@
 # The `--fmt` command is currently unstable.
 
-set unstable := true
+# set unstable := true
 
-default: run
+default:
+    @just --list
 
 alias b := build
 alias f := format
@@ -20,7 +21,7 @@ test:
 
 # format files
 format:
-    just --fmt
+    # just --fmt
     cargo fmt --check
 
 # lint

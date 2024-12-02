@@ -1,6 +1,10 @@
 {
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    # Disable `nixos-unstable` for now, it introduced some `VScode` related errors:
+    # error: function 'buildVscodeExtension' called without required argument 'pname'
+    # nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.11";
+    # nixpkgs.url = "github:NixOS/nixpkgs/a8a983027ca02b363dfc82fbe3f7d9548a8d3dce";
     flake-utils.url = "github:numtide/flake-utils";
     crane.url = "github:ipetkov/crane";
     fenix = {
@@ -72,7 +76,7 @@
                 clippy
                 rustfmt
                 toolchain
-                just
+                pkgs.just
               ];
 
 
