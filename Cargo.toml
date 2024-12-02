@@ -5,6 +5,11 @@ edition = "2021"
 
 [dependencies]
 ratatui = "0.29.0"
-crossterm = "0.28.1"
+crossterm = {version = "0.28.1", features = ["event-stream", "serde"] }
 color-eyre = "0.6.2"
+futures = "0.3"
+serde = { version = "1", features = ["derive"] }
 strum = { version = "0.26.3", features = ["derive"] }
+tokio = { version = "1.41.1", features = ["full"] }
+tokio-stream = "0.1.16"
+tokio-util = "0.7.12"

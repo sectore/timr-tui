@@ -1,17 +1,19 @@
 mod app;
-mod countdown;
-mod footer;
-mod pomodoro;
-mod timer;
+mod events;
+mod terminal;
 mod utils;
+mod widgets;
 
 use app::App;
-use color_eyre::{eyre::Context, Result};
+use color_eyre::Result;
 
-fn main() -> Result<()> {
+#[tokio::main]
+async fn main() -> Result<()> {
     color_eyre::install()?;
-    let terminal = ratatui::init();
-    let app_result = App::default().run(terminal).context("app loop failed");
-    ratatui::restore();
-    app_result
+    let terminal = terminal::init()?;
+
+    let events = events::Events::new();
+    App::new().run(terminal, events).await?;
+    terminal::restore()?;
+    Ok(())
 }
