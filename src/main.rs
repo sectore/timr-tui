@@ -12,10 +12,11 @@ use color_eyre::Result;
 #[tokio::main]
 async fn main() -> Result<()> {
     color_eyre::install()?;
-    let terminal = terminal::init()?;
 
+    let terminal = terminal::setup()?;
     let events = events::Events::new();
     App::new().run(terminal, events).await?;
-    terminal::restore()?;
+    terminal::teardown()?;
+
     Ok(())
 }
