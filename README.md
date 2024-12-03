@@ -1,4 +1,20 @@
-# tim:r
+# tim:r 
+
+**pronounced `/ˈtʌɪmə/` or `/ˈtaɪmər/`**
+
+> [!WARNING]  
+> _Everything is still WIP_ 😎
+
+# About
+
+`tim:r` is a TUI to track your `time` built with [`ratatui`](https://ratatui.rs/) ([Rust](https://www.rust-lang.org/)) 
+
+
+# Screens
+
+_soon_
+
+# Installation
 
 ## Build from source
 
