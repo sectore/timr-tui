@@ -50,7 +50,5 @@ impl StatefulWidget for &CountdownWidget {
 
         h.render(v1, buf);
         c.render(v2, buf);
-
-        // StatefulWidget::render(table, area, buf, &mut state.state);
     }
 }

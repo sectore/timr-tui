@@ -9,7 +9,7 @@ use crate::{
         footer::Footer,
         header::Header,
         pomodoro::Pomodoro,
-        timer::Timer,
+        timer::{Timer, TimerWidget},
     },
 };
 use color_eyre::Result;
@@ -39,7 +39,7 @@ pub struct App {
     mode: Mode,
     show_menu: bool,
     countdown: Countdown,
-    clock_timer: Clock<clock::Timer>,
+    timer: Timer,
 }
 
 impl Default for App {
@@ -55,7 +55,7 @@ impl Default for App {
                     TICK_VALUE_MS,
                 ),
             ),
-            clock_timer: Clock::<clock::Timer>::new(0, TICK_VALUE_MS),
+            timer: Timer::new("Timer".into(), Clock::<clock::Timer>::new(0, TICK_VALUE_MS)),
         }
     }
 }
@@ -68,15 +68,14 @@ impl App {
     pub async fn run(&mut self, mut terminal: Terminal, mut events: Events) -> Result<()> {
         while self.is_running() {
             if let Some(event) = events.next().await {
-                if let Content::Countdown = self.content {
-                    self.countdown.update(event.clone())
+                match self.content {
+                    Content::Countdown => self.countdown.update(event.clone()),
+                    Content::Timer => self.timer.update(event.clone()),
+                    _ => {}
                 };
                 match event {
                     Event::Render | Event::Resize => {
                         self.draw(&mut terminal)?;
-                    }
-                    Event::Tick => {
-                        self.tick();
                     }
                     Event::Key(key) => self.handle_key_event(key),
                     _ => {}
@@ -94,11 +93,9 @@ impl App {
         match key.code {
             KeyCode::Char('q') | KeyCode::Esc => self.mode = Mode::Quit,
             KeyCode::Char('c') => self.content = Content::Countdown,
-            KeyCode::Char('s') => self.toggle(),
             KeyCode::Char('t') => self.content = Content::Timer,
             KeyCode::Char('p') => self.content = Content::Pomodoro,
             KeyCode::Char('m') => self.show_menu = !self.show_menu,
-            KeyCode::Char('r') => self.reset(),
             _ => {}
         };
     }
@@ -109,24 +106,6 @@ impl App {
         })?;
         Ok(())
     }
-
-    fn reset(&mut self) {
-        if let Content::Timer = self.content {
-            self.clock_timer.reset()
-        };
-    }
-
-    fn toggle(&mut self) {
-        if self.content == Content::Timer {
-            self.clock_timer.toggle_pause()
-        };
-    }
-
-    fn tick(&mut self) {
-        if self.content == Content::Timer {
-            self.clock_timer.tick()
-        };
-    }
 }
 
 struct AppWidget;
@@ -136,9 +115,7 @@ impl AppWidget {
         // center content
         let area = center(area, Constraint::Length(50), Constraint::Length(2));
         match state.content {
-            Content::Timer => {
-                Timer::new("Timer".into(), state.clock_timer.clone()).render(area, buf)
-            }
+            Content::Timer => TimerWidget.render(area, buf, &mut state.timer),
             Content::Countdown => CountdownWidget.render(area, buf, &mut state.countdown),
             Content::Pomodoro => Pomodoro::new("Pomodoro".into()).render(area, buf),
         };
