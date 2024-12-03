@@ -14,13 +14,11 @@ enum StreamKey {
 }
 #[derive(Clone, Debug)]
 pub enum Event {
-    Init,
-    Quit,
     Error,
     Tick,
     Render,
     Key(KeyEvent),
-    Resize(u16, u16),
+    Resize,
 }
 
 pub struct Events {
@@ -69,10 +67,14 @@ fn crossterm_stream() -> Pin<Box<dyn Stream<Item = Event>>> {
                     Ok(CrosstermEvent::Key(key)) if key.kind == KeyEventKind::Press => {
                         Some(Event::Key(key))
                     }
-                    Ok(CrosstermEvent::Resize(x, y)) => Some(Event::Resize(x, y)),
+                    Ok(CrosstermEvent::Resize(_, _)) => Some(Event::Resize),
                     Err(_) => Some(Event::Error),
                     _ => None,
                 }
             }),
     )
+}
+
+pub trait EventHandler {
+    fn update(&mut self, _: Event);
 }
