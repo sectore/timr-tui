@@ -45,7 +45,7 @@ impl StatefulWidget for &CountdownWidget {
     type State = Countdown;
     fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
         let h = Paragraph::new(state.headline.clone()).centered();
-        let c = Paragraph::new(state.clock.format()).centered();
+        let c = Paragraph::new(format!("{}", state.clock)).centered();
         let [v1, v2] = Layout::vertical([Constraint::Length(1), Constraint::Length(1)]).areas(area);
 
         h.render(v1, buf);

@@ -1,5 +1,6 @@
+use std::fmt;
 use std::marker::PhantomData;
-
+use std::time::Duration;
 use strum::Display;
 
 #[derive(Debug, Copy, Clone, Display, PartialEq, Eq)]
@@ -33,14 +34,30 @@ impl<T> Clock<T> {
         self.current_value = self.initial_value;
     }
 
-    pub fn format(&mut self) -> String {
-        let ms = self.current_value;
+    fn duration(&self) -> Duration {
+        Duration::from_millis(self.current_value)
+    }
 
-        let minutes = (ms % 3600000) / 60000;
-        let seconds = (ms % 60000) / 1000;
-        let tenths = (ms % 1000) / 100;
+    fn minutes(&self) -> u64 {
+        self.duration().as_secs() / 60
+    }
+    fn seconds(&self) -> u64 {
+        self.duration().as_secs() % 60
+    }
+    fn tenths(&self) -> u32 {
+        self.duration().subsec_millis() / 100
+    }
+}
 
-        format!("{:02}:{:02}.{}", minutes, seconds, tenths)
+impl<T> fmt::Display for Clock<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{:02}:{:02}.{}",
+            self.minutes(),
+            self.seconds(),
+            self.tenths()
+        )
     }
 }
 
