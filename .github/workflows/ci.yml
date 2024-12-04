@@ -17,8 +17,8 @@ jobs:
         run: nix develop --command cargo fmt --all -- --check
       - name: Run clippy
         run: nix develop --command cargo clippy -- -D warnings
-      - name: Run tests
-        run: nix develop --command cargo test
+      - name: Run alejandra
+        run: nix develop --command alejandra --check flake.nix
 
   test:
     runs-on: ubuntu-latest
