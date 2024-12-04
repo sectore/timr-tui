@@ -1,13 +1,20 @@
 # tim:r
 
-**pronounced `/ˈtʌɪmə/` or `/ˈtaɪmər/`**
+**Pronounced `/ˈtʌɪmə/` or `/ˈtaɪmər/`.** Other just say `timer`.
 
 > [!WARNING]
 > _Everything is still WIP_ 😎
 
 # About
 
-`tim:r` is a TUI to track your `time` built with [`ratatui`](https://ratatui.rs/) ([Rust](https://www.rust-lang.org/))
+`tim:r` is a TUI app to help you to organize one of the most important thing you have in live: `time`!
+
+- `[t]imer` Check the time on anything you are you doing.
+- `[c]ountdown` Use it for your workout, yoga session, meditation, handstand or whatever.
+- `[p]omodoro` Organize your working time to be focused all the time by following the [Pomodoro Technique](https://en.wikipedia.org/wiki/Pomodoro_Technique).
+
+
+It's built with [`ratatui`](https://ratatui.rs/) ([Rust](https://www.rust-lang.org/))
 
 
 # Screens
