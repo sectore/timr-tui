@@ -13,3 +13,6 @@ strum = { version = "0.26.3", features = ["derive"] }
 tokio = { version = "1.41.1", features = ["full"] }
 tokio-stream = "0.1.16"
 tokio-util = "0.7.12"
+tracing = "0.1.41"
+tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
+directories = "5.0.1"

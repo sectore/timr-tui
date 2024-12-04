@@ -19,6 +19,7 @@ use ratatui::{
     layout::{Constraint, Layout, Rect},
     widgets::{Block, StatefulWidget, Widget},
 };
+use tracing::debug;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Mode {
@@ -90,6 +91,7 @@ impl App {
     }
 
     fn handle_key_event(&mut self, key: KeyEvent) {
+        debug!("Received key {:?}", key.code);
         match key.code {
             KeyCode::Char('q') | KeyCode::Esc => self.mode = Mode::Quit,
             KeyCode::Char('c') => self.content = Content::Countdown,
