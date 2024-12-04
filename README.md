@@ -1,13 +1,13 @@
-# tim:r 
+# tim:r
 
 **pronounced `/ˈtʌɪmə/` or `/ˈtaɪmər/`**
 
-> [!WARNING]  
+> [!WARNING]
 > _Everything is still WIP_ 😎
 
 # About
 
-`tim:r` is a TUI to track your `time` built with [`ratatui`](https://ratatui.rs/) ([Rust](https://www.rust-lang.org/)) 
+`tim:r` is a TUI to track your `time` built with [`ratatui`](https://ratatui.rs/) ([Rust](https://www.rust-lang.org/))
 
 
 # Screens
@@ -71,4 +71,14 @@ Available recipes:
     r       # alias for `run`
     test    # run tests
     t       # alias for `test`
+```
+
+# Misc.
+
+## Logs
+
+In `debug` mode only.
+
+```sh
+tail -f ~/.local/state/timr/logs/timr.log
 ```
