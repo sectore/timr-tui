@@ -1,6 +1,6 @@
 # The `--fmt` command is currently unstable.
 
-# set unstable := true
+set unstable := true
 
 default:
     @just --list
@@ -21,8 +21,8 @@ test:
 
 # format files
 format:
-    # just --fmt
-    cargo fmt --check
+    just --fmt
+    cargo fmt
 
 # lint
 lint:
