@@ -8,9 +8,9 @@ use ratatui::{
 use std::cmp::max;
 
 use crate::{
-    clock::{self, Clock, ClockWidget},
     events::{Event, EventHandler},
     utils::center,
+    widgets::clock::{self, Clock, ClockWidget},
 };
 
 #[derive(Debug, Clone)]

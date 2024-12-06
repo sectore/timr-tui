@@ -1,7 +1,7 @@
 use crate::{
-    clock::{self, Clock, ClockWidget},
     events::{Event, EventHandler},
     utils::center,
+    widgets::clock::{self, Clock, ClockWidget},
 };
 use ratatui::{
     buffer::Buffer,

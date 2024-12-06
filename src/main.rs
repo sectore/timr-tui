@@ -1,5 +1,4 @@
 mod app;
-mod clock;
 mod config;
 mod constants;
 mod events;

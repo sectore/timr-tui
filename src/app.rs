@@ -1,9 +1,9 @@
 use crate::{
-    clock::{self, Clock},
     constants::TICK_VALUE_MS,
     events::{Event, EventHandler, Events},
     terminal::Terminal,
     widgets::{
+        clock::{self, Clock},
         countdown::{Countdown, CountdownWidget},
         footer::Footer,
         header::Header,
