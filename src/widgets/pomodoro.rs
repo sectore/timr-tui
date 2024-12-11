@@ -1,37 +1,157 @@
+use crate::{
+    constants::TICK_VALUE_MS,
+    events::{Event, EventHandler},
+    utils::center,
+    widgets::clock::{Clock, ClockWidget, Countdown},
+};
 use ratatui::{
     buffer::Buffer,
+    crossterm::event::KeyCode,
     layout::{Constraint, Layout, Rect},
-    style::Stylize,
     text::Line,
-    widgets::Widget,
+    widgets::{StatefulWidget, Widget},
 };
+use std::cmp::max;
+use std::time::Duration;
+use strum::Display;
 
-use crate::utils::center;
+pub static PAUSE_MS: u64 = 5 * 60 * 1000; /* 5min in milliseconds */
+pub static WORK_MS: u64 = 25 * 60 * 1000; /* 25min in milliseconds */
 
-#[derive(Debug, Default, Clone, PartialEq, Eq)]
-pub struct Pomodoro {
-    headline: String,
+#[derive(Debug, Clone, Display, Hash, Eq, PartialEq)]
+enum Mode {
+    Work,
+    Pause,
 }
 
-impl Pomodoro {
-    pub const fn new(headline: String) -> Self {
-        Self { headline }
+#[derive(Debug, Clone)]
+pub struct ClockMap {
+    work: Clock<Countdown>,
+    pause: Clock<Countdown>,
+}
+
+impl ClockMap {
+    fn get(&mut self, mode: &Mode) -> &mut Clock<Countdown> {
+        match mode {
+            Mode::Work => &mut self.work,
+            Mode::Pause => &mut self.pause,
+        }
     }
 }
 
-impl Widget for Pomodoro {
-    fn render(self, area: Rect, buf: &mut Buffer) {
-        let headline = Line::raw(self.headline.clone());
+#[derive(Debug, Clone)]
+pub struct Pomodoro {
+    mode: Mode,
+    clock_map: ClockMap,
+}
+
+impl Pomodoro {
+    pub fn new() -> Self {
+        Self {
+            mode: Mode::Work,
+            clock_map: ClockMap {
+                work: Clock::<Countdown>::new(
+                    Duration::from_millis(WORK_MS),
+                    Duration::from_millis(TICK_VALUE_MS),
+                ),
+                pause: Clock::<Countdown>::new(
+                    Duration::from_millis(PAUSE_MS),
+                    Duration::from_millis(TICK_VALUE_MS),
+                ),
+            },
+        }
+    }
+
+    fn get_clock(&mut self) -> &mut Clock<Countdown> {
+        self.clock_map.get(&self.mode)
+    }
+
+    pub fn next(&mut self) {
+        self.mode = match self.mode {
+            Mode::Pause => Mode::Work,
+            Mode::Work => Mode::Pause,
+        };
+    }
+
+    pub fn is_edit_mode(&mut self) -> bool {
+        self.get_clock().is_edit_mode()
+    }
+}
+
+impl EventHandler for Pomodoro {
+    fn update(&mut self, event: Event) {
+        match event {
+            Event::Tick => {
+                self.get_clock().tick();
+            }
+            Event::Key(key) => match key.code {
+                KeyCode::Char('s') => {
+                    self.get_clock().toggle_pause();
+                }
+                KeyCode::Char('e') => {
+                    self.get_clock().toggle_edit();
+                }
+                KeyCode::Left => {
+                    if self.get_clock().is_edit_mode() {
+                        self.get_clock().edit_next();
+                    } else {
+                        // `next` is acting as same as a `prev` function, we don't have
+                        self.next();
+                    }
+                }
+                KeyCode::Right => {
+                    if self.get_clock().is_edit_mode() {
+                        self.get_clock().edit_prev();
+                    } else {
+                        self.next();
+                    }
+                }
+                KeyCode::Up => {
+                    if self.get_clock().is_edit_mode() {
+                        self.get_clock().edit_up();
+                    }
+                }
+                KeyCode::Down => {
+                    if self.get_clock().is_edit_mode() {
+                        self.get_clock().edit_down();
+                    }
+                }
+                KeyCode::Char('r') => {
+                    self.get_clock().reset();
+                }
+                _ => {}
+            },
+
+            _ => {}
+        }
+    }
+}
+
+pub struct PomodoroWidget;
+
+impl StatefulWidget for PomodoroWidget {
+    type State = Pomodoro;
+    fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
+        let clock = ClockWidget::new();
+        let mode_str = Line::raw(
+            (if let Some(edit_mode) = state.get_clock().edit_mode() {
+                format!("{} > edit {}", state.mode, edit_mode)
+            } else {
+                format!("{}", state.mode)
+            })
+            .to_uppercase(),
+        );
 
         let area = center(
             area,
-            Constraint::Length(headline.width() as u16),
-            Constraint::Length(3),
+            Constraint::Length(max(clock.get_width(), mode_str.width() as u16)),
+            Constraint::Length(clock.get_height() + 1 /* height of mode_str */),
         );
 
-        let [v1, _, v2] = Layout::vertical(Constraint::from_lengths([1, 1, 1])).areas(area);
+        let [v1, v2] =
+            Layout::vertical(Constraint::from_lengths([clock.get_height(), 1])).areas(area);
 
-        headline.render(v2, buf);
-        Line::raw("SOON").centered().italic().render(v1, buf);
+        clock.render(v1, buf, state.get_clock());
+        mode_str.render(v2, buf);
     }
 }
