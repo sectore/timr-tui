@@ -72,14 +72,11 @@ impl Pomodoro {
             Mode::Work => Mode::Pause,
         };
     }
-
-    pub fn is_edit_mode(&mut self) -> bool {
-        self.get_clock().is_edit_mode()
-    }
 }
 
 impl EventHandler for Pomodoro {
-    fn update(&mut self, event: Event) {
+    fn update(&mut self, event: Event) -> Option<Event> {
+        let edit_mode = self.get_clock().is_edit_mode();
         match event {
             Event::Tick => {
                 self.get_clock().tick();
@@ -91,35 +88,33 @@ impl EventHandler for Pomodoro {
                 KeyCode::Char('e') => {
                     self.get_clock().toggle_edit();
                 }
-                KeyCode::Left => {
-                    if self.get_clock().is_edit_mode() {
-                        self.get_clock().edit_next();
-                    } else {
-                        // `next` is acting as same as a `prev` function, we don't have
-                        self.next();
-                    }
+                KeyCode::Left if edit_mode => {
+                    self.get_clock().edit_next();
+                }
+                KeyCode::Left if edit_mode => {
+                    // `next` is acting as same as a `prev` function, we don't have
+                    self.next();
+                }
+                KeyCode::Right if edit_mode => {
+                    self.get_clock().edit_prev();
                 }
                 KeyCode::Right => {
-                    if self.get_clock().is_edit_mode() {
-                        self.get_clock().edit_prev();
-                    } else {
-                        self.next();
-                    }
+                    self.next();
                 }
-                KeyCode::Up => {
+                KeyCode::Up if edit_mode => {
                     self.get_clock().edit_up();
                 }
-                KeyCode::Down => {
+                KeyCode::Down if edit_mode => {
                     self.get_clock().edit_down();
                 }
                 KeyCode::Char('r') => {
                     self.get_clock().reset();
                 }
-                _ => {}
+                _ => return Some(event),
             },
-
-            _ => {}
+            _ => return Some(event),
         }
+        None
     }
 }
 

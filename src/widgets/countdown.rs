@@ -22,14 +22,11 @@ impl Countdown {
     pub const fn new(clock: Clock<clock::Countdown>) -> Self {
         Self { clock }
     }
-
-    pub fn is_edit_mode(&mut self) -> bool {
-        self.clock.is_edit_mode()
-    }
 }
 
 impl EventHandler for Countdown {
-    fn update(&mut self, event: Event) {
+    fn update(&mut self, event: Event) -> Option<Event> {
+        let edit_mode = self.clock.is_edit_mode();
         match event {
             Event::Tick => {
                 self.clock.tick();
@@ -47,22 +44,23 @@ impl EventHandler for Countdown {
                 KeyCode::Char('e') => {
                     self.clock.toggle_edit();
                 }
-                KeyCode::Left => {
+                KeyCode::Left if edit_mode => {
                     self.clock.edit_next();
                 }
-                KeyCode::Right => {
+                KeyCode::Right if edit_mode => {
                     self.clock.edit_prev();
                 }
-                KeyCode::Up => {
+                KeyCode::Up if edit_mode => {
                     self.clock.edit_up();
                 }
-                KeyCode::Down => {
+                KeyCode::Down if edit_mode => {
                     self.clock.edit_down();
                 }
-                _ => {}
+                _ => return Some(event),
             },
-            _ => {}
+            _ => return Some(event),
         }
+        None
     }
 }
 
