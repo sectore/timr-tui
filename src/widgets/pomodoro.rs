@@ -11,8 +11,8 @@ use ratatui::{
     text::Line,
     widgets::{StatefulWidget, Widget},
 };
-use std::cmp::max;
-use std::time::Duration;
+use std::{cmp::max, time::Duration};
+
 use strum::Display;
 
 static PAUSE_MS: u64 = 5 * 60 * 1000; /* 5min in milliseconds */
@@ -107,14 +107,10 @@ impl EventHandler for Pomodoro {
                     }
                 }
                 KeyCode::Up => {
-                    if self.get_clock().is_edit_mode() {
-                        self.get_clock().edit_up();
-                    }
+                    self.get_clock().edit_up();
                 }
                 KeyCode::Down => {
-                    if self.get_clock().is_edit_mode() {
-                        self.get_clock().edit_down();
-                    }
+                    self.get_clock().edit_down();
                 }
                 KeyCode::Char('r') => {
                     self.get_clock().reset();
@@ -133,18 +129,18 @@ impl StatefulWidget for PomodoroWidget {
     type State = Pomodoro;
     fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
         let clock = ClockWidget::new();
-        let mode_str = Line::raw(
-            (if let Some(edit_mode) = state.get_clock().edit_mode() {
-                format!("{} > edit {}", state.mode, edit_mode)
-            } else {
-                format!("{} > {}", state.mode.clone(), state.get_clock().get_mode())
-            })
+        let label = Line::raw(
+            (format!(
+                "Pomodoro {} {}",
+                state.mode.clone(),
+                state.get_clock().get_mode()
+            ))
             .to_uppercase(),
         );
 
         let area = center(
             area,
-            Constraint::Length(max(clock.get_width(), mode_str.width() as u16)),
+            Constraint::Length(max(clock.get_width(), label.width() as u16)),
             Constraint::Length(clock.get_height() + 1 /* height of mode_str */),
         );
 
@@ -152,6 +148,6 @@ impl StatefulWidget for PomodoroWidget {
             Layout::vertical(Constraint::from_lengths([clock.get_height(), 1])).areas(area);
 
         clock.render(v1, buf, state.get_clock());
-        mode_str.render(v2, buf);
+        label.centered().render(v2, buf);
     }
 }

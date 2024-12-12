@@ -15,13 +15,12 @@ use crate::{
 
 #[derive(Debug, Clone)]
 pub struct Countdown {
-    headline: String,
     clock: Clock<clock::Countdown>,
 }
 
 impl Countdown {
-    pub const fn new(headline: String, clock: Clock<clock::Countdown>) -> Self {
-        Self { headline, clock }
+    pub const fn new(clock: Clock<clock::Countdown>) -> Self {
+        Self { clock }
     }
 
     pub fn is_edit_mode(&mut self) -> bool {
@@ -35,12 +34,33 @@ impl EventHandler for Countdown {
             Event::Tick => {
                 self.clock.tick();
             }
-            Event::Key(key) if key.code == KeyCode::Char('s') => {
-                self.clock.toggle_pause();
-            }
             Event::Key(key) if key.code == KeyCode::Char('r') => {
                 self.clock.reset();
             }
+            Event::Key(key) => match key.code {
+                KeyCode::Char('r') => {
+                    self.clock.reset();
+                }
+                KeyCode::Char('s') => {
+                    self.clock.toggle_pause();
+                }
+                KeyCode::Char('e') => {
+                    self.clock.toggle_edit();
+                }
+                KeyCode::Left => {
+                    self.clock.edit_next();
+                }
+                KeyCode::Right => {
+                    self.clock.edit_prev();
+                }
+                KeyCode::Up => {
+                    self.clock.edit_up();
+                }
+                KeyCode::Down => {
+                    self.clock.edit_down();
+                }
+                _ => {}
+            },
             _ => {}
         }
     }
@@ -52,17 +72,18 @@ impl StatefulWidget for CountdownWidget {
     type State = Countdown;
     fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
         let clock = ClockWidget::new();
-        let headline = Line::raw(state.headline.to_uppercase());
+        let headline = "Countdown".to_uppercase();
+        let label = Line::raw((format!("{} {}", headline, state.clock.get_mode())).to_uppercase());
 
         let area = center(
             area,
-            Constraint::Length(max(clock.get_width(), headline.width() as u16)),
-            Constraint::Length(clock.get_height() + 1 /* height of headline */),
+            Constraint::Length(max(clock.get_width(), label.width() as u16)),
+            Constraint::Length(clock.get_height() + 1 /* height of label */),
         );
         let [v1, v2] =
             Layout::vertical(Constraint::from_lengths([clock.get_height(), 1])).areas(area);
 
         clock.render(v1, buf, &mut state.clock);
-        headline.render(v2, buf);
+        label.centered().render(v2, buf);
     }
 }
