@@ -5,26 +5,44 @@ use strum::Display;
 
 use ratatui::{
     buffer::Buffer,
-    layout::{Constraint, Direction, Layout, Position, Rect},
-    widgets::StatefulWidget,
+    layout::{Constraint, Layout, Position, Rect, Size},
+    symbols,
+    widgets::{Block, Borders, StatefulWidget, Widget},
 };
 
+use crate::utils::center_horizontal;
+
 #[derive(Debug, Copy, Clone, Display, PartialEq, Eq)]
+pub enum Time {
+    Seconds,
+    Minutes,
+    // TODO: Handle hours
+    // Hours,
+}
+
+#[derive(Debug, Clone, Display, PartialEq, Eq)]
 pub enum Mode {
     Initial,
     Tick,
     Pause,
+    Editable(
+        Time,
+        Box<Mode>, /* previous mode before starting editing */
+    ),
     Done,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct Clock<T> {
-    initial_value: u64,
-    tick_value: u64,
-    current_value: u64,
+    initial_value: Duration,
+    tick_value: Duration,
+    current_value: Duration,
     mode: Mode,
     phantom: PhantomData<T>,
 }
+
+// TODO: Change it to 23:59:59 after supporting `hours`
+const MAX_EDITABLE_DURATION: Duration = Duration::from_secs(60 * 60); // 1 hour
 
 impl<T> Clock<T> {
     pub fn toggle_pause(&mut self) {
@@ -35,23 +53,125 @@ impl<T> Clock<T> {
         }
     }
 
+    pub fn toggle_edit(&mut self) {
+        self.mode = match self.mode.clone() {
+            Mode::Editable(_, prev) => {
+                let p = *prev;
+                // special cases: Should `Mode` be updated?
+                // 1. `Done` -> `Initial` ?
+                if p == Mode::Done && self.current_value.gt(&Duration::ZERO) {
+                    Mode::Initial
+                }
+                // 2. `_` -> `Done` ?
+                else if p != Mode::Done && self.current_value.eq(&Duration::ZERO) {
+                    Mode::Done
+                }
+                // 3. `_` -> `_` (no change)
+                else {
+                    p
+                }
+            }
+            mode => Mode::Editable(Time::Minutes, Box::new(mode)),
+        };
+    }
+
+    pub fn edit_up(&mut self) {
+        self.current_value = match self.mode {
+            Mode::Editable(Time::Seconds, _) => {
+                if self
+                    .current_value
+                    // TODO: Change it to 24:59:59 after supporting `hours`
+                    // At the meantime: < 59:59
+                    .lt(&MAX_EDITABLE_DURATION.saturating_sub(Duration::from_secs(1)))
+                {
+                    self.current_value.saturating_add(Duration::from_secs(1))
+                } else {
+                    self.current_value
+                }
+            }
+            Mode::Editable(Time::Minutes, _) => {
+                if self
+                    .current_value
+                    // TODO: Change it to 24:59:00 after supporting `hours`
+                    // At the meantime: < 59:00
+                    .lt(&MAX_EDITABLE_DURATION.saturating_sub(Duration::from_secs(60)))
+                {
+                    self.current_value.saturating_add(Duration::new(60, 0))
+                } else {
+                    self.current_value
+                }
+            }
+            _ => self.current_value,
+        };
+    }
+    pub fn edit_down(&mut self) {
+        self.current_value = match self.mode {
+            Mode::Editable(Time::Seconds, _) => {
+                self.current_value.saturating_sub(Duration::new(1, 0))
+            }
+            Mode::Editable(Time::Minutes, _) => {
+                self.current_value.saturating_sub(Duration::new(60, 0))
+            }
+            _ => self.current_value,
+        };
+    }
+
+    pub fn get_mode(&mut self) -> Mode {
+        self.mode.clone()
+    }
+
+    pub fn is_edit_mode(&mut self) -> bool {
+        matches!(self.mode, Mode::Editable(_, _))
+    }
+
+    pub fn edit_mode(&mut self) -> Option<Time> {
+        match self.mode {
+            Mode::Editable(time, _) => Some(time),
+            _ => None,
+        }
+    }
+
+    pub fn edit_next(&mut self) {
+        self.mode = match self.mode.clone() {
+            Mode::Editable(Time::Seconds, prev) => Mode::Editable(Time::Minutes, prev),
+            Mode::Editable(Time::Minutes, prev) => Mode::Editable(Time::Seconds, prev),
+            _ => self.mode.clone(),
+        }
+    }
+
+    pub fn edit_prev(&mut self) {
+        // as same as editing `next` value
+        // TODO: Update it as soon as `hours` come into play
+        self.edit_next()
+    }
+
     pub fn reset(&mut self) {
         self.mode = Mode::Initial;
         self.current_value = self.initial_value;
     }
 
     fn duration(&self) -> Duration {
-        Duration::from_millis(self.current_value)
+        self.current_value
+    }
+
+    fn hours(&self) -> u64 {
+        (self.duration().as_secs() / 60 / 60) % 60
     }
 
     fn minutes(&self) -> u64 {
-        self.duration().as_secs() / 60
+        (self.duration().as_secs() / 60) % 60
     }
+
     fn seconds(&self) -> u64 {
         self.duration().as_secs() % 60
     }
+
     fn tenths(&self) -> u32 {
         self.duration().subsec_millis() / 100
+    }
+
+    pub fn is_done(&mut self) -> bool {
+        self.mode == Mode::Done
     }
 }
 
@@ -59,7 +179,8 @@ impl<T> fmt::Display for Clock<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "{:02}:{:02}.{}",
+            "{:02}:{:02}:{:02}.{}",
+            self.hours(),
             self.minutes(),
             self.seconds(),
             self.tenths()
@@ -74,7 +195,7 @@ pub struct Countdown {}
 pub struct Timer {}
 
 impl Clock<Countdown> {
-    pub fn new(initial_value: u64, tick_value: u64) -> Self {
+    pub fn new(initial_value: Duration, tick_value: Duration) -> Self {
         Self {
             initial_value,
             tick_value,
@@ -91,18 +212,18 @@ impl Clock<Countdown> {
         }
     }
 
-    fn check_done(&mut self) {
-        if self.current_value == 0 {
+    pub fn check_done(&mut self) {
+        if self.current_value.is_zero() {
             self.mode = Mode::Done;
         }
     }
 }
 impl Clock<Timer> {
-    pub fn new(initial_value: u64, tick_value: u64) -> Self {
+    pub fn new(initial_value: Duration, tick_value: Duration) -> Self {
         Self {
             initial_value,
             tick_value,
-            current_value: 0,
+            current_value: Duration::ZERO,
             mode: Mode::Initial,
             phantom: PhantomData,
         }
@@ -125,6 +246,7 @@ impl Clock<Timer> {
 const DIGIT_SYMBOL: &str = "█";
 
 const DIGIT_SIZE: usize = 5;
+const EDIT_BORDER_HEIGHT: usize = 1;
 
 #[rustfmt::skip]
 const DIGIT_0: [u8; DIGIT_SIZE * DIGIT_SIZE] = [
@@ -225,11 +347,17 @@ const DIGIT_ERROR: [u8; DIGIT_SIZE * DIGIT_SIZE] = [
     1, 1, 1, 1, 1,
 ];
 
-pub struct ClockWidget<T> {
+pub struct ClockWidget<T>
+where
+    T: std::fmt::Debug,
+{
     phantom: PhantomData<T>,
 }
 
-impl<T> ClockWidget<T> {
+impl<T> ClockWidget<T>
+where
+    T: std::fmt::Debug,
+{
     pub fn new() -> Self {
         Self {
             phantom: PhantomData,
@@ -244,8 +372,12 @@ impl<T> ClockWidget<T> {
         self.get_horizontal_lengths().iter().sum()
     }
 
-    pub fn get_height(&self) -> u16 {
+    pub fn get_digit_height(&self) -> u16 {
         DIGIT_SIZE as u16
+    }
+
+    pub fn get_height(&self) -> u16 {
+        self.get_digit_height() + (EDIT_BORDER_HEIGHT as u16)
     }
 
     fn render_number(number: u64, area: Rect, buf: &mut Buffer) {
@@ -281,14 +413,13 @@ impl<T> ClockWidget<T> {
         });
     }
 
-    fn render_digit_pair(d: u64, area: Rect, buf: &mut Buffer) {
-        let h = Layout::new(
-            Direction::Horizontal,
-            Constraint::from_lengths([DIGIT_SIZE as u16, 2, DIGIT_SIZE as u16]),
-        )
-        .split(area);
+    fn render_digit_pair(d: u64, area: Rect, buf: &mut Buffer) -> Size {
+        let widths = [DIGIT_SIZE as u16, 2, DIGIT_SIZE as u16];
+        let h = Layout::horizontal(Constraint::from_lengths(widths)).split(area);
         Self::render_number(d / 10, h[0], buf);
         Self::render_number(d % 10, h[2], buf);
+
+        Size::new(widths.iter().sum(), area.height)
     }
 
     fn render_colon(area: Rect, buf: &mut Buffer) {
@@ -320,28 +451,57 @@ impl<T> ClockWidget<T> {
             }
         }
     }
+
+    fn render_edit_border(mode: Mode, width: u16, area: Rect, buf: &mut Buffer) {
+        match mode {
+            Mode::Editable(Time::Seconds, _) => {
+                let [_, h2] = Layout::horizontal([Constraint::Fill(0), Constraint::Length(width)])
+                    .areas(area);
+                Block::new()
+                    .borders(Borders::TOP)
+                    .border_set(symbols::border::THICK)
+                    .render(h2, buf);
+            }
+            Mode::Editable(Time::Minutes, _) => {
+                let [h1, _] = Layout::horizontal([Constraint::Length(width), Constraint::Fill(0)])
+                    .areas(area);
+
+                Block::new()
+                    .borders(Borders::TOP)
+                    .border_set(symbols::border::THICK)
+                    .render(h1, buf)
+            }
+            _ => Block::new()
+                .borders(Borders::TOP)
+                .border_set(symbols::border::EMPTY)
+                .render(area, buf),
+        }
+    }
 }
 
-impl<T> StatefulWidget for ClockWidget<T> {
+impl<T> StatefulWidget for ClockWidget<T>
+where
+    T: std::fmt::Debug,
+{
     type State = Clock<T>;
 
     fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
         // center
-        let [_, h, _] = Layout::horizontal([
-            Constraint::Fill(0),
-            Constraint::Length(self.get_width()),
-            Constraint::Fill(0),
-        ])
-        .areas(area);
+        let h = center_horizontal(area, Constraint::Length(self.get_width()));
 
-        let [h1, h2, h3] = Layout::new(
-            Direction::Horizontal,
-            Constraint::from_lengths(self.get_horizontal_lengths()),
-        )
+        let [v1, v2] = Layout::vertical(Constraint::from_lengths([
+            self.get_digit_height(),
+            EDIT_BORDER_HEIGHT as u16,
+        ]))
         .areas(h);
 
-        Self::render_digit_pair(state.minutes(), h1, buf);
+        let [h1, h2, h3] =
+            Layout::horizontal(Constraint::from_lengths(self.get_horizontal_lengths())).areas(v1);
+
+        let size_digits = Self::render_digit_pair(state.minutes(), h1, buf);
         Self::render_colon(h2, buf);
         Self::render_digit_pair(state.seconds(), h3, buf);
+
+        Self::render_edit_border(state.mode.clone(), size_digits.width - 1, v2, buf);
     }
 }

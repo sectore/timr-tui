@@ -7,7 +7,7 @@ use crate::{
         countdown::{Countdown, CountdownWidget},
         footer::Footer,
         header::Header,
-        pomodoro::Pomodoro,
+        pomodoro::{Pomodoro, PomodoroWidget},
         timer::{Timer, TimerWidget},
     },
 };
@@ -18,6 +18,7 @@ use ratatui::{
     layout::{Constraint, Layout, Rect},
     widgets::{StatefulWidget, Widget},
 };
+use std::time::Duration;
 use tracing::debug;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -40,22 +41,27 @@ pub struct App {
     show_menu: bool,
     countdown: Countdown,
     timer: Timer,
+    pomodoro: Pomodoro,
 }
 
 impl Default for App {
     fn default() -> Self {
         Self {
             mode: Mode::Running,
-            content: Content::Countdown,
+            content: Content::Pomodoro,
             show_menu: false,
             countdown: Countdown::new(
                 "Countdown".into(),
                 Clock::<clock::Countdown>::new(
-                    10 * 60 * 1000, /* 10min in milliseconds */
-                    TICK_VALUE_MS,
+                    Duration::from_secs(10 * 60 /* 10min */),
+                    Duration::from_millis(TICK_VALUE_MS),
                 ),
             ),
-            timer: Timer::new("Timer".into(), Clock::<clock::Timer>::new(0, TICK_VALUE_MS)),
+            timer: Timer::new(
+                "Timer".into(),
+                Clock::<clock::Timer>::new(Duration::ZERO, Duration::from_millis(TICK_VALUE_MS)),
+            ),
+            pomodoro: Pomodoro::new(),
         }
     }
 }
@@ -68,10 +74,11 @@ impl App {
     pub async fn run(&mut self, mut terminal: Terminal, mut events: Events) -> Result<()> {
         while self.is_running() {
             if let Some(event) = events.next().await {
+                // Pipe events into subviews and handle 'rest' events only
                 match self.content {
                     Content::Countdown => self.countdown.update(event.clone()),
                     Content::Timer => self.timer.update(event.clone()),
-                    _ => {}
+                    Content::Pomodoro => self.pomodoro.update(event.clone()),
                 };
                 match event {
                     Event::Render | Event::Resize => {
@@ -89,6 +96,14 @@ impl App {
         self.mode != Mode::Quit
     }
 
+    fn is_edit_mode(&mut self) -> bool {
+        match self.content {
+            Content::Countdown => self.countdown.is_edit_mode(),
+            Content::Pomodoro => self.pomodoro.is_edit_mode(),
+            _ => false,
+        }
+    }
+
     fn handle_key_event(&mut self, key: KeyEvent) {
         debug!("Received key {:?}", key.code);
         match key.code {
@@ -97,6 +112,18 @@ impl App {
             KeyCode::Char('t') => self.content = Content::Timer,
             KeyCode::Char('p') => self.content = Content::Pomodoro,
             KeyCode::Char('m') => self.show_menu = !self.show_menu,
+            KeyCode::Up => {
+                // TODO: Pipe events into subviews properly
+                if !self.is_edit_mode() {
+                    self.show_menu = true
+                }
+            }
+            KeyCode::Down => {
+                // TODO: Pipe events into subviews properly
+                if !self.is_edit_mode() {
+                    self.show_menu = false
+                }
+            }
             _ => {}
         };
     }
@@ -116,7 +143,7 @@ impl AppWidget {
         match state.content {
             Content::Timer => TimerWidget.render(area, buf, &mut state.timer),
             Content::Countdown => CountdownWidget.render(area, buf, &mut state.countdown),
-            Content::Pomodoro => Pomodoro::new("Pomodoro".into()).render(area, buf),
+            Content::Pomodoro => PomodoroWidget.render(area, buf, &mut state.pomodoro),
         };
     }
 }
