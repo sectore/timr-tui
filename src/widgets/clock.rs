@@ -25,7 +25,10 @@ pub enum Mode {
     Initial,
     Tick,
     Pause,
-    Editable(Time, Box<Mode>),
+    Editable(
+        Time,
+        Box<Mode>, /* previous mode before starting editing */
+    ),
     Done,
 }
 
@@ -137,7 +140,8 @@ impl<T> Clock<T> {
     }
 
     pub fn edit_prev(&mut self) {
-        // as same as `next` edit value
+        // as same as editing `next` value
+        // TODO: Update it as soon as `hours` come into play
         self.edit_next()
     }
 
