@@ -24,7 +24,7 @@ impl Timer {
 }
 
 impl EventHandler for Timer {
-    fn update(&mut self, event: Event) {
+    fn update(&mut self, event: Event) -> Option<Event> {
         match event {
             Event::Tick => {
                 self.clock.tick();
@@ -35,8 +35,9 @@ impl EventHandler for Timer {
             Event::Key(key) if key.code == KeyCode::Char('r') => {
                 self.clock.reset();
             }
-            _ => {}
+            _ => return Some(event),
         }
+        None
     }
 }
 

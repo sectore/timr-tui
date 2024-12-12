@@ -76,5 +76,5 @@ fn crossterm_stream() -> Pin<Box<dyn Stream<Item = Event>>> {
 }
 
 pub trait EventHandler {
-    fn update(&mut self, _: Event);
+    fn update(&mut self, _: Event) -> Option<Event>;
 }

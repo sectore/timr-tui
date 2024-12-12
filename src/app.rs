@@ -71,18 +71,19 @@ impl App {
     pub async fn run(&mut self, mut terminal: Terminal, mut events: Events) -> Result<()> {
         while self.is_running() {
             if let Some(event) = events.next().await {
-                // Pipe events into subviews and handle 'rest' events only
-                match self.content {
+                // Pipe events into subviews and handle only 'unhandled' events afterwards
+                if let Some(unhandled) = match self.content {
                     Content::Countdown => self.countdown.update(event.clone()),
                     Content::Timer => self.timer.update(event.clone()),
                     Content::Pomodoro => self.pomodoro.update(event.clone()),
-                };
-                match event {
-                    Event::Render | Event::Resize => {
-                        self.draw(&mut terminal)?;
+                } {
+                    match unhandled {
+                        Event::Render | Event::Resize => {
+                            self.draw(&mut terminal)?;
+                        }
+                        Event::Key(key) => self.handle_key_event(key),
+                        _ => {}
                     }
-                    Event::Key(key) => self.handle_key_event(key),
-                    _ => {}
                 }
             }
         }
@@ -93,14 +94,6 @@ impl App {
         self.mode != Mode::Quit
     }
 
-    fn is_edit_mode(&mut self) -> bool {
-        match self.content {
-            Content::Countdown => self.countdown.is_edit_mode(),
-            Content::Pomodoro => self.pomodoro.is_edit_mode(),
-            _ => false,
-        }
-    }
-
     fn handle_key_event(&mut self, key: KeyEvent) {
         debug!("Received key {:?}", key.code);
         match key.code {
@@ -109,18 +102,8 @@ impl App {
             KeyCode::Char('t') => self.content = Content::Timer,
             KeyCode::Char('p') => self.content = Content::Pomodoro,
             KeyCode::Char('m') => self.show_menu = !self.show_menu,
-            KeyCode::Up => {
-                // TODO: Pipe events into subviews properly
-                if !self.is_edit_mode() {
-                    self.show_menu = true
-                }
-            }
-            KeyCode::Down => {
-                // TODO: Pipe events into subviews properly
-                if !self.is_edit_mode() {
-                    self.show_menu = false
-                }
-            }
+            KeyCode::Up => self.show_menu = true,
+            KeyCode::Down => self.show_menu = false,
             _ => {}
         };
     }
