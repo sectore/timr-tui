@@ -53,7 +53,7 @@ impl Default for App {
             countdown: Countdown::new(
                 "Countdown".into(),
                 Clock::<clock::Countdown>::new(
-                    Duration::new(10 * 60 * 1000, /* 10min in milliseconds */ 0),
+                    Duration::from_secs(10 * 60 /* 10min */),
                     Duration::from_millis(TICK_VALUE_MS),
                 ),
             ),
@@ -74,6 +74,7 @@ impl App {
     pub async fn run(&mut self, mut terminal: Terminal, mut events: Events) -> Result<()> {
         while self.is_running() {
             if let Some(event) = events.next().await {
+                // Pipe events into subviews and handle 'rest' events only
                 match self.content {
                     Content::Countdown => self.countdown.update(event.clone()),
                     Content::Timer => self.timer.update(event.clone()),
@@ -112,11 +113,13 @@ impl App {
             KeyCode::Char('p') => self.content = Content::Pomodoro,
             KeyCode::Char('m') => self.show_menu = !self.show_menu,
             KeyCode::Up => {
+                // TODO: Pipe events into subviews properly
                 if !self.is_edit_mode() {
                     self.show_menu = true
                 }
             }
             KeyCode::Down => {
+                // TODO: Pipe events into subviews properly
                 if !self.is_edit_mode() {
                     self.show_menu = false
                 }

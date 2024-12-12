@@ -15,8 +15,8 @@ use std::cmp::max;
 use std::time::Duration;
 use strum::Display;
 
-pub static PAUSE_MS: u64 = 5 * 60 * 1000; /* 5min in milliseconds */
-pub static WORK_MS: u64 = 25 * 60 * 1000; /* 25min in milliseconds */
+static PAUSE_MS: u64 = 5 * 60 * 1000; /* 5min in milliseconds */
+static WORK_MS: u64 = 25 * 60 * 1000; /* 25min in milliseconds */
 
 #[derive(Debug, Clone, Display, Hash, Eq, PartialEq)]
 enum Mode {
@@ -137,7 +137,7 @@ impl StatefulWidget for PomodoroWidget {
             (if let Some(edit_mode) = state.get_clock().edit_mode() {
                 format!("{} > edit {}", state.mode, edit_mode)
             } else {
-                format!("{}", state.mode)
+                format!("{} > {}", state.mode.clone(), state.get_clock().get_mode())
             })
             .to_uppercase(),
         );

@@ -13,23 +13,23 @@ use ratatui::{
 use crate::utils::center_horizontal;
 
 #[derive(Debug, Copy, Clone, Display, PartialEq, Eq)]
-pub enum Editable {
-    None,
+pub enum Time {
     Seconds,
     Minutes,
-    // ignoring hours for now
+    // TODO: Handle hours
     // Hours,
 }
 
-#[derive(Debug, Copy, Clone, Display, PartialEq, Eq)]
+#[derive(Debug, Clone, Display, PartialEq, Eq)]
 pub enum Mode {
     Initial,
     Tick,
-    Pause(Editable),
+    Pause,
+    Editable(Time, Box<Mode>),
     Done,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct Clock<T> {
     initial_value: Duration,
     tick_value: Duration,
@@ -38,31 +38,47 @@ pub struct Clock<T> {
     phantom: PhantomData<T>,
 }
 
+// TODO: Change it to 23:59:59 after supporting `hours`
 const MAX_EDITABLE_DURATION: Duration = Duration::from_secs(60 * 60); // 1 hour
 
 impl<T> Clock<T> {
     pub fn toggle_pause(&mut self) {
         self.mode = if self.mode == Mode::Tick {
-            Mode::Pause(Editable::None)
+            Mode::Pause
         } else {
             Mode::Tick
         }
     }
 
     pub fn toggle_edit(&mut self) {
-        if self.is_edit_mode() {
-            self.mode = Mode::Pause(Editable::None)
-        } else {
-            self.mode = Mode::Pause(Editable::Minutes);
-        }
+        self.mode = match self.mode.clone() {
+            Mode::Editable(_, prev) => {
+                let p = *prev;
+                // special cases: Should `Mode` be updated?
+                // 1. `Done` -> `Initial` ?
+                if p == Mode::Done && self.current_value.gt(&Duration::ZERO) {
+                    Mode::Initial
+                }
+                // 2. `_` -> `Done` ?
+                else if p != Mode::Done && self.current_value.eq(&Duration::ZERO) {
+                    Mode::Done
+                }
+                // 3. `_` -> `_` (no change)
+                else {
+                    p
+                }
+            }
+            mode => Mode::Editable(Time::Minutes, Box::new(mode)),
+        };
     }
 
     pub fn edit_up(&mut self) {
         self.current_value = match self.mode {
-            Mode::Pause(Editable::Seconds) => {
+            Mode::Editable(Time::Seconds, _) => {
                 if self
                     .current_value
-                    // < 59:59
+                    // TODO: Change it to 24:59:59 after supporting `hours`
+                    // At the meantime: < 59:59
                     .lt(&MAX_EDITABLE_DURATION.saturating_sub(Duration::from_secs(1)))
                 {
                     self.current_value.saturating_add(Duration::from_secs(1))
@@ -70,10 +86,11 @@ impl<T> Clock<T> {
                     self.current_value
                 }
             }
-            Mode::Pause(Editable::Minutes) => {
+            Mode::Editable(Time::Minutes, _) => {
                 if self
                     .current_value
-                    // < 59:00
+                    // TODO: Change it to 24:59:00 after supporting `hours`
+                    // At the meantime: < 59:00
                     .lt(&MAX_EDITABLE_DURATION.saturating_sub(Duration::from_secs(60)))
                 {
                     self.current_value.saturating_add(Duration::new(60, 0))
@@ -83,59 +100,45 @@ impl<T> Clock<T> {
             }
             _ => self.current_value,
         };
-
-        // update initial_value
-        self.initial_value = self.current_value;
     }
     pub fn edit_down(&mut self) {
         self.current_value = match self.mode {
-            Mode::Pause(Editable::Seconds) => {
+            Mode::Editable(Time::Seconds, _) => {
                 self.current_value.saturating_sub(Duration::new(1, 0))
             }
-            Mode::Pause(Editable::Minutes) => {
+            Mode::Editable(Time::Minutes, _) => {
                 self.current_value.saturating_sub(Duration::new(60, 0))
             }
             _ => self.current_value,
         };
     }
 
-    pub fn non_edit(&mut self) {
-        self.mode = Mode::Pause(Editable::None);
-    }
-
     pub fn get_mode(&mut self) -> Mode {
-        self.mode
+        self.mode.clone()
     }
 
     pub fn is_edit_mode(&mut self) -> bool {
-        matches!(
-            self.mode,
-            Mode::Pause(Editable::Seconds) | Mode::Pause(Editable::Minutes)
-        )
+        matches!(self.mode, Mode::Editable(_, _))
     }
 
-    pub fn edit_mode(&mut self) -> Option<Editable> {
+    pub fn edit_mode(&mut self) -> Option<Time> {
         match self.mode {
-            Mode::Pause(Editable::None) => None,
-            Mode::Pause(mode) => Some(mode),
+            Mode::Editable(time, _) => Some(time),
             _ => None,
         }
     }
 
     pub fn edit_next(&mut self) {
-        self.mode = Mode::Pause(match self.mode {
-            Mode::Pause(Editable::Seconds) => Editable::Minutes,
-            Mode::Pause(Editable::Minutes) => Editable::Seconds,
-            _ => Editable::None,
-        });
+        self.mode = match self.mode.clone() {
+            Mode::Editable(Time::Seconds, prev) => Mode::Editable(Time::Minutes, prev),
+            Mode::Editable(Time::Minutes, prev) => Mode::Editable(Time::Seconds, prev),
+            _ => self.mode.clone(),
+        }
     }
 
     pub fn edit_prev(&mut self) {
-        self.mode = Mode::Pause(match self.mode {
-            Mode::Pause(Editable::Seconds) => Editable::Minutes,
-            Mode::Pause(Editable::Minutes) => Editable::Seconds,
-            _ => Editable::None,
-        });
+        // as same as `next` edit value
+        self.edit_next()
     }
 
     pub fn reset(&mut self) {
@@ -447,7 +450,7 @@ where
 
     fn render_edit_border(mode: Mode, width: u16, area: Rect, buf: &mut Buffer) {
         match mode {
-            Mode::Pause(Editable::Seconds) => {
+            Mode::Editable(Time::Seconds, _) => {
                 let [_, h2] = Layout::horizontal([Constraint::Fill(0), Constraint::Length(width)])
                     .areas(area);
                 Block::new()
@@ -455,7 +458,7 @@ where
                     .border_set(symbols::border::THICK)
                     .render(h2, buf);
             }
-            Mode::Pause(Editable::Minutes) => {
+            Mode::Editable(Time::Minutes, _) => {
                 let [h1, _] = Layout::horizontal([Constraint::Length(width), Constraint::Fill(0)])
                     .areas(area);
 
@@ -469,7 +472,6 @@ where
                 .border_set(symbols::border::EMPTY)
                 .render(area, buf),
         }
-        // Span::raw(format!("{:?} {}", mode, s)).render(area, buf);
     }
 }
 
@@ -496,6 +498,6 @@ where
         Self::render_colon(h2, buf);
         Self::render_digit_pair(state.seconds(), h3, buf);
 
-        Self::render_edit_border(state.mode, size_digits.width - 1, v2, buf);
+        Self::render_edit_border(state.mode.clone(), size_digits.width - 1, v2, buf);
     }
 }
