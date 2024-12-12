@@ -20,7 +20,7 @@ pub enum Time {
     // Hours,
 }
 
-#[derive(Debug, Clone, Display, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Mode {
     Initial,
     Tick,
@@ -30,6 +30,21 @@ pub enum Mode {
         Box<Mode>, /* previous mode before starting editing */
     ),
     Done,
+}
+
+impl fmt::Display for Mode {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Mode::Initial => write!(f, "[]"),
+            Mode::Tick => write!(f, ">"),
+            Mode::Pause => write!(f, "||"),
+            Mode::Editable(time, _) => match time {
+                Time::Seconds => write!(f, "[edit seconds]"),
+                Time::Minutes => write!(f, "[edit minutes]"),
+            },
+            Mode::Done => write!(f, "done"),
+        }
+    }
 }
 
 #[derive(Debug, Clone)]

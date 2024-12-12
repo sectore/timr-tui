@@ -48,19 +48,16 @@ impl Default for App {
     fn default() -> Self {
         Self {
             mode: Mode::Running,
-            content: Content::Pomodoro,
+            content: Content::Countdown,
             show_menu: false,
-            countdown: Countdown::new(
-                "Countdown".into(),
-                Clock::<clock::Countdown>::new(
-                    Duration::from_secs(10 * 60 /* 10min */),
-                    Duration::from_millis(TICK_VALUE_MS),
-                ),
-            ),
-            timer: Timer::new(
-                "Timer".into(),
-                Clock::<clock::Timer>::new(Duration::ZERO, Duration::from_millis(TICK_VALUE_MS)),
-            ),
+            countdown: Countdown::new(Clock::<clock::Countdown>::new(
+                Duration::from_secs(10 * 60 /* 10min */),
+                Duration::from_millis(TICK_VALUE_MS),
+            )),
+            timer: Timer::new(Clock::<clock::Timer>::new(
+                Duration::ZERO,
+                Duration::from_millis(TICK_VALUE_MS),
+            )),
             pomodoro: Pomodoro::new(),
         }
     }
