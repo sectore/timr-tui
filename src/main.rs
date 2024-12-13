@@ -5,11 +5,14 @@ mod events;
 #[cfg(debug_assertions)]
 mod logging;
 
+mod args;
 mod terminal;
 mod utils;
 mod widgets;
 
 use app::App;
+use args::Args;
+use clap::Parser;
 use color_eyre::Result;
 
 #[tokio::main]
@@ -20,9 +23,11 @@ async fn main() -> Result<()> {
 
     color_eyre::install()?;
 
+    let args = Args::parse();
+
     let terminal = terminal::setup()?;
     let events = events::Events::new();
-    App::new().run(terminal, events).await?;
+    App::new(args).run(terminal, events).await?;
     terminal::teardown()?;
 
     Ok(())
