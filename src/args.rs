@@ -1,4 +1,8 @@
 use clap::Parser;
+use color_eyre::{
+    eyre::{ensure, eyre},
+    Report,
+};
 use std::time::Duration;
 
 #[derive(Parser)]
@@ -20,47 +24,48 @@ pub struct Args {
     pub pause: Duration,
 }
 
-fn parse_duration(arg: &str) -> Result<Duration, String> {
-    if let Ok(seconds) = arg.parse::<u64>() {
-        return Ok(Duration::from_secs(seconds));
-    }
+fn parse_duration(arg: &str) -> Result<Duration, Report> {
+    let parts: Vec<&str> = arg.split(':').rev().collect();
 
-    let parts: Vec<&str> = arg.split(':').collect();
-    if parts.len() > 3 {
-        return Err("Invalid time format. Use seconds, mm:ss, or hh:mm:ss".to_string());
-    }
+    let parse_seconds = |s: &str| -> Result<u64, Report> {
+        let secs = s.parse::<u64>().map_err(|_| eyre!("Invalid seconds"))?;
+        ensure!(secs < 60, "Seconds must be less than 60.");
+        Ok(secs)
+    };
 
-    let mut duration = Duration::ZERO;
+    let parse_minutes = |m: &str| -> Result<u64, Report> {
+        let mins = m.parse::<u64>().map_err(|_| eyre!("Invalid minutes"))?;
+        ensure!(mins < 60, "Minutes must be less than 60.");
+        Ok(mins)
+    };
 
-    let seconds = parts
-        .last()
-        .ok_or("Missing seconds")?
-        .parse::<u64>()
-        .map_err(|_| "Invalid seconds")?;
-    if seconds >= 60 {
-        return Err("Seconds must be less than 60".to_string());
-    }
-    duration = duration.saturating_add(Duration::from_secs(seconds));
+    let parse_hours = |h: &str| -> Result<u64, Report> {
+        let hours = h.parse::<u64>().map_err(|_| eyre!("Invalid hours"))?;
+        ensure!(hours < 100, "Hours must be less than 100.");
+        Ok(hours)
+    };
 
-    if let Some(&minutes_str) = parts.get(parts.len().wrapping_sub(2)) {
-        let minutes = minutes_str.parse::<u64>().map_err(|_| "Invalid minutes")?;
-        if minutes >= 60 {
-            return Err("Minutes must be less than 60".to_string());
+    let seconds = match parts.as_slice() {
+        [ss] => parse_seconds(ss)?,
+        [ss, mm] => {
+            let s = parse_seconds(ss)?;
+            let m = parse_minutes(mm)?;
+            m * 60 + s
         }
-        duration = duration.saturating_add(Duration::from_secs(minutes * 60));
-    }
-
-    if let Some(&hours_str) = parts.first() {
-        if parts.len() == 3 {
-            let hours = hours_str.parse::<u64>().map_err(|_| "Invalid hours")?;
-            if hours >= 100 {
-                return Err("Hours must be less than 100".to_string());
-            }
-            duration = duration.saturating_add(Duration::from_secs(hours * 3600));
+        [ss, mm, hh] => {
+            let s = parse_seconds(ss)?;
+            let m = parse_minutes(mm)?;
+            let h = parse_hours(hh)?;
+            h * 60 * 60 + m * 60 + s
         }
-    }
+        _ => {
+            return Err(eyre!(
+                "Invalid time format. Use seconds, mm:ss, or hh:mm:ss"
+            ))
+        }
+    };
 
-    Ok(duration)
+    Ok(Duration::from_secs(seconds))
 }
 
 #[cfg(test)]
@@ -69,19 +74,22 @@ mod tests {
 
     #[test]
     fn test_parse_duration() {
-        // Seconds
-        assert_eq!(parse_duration("60").unwrap(), Duration::from_secs(60));
+        // ss
+        assert_eq!(parse_duration("50").unwrap(), Duration::from_secs(50));
 
-        // MM:SS
-        assert_eq!(parse_duration("01:30").unwrap(), Duration::from_secs(90));
-
-        // HH:MM:SS
+        // mm:ss
         assert_eq!(
-            parse_duration("01:30:00").unwrap(),
-            Duration::from_secs(5400)
+            parse_duration("01:30").unwrap(),
+            Duration::from_secs(60 + 30)
         );
 
-        // Invalid formats
+        // hh:mm:ss
+        assert_eq!(
+            parse_duration("01:30:00").unwrap(),
+            Duration::from_secs(60 * 60 + 30 * 60)
+        );
+
+        // errors
         assert!(parse_duration("1:60").is_err()); // invalid seconds
         assert!(parse_duration("60:00").is_err()); // invalid minutes
         assert!(parse_duration("100:00:00").is_err()); // invalid hours
