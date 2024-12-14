@@ -9,17 +9,17 @@ use std::time::Duration;
 pub struct Args {
     #[arg(long, short, value_parser = parse_duration,
         default_value="10:00" /* 10min */,
-        help = "Countdown time to start from. Format: seconds, 'mm:ss', or 'hh:mm:ss'"
+        help = "Countdown time to start from. Format: 'ss', 'mm:ss', or 'hh:mm:ss'"
     )]
     pub countdown: Duration,
     #[arg(long, short, value_parser = parse_duration,
         default_value="25:00" /* 25min */,
-        help = "Work time to count down from. Format: seconds, 'mm:ss', or 'hh:mm:ss'"
+        help = "Work time to count down from. Format: 'ss', 'mm:ss', or 'hh:mm:ss'"
     )]
     pub work: Duration,
     #[arg(long, short, value_parser = parse_duration,
         default_value="5:00" /* 5min */,
-        help = "Pause time to count down from. Format: seconds, 'mm:ss', or 'hh:mm:ss'"
+        help = "Pause time to count down from. Format: 'ss', 'mm:ss', or 'hh:mm:ss'"
     )]
     pub pause: Duration,
 }
@@ -58,11 +58,7 @@ fn parse_duration(arg: &str) -> Result<Duration, Report> {
             let h = parse_hours(hh)?;
             h * 60 * 60 + m * 60 + s
         }
-        _ => {
-            return Err(eyre!(
-                "Invalid time format. Use seconds, mm:ss, or hh:mm:ss"
-            ))
-        }
+        _ => return Err(eyre!("Invalid time format. Use 'ss', mm:ss, or hh:mm:ss")),
     };
 
     Ok(Duration::from_secs(seconds))
