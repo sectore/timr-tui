@@ -15,9 +15,6 @@ use std::{cmp::max, time::Duration};
 
 use strum::Display;
 
-static PAUSE_MS: u64 = 5 * 60 * 1000; /* 5min in milliseconds */
-static WORK_MS: u64 = 25 * 60 * 1000; /* 25min in milliseconds */
-
 #[derive(Debug, Clone, Display, Hash, Eq, PartialEq)]
 enum Mode {
     Work,
@@ -45,19 +42,18 @@ pub struct Pomodoro {
     clock_map: ClockMap,
 }
 
+pub struct PomodoroArgs {
+    pub work: Duration,
+    pub pause: Duration,
+}
+
 impl Pomodoro {
-    pub fn new() -> Self {
+    pub fn new(args: PomodoroArgs) -> Self {
         Self {
             mode: Mode::Work,
             clock_map: ClockMap {
-                work: Clock::<Countdown>::new(
-                    Duration::from_millis(WORK_MS),
-                    Duration::from_millis(TICK_VALUE_MS),
-                ),
-                pause: Clock::<Countdown>::new(
-                    Duration::from_millis(PAUSE_MS),
-                    Duration::from_millis(TICK_VALUE_MS),
-                ),
+                work: Clock::<Countdown>::new(args.work, Duration::from_millis(TICK_VALUE_MS)),
+                pause: Clock::<Countdown>::new(args.pause, Duration::from_millis(TICK_VALUE_MS)),
             },
         }
     }
@@ -91,7 +87,7 @@ impl EventHandler for Pomodoro {
                 KeyCode::Left if edit_mode => {
                     self.get_clock().edit_next();
                 }
-                KeyCode::Left if edit_mode => {
+                KeyCode::Left => {
                     // `next` is acting as same as a `prev` function, we don't have
                     self.next();
                 }

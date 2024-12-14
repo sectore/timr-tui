@@ -16,3 +16,4 @@ tokio-util = "0.7.12"
 tracing = "0.1.41"
 tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
 directories = "5.0.1"
+clap = { version = "4.5.23", features = ["derive"] }

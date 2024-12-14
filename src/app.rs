@@ -1,4 +1,5 @@
 use crate::{
+    args::Args,
     constants::TICK_VALUE_MS,
     events::{Event, EventHandler, Events},
     terminal::Terminal,
@@ -7,7 +8,7 @@ use crate::{
         countdown::{Countdown, CountdownWidget},
         footer::Footer,
         header::Header,
-        pomodoro::{Pomodoro, PomodoroWidget},
+        pomodoro::{Pomodoro, PomodoroArgs, PomodoroWidget},
         timer::{Timer, TimerWidget},
     },
 };
@@ -44,28 +45,25 @@ pub struct App {
     pomodoro: Pomodoro,
 }
 
-impl Default for App {
-    fn default() -> Self {
+impl App {
+    pub fn new(args: Args) -> Self {
         Self {
             mode: Mode::Running,
             content: Content::Countdown,
             show_menu: false,
             countdown: Countdown::new(Clock::<clock::Countdown>::new(
-                Duration::from_secs(10 * 60 /* 10min */),
+                args.countdown,
                 Duration::from_millis(TICK_VALUE_MS),
             )),
             timer: Timer::new(Clock::<clock::Timer>::new(
                 Duration::ZERO,
                 Duration::from_millis(TICK_VALUE_MS),
             )),
-            pomodoro: Pomodoro::new(),
+            pomodoro: Pomodoro::new(PomodoroArgs {
+                work: args.work,
+                pause: args.pause,
+            }),
         }
-    }
-}
-
-impl App {
-    pub fn new() -> Self {
-        Self::default()
     }
 
     pub async fn run(&mut self, mut terminal: Terminal, mut events: Events) -> Result<()> {

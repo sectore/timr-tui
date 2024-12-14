@@ -1,9 +1,9 @@
 # tim:r
 
-**Pronounced `/ˈtʌɪmə/` or `/ˈtaɪmər/`.** Other just say `timer`.
+**Pronounced `/ˈtʌɪmə/` or `/ˈtaɪmər/`.**
 
 > [!WARNING]
-> _Everything is still WIP_ 😎
+> _Still WIP_
 
 # About
 
@@ -21,47 +21,37 @@ It's built with [`ratatui`](https://ratatui.rs/) ([Rust](https://www.rust-lang.o
 
 _soon_
 
-# Installation
+# Args
 
-## Build from source
+```sh
+Usage: timr [OPTIONS]
 
-### Requirements
+Options:
+  -c, --countdown <COUNTDOWN>  Countdown time to start from. Format: 'ss', 'mm:ss', or 'hh:mm:ss' [default: 10:00]
+  -w, --work <WORK>            Work time to count down from. Format: 'ss', 'mm:ss', or 'hh:mm:ss' [default: 25:00]
+  -p, --pause <PAUSE>          Pause time to count down from. Format: 'ss', 'mm:ss', or 'hh:mm:ss' [default: 5:00]
+  -h, --help                   Print help
+```
 
-#### Nix (recommend)
+# Build from source
+
+## Requirements
+
+### Nix (recommend)
 
 `cd` into root directory.
 
-If `direnv` is installed, run `direnv allow` once to install dependencies. Others run `nix develop`.
+[`direnv`](https://direnv.net) users run `direnv allow` once to install dependencies. Others run `nix develop`.
 
 
-#### Non Nix user
+### Non Nix user
 
 - [`Rust`](https://www.rust-lang.org/learn/get-started)
 - [`Clippy`](https://github.com/rust-lang/rust-clippy)
 - [`rustfmt`](https://github.com/rust-lang/rustfmt)
 - [`just`](https://just.systems)
 
-
-#### Run
-
-```sh
-cargo run
-```
-
-
-#### Build
-
-- Linux
-```sh
-nix build
-```
-
-- Windows (cross-compilation)
-```sh
-nix build .#windows
-```
-
-#### Commands to `run`, `build` etc.
+### Commands to `run`, `lint`, `format` etc.
 
 ```sh
 just --list
@@ -78,6 +68,18 @@ Available recipes:
     r       # alias for `run`
     test    # run tests
     t       # alias for `test`
+```
+
+### Build
+
+- Linux
+```sh
+nix build
+```
+
+- Windows (cross-compilation)
+```sh
+nix build .#windows
 ```
 
 # Misc.
