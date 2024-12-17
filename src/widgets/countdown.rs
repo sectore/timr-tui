@@ -75,7 +75,10 @@ impl StatefulWidget for CountdownWidget {
 
         let area = center(
             area,
-            Constraint::Length(max(clock.get_width(), label.width() as u16)),
+            Constraint::Length(max(
+                clock.get_width(&state.clock.get_format()),
+                label.width() as u16,
+            )),
             Constraint::Length(clock.get_height() + 1 /* height of label */),
         );
         let [v1, v2] =

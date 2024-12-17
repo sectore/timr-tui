@@ -10,14 +10,11 @@ use ratatui::{
     widgets::{Block, Borders, StatefulWidget, Widget},
 };
 
-use crate::utils::center_horizontal;
-
 #[derive(Debug, Copy, Clone, Display, PartialEq, Eq)]
 pub enum Time {
     Seconds,
     Minutes,
-    // TODO: Handle hours
-    // Hours,
+    Hours,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -41,10 +38,35 @@ impl fmt::Display for Mode {
             Mode::Editable(time, _) => match time {
                 Time::Seconds => write!(f, "[edit seconds]"),
                 Time::Minutes => write!(f, "[edit minutes]"),
+                Time::Hours => write!(f, "[edit hours]"),
             },
             Mode::Done => write!(f, "done"),
         }
     }
+}
+
+// unstable
+// https://doc.rust-lang.org/src/core/time.rs.html#32
+const SECS_PER_MINUTE: u64 = 60;
+// unstable
+// https://doc.rust-lang.org/src/core/time.rs.html#34
+const MINS_PER_HOUR: u64 = 60;
+// unstable
+// https://doc.rust-lang.org/src/core/time.rs.html#36
+const HOURS_PER_DAY: u64 = 24;
+
+// max. 99:59:59
+const MAX_EDITABLE_DURATION: Duration =
+    Duration::from_secs(100 * MINS_PER_HOUR * SECS_PER_MINUTE - 1);
+
+const ONE_SECOND: Duration = Duration::from_secs(1);
+const ONE_MINUTE: Duration = Duration::from_secs(SECS_PER_MINUTE);
+const ONE_HOUR: Duration = Duration::from_secs(MINS_PER_HOUR * SECS_PER_MINUTE);
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Display)]
+pub enum Format {
+    MmSs,
+    HhMmSs,
 }
 
 #[derive(Debug, Clone)]
@@ -53,11 +75,9 @@ pub struct Clock<T> {
     tick_value: Duration,
     current_value: Duration,
     mode: Mode,
+    format: Format,
     phantom: PhantomData<T>,
 }
-
-// TODO: Change it to 23:59:59 after supporting `hours`
-const MAX_EDITABLE_DURATION: Duration = Duration::from_secs(60 * 60); // 1 hour
 
 impl<T> Clock<T> {
     pub fn toggle_pause(&mut self) {
@@ -90,16 +110,15 @@ impl<T> Clock<T> {
         };
     }
 
-    pub fn edit_up(&mut self) {
+    pub fn edit_current_up(&mut self) {
         self.current_value = match self.mode {
             Mode::Editable(Time::Seconds, _) => {
                 if self
                     .current_value
-                    // TODO: Change it to 24:59:59 after supporting `hours`
-                    // At the meantime: < 59:59
-                    .lt(&MAX_EDITABLE_DURATION.saturating_sub(Duration::from_secs(1)))
+                    // < 99:59:58
+                    .lt(&MAX_EDITABLE_DURATION.saturating_sub(ONE_SECOND))
                 {
-                    self.current_value.saturating_add(Duration::from_secs(1))
+                    self.current_value.saturating_add(ONE_SECOND)
                 } else {
                     self.current_value
                 }
@@ -107,11 +126,21 @@ impl<T> Clock<T> {
             Mode::Editable(Time::Minutes, _) => {
                 if self
                     .current_value
-                    // TODO: Change it to 24:59:00 after supporting `hours`
-                    // At the meantime: < 59:00
-                    .lt(&MAX_EDITABLE_DURATION.saturating_sub(Duration::from_secs(60)))
+                    // < 99:58:59
+                    .lt(&MAX_EDITABLE_DURATION.saturating_sub(ONE_MINUTE))
                 {
-                    self.current_value.saturating_add(Duration::new(60, 0))
+                    self.current_value.saturating_add(ONE_MINUTE)
+                } else {
+                    self.current_value
+                }
+            }
+            Mode::Editable(Time::Hours, _) => {
+                if self
+                    .current_value
+                    // < 98:59:59
+                    .lt(&MAX_EDITABLE_DURATION.saturating_sub(ONE_HOUR))
+                {
+                    self.current_value.saturating_add(ONE_HOUR)
                 } else {
                     self.current_value
                 }
@@ -119,20 +148,18 @@ impl<T> Clock<T> {
             _ => self.current_value,
         };
     }
-    pub fn edit_down(&mut self) {
+    pub fn edit_current_down(&mut self) {
         self.current_value = match self.mode {
-            Mode::Editable(Time::Seconds, _) => {
-                self.current_value.saturating_sub(Duration::new(1, 0))
-            }
-            Mode::Editable(Time::Minutes, _) => {
-                self.current_value.saturating_sub(Duration::new(60, 0))
-            }
+            Mode::Editable(Time::Seconds, _) => self.current_value.saturating_sub(ONE_SECOND),
+            Mode::Editable(Time::Minutes, _) => self.current_value.saturating_sub(ONE_MINUTE),
+            Mode::Editable(Time::Hours, _) => self.current_value.saturating_sub(ONE_HOUR),
             _ => self.current_value,
         };
+        self.update_mode();
     }
 
-    pub fn get_mode(&mut self) -> Mode {
-        self.mode.clone()
+    pub fn get_mode(&mut self) -> &Mode {
+        &self.mode
     }
 
     pub fn is_edit_mode(&mut self) -> bool {
@@ -146,18 +173,46 @@ impl<T> Clock<T> {
         }
     }
 
-    pub fn edit_next(&mut self) {
-        self.mode = match self.mode.clone() {
-            Mode::Editable(Time::Seconds, prev) => Mode::Editable(Time::Minutes, prev),
-            Mode::Editable(Time::Minutes, prev) => Mode::Editable(Time::Seconds, prev),
-            _ => self.mode.clone(),
+    fn edit_mode_next(&mut self) {
+        let mode = self.mode.clone();
+        self.mode = match mode {
+            Mode::Editable(Time::Seconds, prev) if self.format == Format::MmSs => {
+                Mode::Editable(Time::Minutes, prev)
+            }
+            Mode::Editable(Time::Minutes, prev) if self.format == Format::MmSs => {
+                Mode::Editable(Time::Seconds, prev)
+            }
+            Mode::Editable(Time::Minutes, prev) if self.format == Format::HhMmSs => {
+                Mode::Editable(Time::Hours, prev)
+            }
+            Mode::Editable(Time::Hours, prev) => Mode::Editable(Time::Seconds, prev),
+            _ => mode,
         }
     }
 
-    pub fn edit_prev(&mut self) {
-        // as same as editing `next` value
-        // TODO: Update it as soon as `hours` come into play
-        self.edit_next()
+    fn edit_mode_prev(&mut self) {
+        let mode = self.mode.clone();
+        self.mode = match mode {
+            Mode::Editable(Time::Seconds, prev) if self.format == Format::HhMmSs => {
+                Mode::Editable(Time::Hours, prev)
+            }
+            Mode::Editable(Time::Seconds, prev) if self.format == Format::MmSs => {
+                Mode::Editable(Time::Minutes, prev)
+            }
+            Mode::Editable(Time::Minutes, prev) => Mode::Editable(Time::Seconds, prev),
+            Mode::Editable(Time::Hours, prev) => Mode::Editable(Time::Minutes, prev),
+            _ => mode,
+        }
+    }
+
+    fn update_mode(&mut self) {
+        let mode = self.mode.clone();
+        self.mode = match mode {
+            Mode::Editable(Time::Hours, prev) if self.format == Format::HhMmSs => {
+                Mode::Editable(Time::Minutes, prev)
+            }
+            _ => mode,
+        }
     }
 
     pub fn reset(&mut self) {
@@ -165,24 +220,32 @@ impl<T> Clock<T> {
         self.current_value = self.initial_value;
     }
 
-    fn duration(&self) -> Duration {
-        self.current_value
+    fn current_hours(&self) -> u64 {
+        self.current_seconds() / (SECS_PER_MINUTE * MINS_PER_HOUR)
     }
 
-    fn hours(&self) -> u64 {
-        (self.duration().as_secs() / 60 / 60) % 60
+    fn current_hours_mod(&self) -> u64 {
+        self.current_hours() % HOURS_PER_DAY
     }
 
-    fn minutes(&self) -> u64 {
-        (self.duration().as_secs() / 60) % 60
+    fn current_minutes(&self) -> u64 {
+        self.current_seconds() / MINS_PER_HOUR
     }
 
-    fn seconds(&self) -> u64 {
-        self.duration().as_secs() % 60
+    fn current_minutes_mod(&self) -> u64 {
+        self.current_minutes() % SECS_PER_MINUTE
     }
 
-    fn tenths(&self) -> u32 {
-        self.duration().subsec_millis() / 100
+    fn current_seconds(&self) -> u64 {
+        self.current_value.as_secs()
+    }
+
+    fn current_seconds_mod(&self) -> u64 {
+        self.current_seconds() % SECS_PER_MINUTE
+    }
+
+    fn current_tenths(&self) -> u32 {
+        self.current_value.subsec_millis() / 100
     }
 
     pub fn is_done(&mut self) -> bool {
@@ -195,19 +258,16 @@ impl<T> fmt::Display for Clock<T> {
         write!(
             f,
             "{:02}:{:02}:{:02}.{}",
-            self.hours(),
-            self.minutes(),
-            self.seconds(),
-            self.tenths()
+            self.current_hours_mod(),
+            self.current_minutes_mod(),
+            self.current_seconds_mod(),
+            self.current_tenths()
         )
     }
 }
 
 #[derive(Debug, Clone)]
 pub struct Countdown {}
-
-#[derive(Debug, Clone)]
-pub struct Timer {}
 
 impl Clock<Countdown> {
     pub fn new(initial_value: Duration, tick_value: Duration) -> Self {
@@ -216,6 +276,7 @@ impl Clock<Countdown> {
             tick_value,
             current_value: initial_value,
             mode: Mode::Initial,
+            format: Format::MmSs,
             phantom: PhantomData,
         }
     }
@@ -224,6 +285,7 @@ impl Clock<Countdown> {
         if self.mode == Mode::Tick {
             self.current_value = self.current_value.saturating_sub(self.tick_value);
             self.check_done();
+            self.update_format();
         }
     }
 
@@ -232,7 +294,52 @@ impl Clock<Countdown> {
             self.mode = Mode::Done;
         }
     }
+
+    pub fn edit_next(&mut self) {
+        self.edit_mode_next();
+        self.update_format();
+    }
+
+    pub fn edit_prev(&mut self) {
+        self.edit_mode_prev();
+        self.update_format();
+    }
+
+    pub fn edit_up(&mut self) {
+        self.edit_current_up();
+        self.update_format();
+        // update `initial_value` if needed
+        if self.initial_value.lt(&self.current_value) {
+            self.initial_value = self.current_value;
+        }
+    }
+
+    pub fn edit_down(&mut self) {
+        self.edit_current_down();
+        self.update_format();
+        // update `initial_value` if needed
+        if self.initial_value.gt(&self.current_value) {
+            self.initial_value = self.current_value;
+        }
+    }
+
+    fn update_format(&mut self) {
+        self.format = self.get_format();
+    }
+
+    pub fn get_format(&self) -> Format {
+        // show hours if initial available only
+        if self.current_value.ge(&ONE_HOUR) {
+            Format::HhMmSs
+        } else {
+            Format::MmSs
+        }
+    }
 }
+
+#[derive(Debug, Clone)]
+pub struct Timer {}
+
 impl Clock<Timer> {
     pub fn new(initial_value: Duration, tick_value: Duration) -> Self {
         Self {
@@ -240,6 +347,7 @@ impl Clock<Timer> {
             tick_value,
             current_value: Duration::ZERO,
             mode: Mode::Initial,
+            format: Format::MmSs,
             phantom: PhantomData,
         }
     }
@@ -248,12 +356,25 @@ impl Clock<Timer> {
         if self.mode == Mode::Tick {
             self.current_value = self.current_value.saturating_add(self.tick_value);
             self.check_done();
+            self.update_format();
         }
     }
 
     fn check_done(&mut self) {
         if self.current_value == self.initial_value {
             self.mode = Mode::Done;
+        }
+    }
+
+    fn update_format(&mut self) {
+        self.format = self.get_format();
+    }
+
+    pub fn get_format(&self) -> Format {
+        if self.current_value.ge(&ONE_HOUR) {
+            Format::HhMmSs
+        } else {
+            Format::MmSs
         }
     }
 }
@@ -379,12 +500,15 @@ where
         }
     }
 
-    fn get_horizontal_lengths(&self) -> [u16; 3] {
-        [11, 4, 11]
+    fn get_horizontal_lengths(&self, format: &Format) -> Vec<u16> {
+        match format {
+            Format::MmSs => vec![11, 4, 11],
+            Format::HhMmSs => vec![11, 4, 11, 4, 11],
+        }
     }
 
-    pub fn get_width(&self) -> u16 {
-        self.get_horizontal_lengths().iter().sum()
+    pub fn get_width(&self, format: &Format) -> u16 {
+        self.get_horizontal_lengths(format).iter().sum()
     }
 
     pub fn get_digit_height(&self) -> u16 {
@@ -467,30 +591,47 @@ where
         }
     }
 
-    fn render_edit_border(mode: Mode, width: u16, area: Rect, buf: &mut Buffer) {
-        match mode {
+    fn render_edit_border(mode: &Mode, format: &Format, width: u16, area: Rect, buf: &mut Buffer) {
+        let border_area = match mode {
             Mode::Editable(Time::Seconds, _) => {
-                let [_, h2] = Layout::horizontal([Constraint::Fill(0), Constraint::Length(width)])
-                    .areas(area);
-                Block::new()
-                    .borders(Borders::TOP)
-                    .border_set(symbols::border::THICK)
-                    .render(h2, buf);
+                let [_, h] =
+                    Layout::horizontal([Constraint::Percentage(100), Constraint::Length(width)])
+                        .areas(area);
+                h
             }
-            Mode::Editable(Time::Minutes, _) => {
-                let [h1, _] = Layout::horizontal([Constraint::Length(width), Constraint::Fill(0)])
+            Mode::Editable(Time::Minutes, _) if format == &Format::MmSs => {
+                let [h, _] =
+                    Layout::horizontal([Constraint::Length(width), Constraint::Percentage(100)])
+                        .areas(area);
+                h
+            }
+            Mode::Editable(Time::Minutes, _) if format == &Format::HhMmSs => {
+                let [_, h, _] = Layout::horizontal([
+                    Constraint::Fill(0),
+                    Constraint::Length(width),
+                    Constraint::Fill(0),
+                ])
+                .areas(area);
+                h
+            }
+            Mode::Editable(Time::Hours, _) => {
+                let [h, _] = Layout::horizontal([Constraint::Length(width), Constraint::Fill(0)])
                     .areas(area);
 
-                Block::new()
-                    .borders(Borders::TOP)
-                    .border_set(symbols::border::THICK)
-                    .render(h1, buf)
+                h
             }
-            _ => Block::new()
-                .borders(Borders::TOP)
-                .border_set(symbols::border::EMPTY)
-                .render(area, buf),
-        }
+            _ => area,
+        };
+
+        let border_type = match mode {
+            Mode::Editable(_, _) => symbols::border::THICK,
+            _ => symbols::border::EMPTY,
+        };
+
+        Block::new()
+            .borders(Borders::TOP)
+            .border_set(border_type)
+            .render(border_area, buf);
     }
 }
 
@@ -501,22 +642,51 @@ where
     type State = Clock<T>;
 
     fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
-        // center
-        let h = center_horizontal(area, Constraint::Length(self.get_width()));
-
         let [v1, v2] = Layout::vertical(Constraint::from_lengths([
             self.get_digit_height(),
             EDIT_BORDER_HEIGHT as u16,
         ]))
-        .areas(h);
+        .areas(area);
 
-        let [h1, h2, h3] =
-            Layout::horizontal(Constraint::from_lengths(self.get_horizontal_lengths())).areas(v1);
+        match &state.format {
+            Format::MmSs => {
+                let [h1, h2, h3] = Layout::horizontal(Constraint::from_lengths(
+                    self.get_horizontal_lengths(&state.format),
+                ))
+                .areas(v1);
 
-        let size_digits = Self::render_digit_pair(state.minutes(), h1, buf);
-        Self::render_colon(h2, buf);
-        Self::render_digit_pair(state.seconds(), h3, buf);
+                let size_digits = Self::render_digit_pair(state.current_minutes_mod(), h1, buf);
+                Self::render_colon(h2, buf);
+                Self::render_digit_pair(state.current_seconds_mod(), h3, buf);
 
-        Self::render_edit_border(state.mode.clone(), size_digits.width - 1, v2, buf);
+                Self::render_edit_border(
+                    &state.mode,
+                    &state.format,
+                    size_digits.width - 1,
+                    v2,
+                    buf,
+                );
+            }
+            Format::HhMmSs => {
+                let [h1, h2, h3, h4, h5] = Layout::horizontal(Constraint::from_lengths(
+                    self.get_horizontal_lengths(&state.format),
+                ))
+                .areas(v1);
+
+                let size_digits = Self::render_digit_pair(state.current_hours_mod(), h1, buf);
+                Self::render_colon(h2, buf);
+                Self::render_digit_pair(state.current_minutes_mod(), h3, buf);
+                Self::render_colon(h4, buf);
+                Self::render_digit_pair(state.current_seconds_mod(), h5, buf);
+
+                Self::render_edit_border(
+                    &state.mode,
+                    &state.format,
+                    size_digits.width - 1,
+                    v2,
+                    buf,
+                );
+            }
+        }
     }
 }
