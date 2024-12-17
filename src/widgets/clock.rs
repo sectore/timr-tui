@@ -2,7 +2,6 @@ use std::fmt;
 use std::marker::PhantomData;
 use std::time::Duration;
 use strum::Display;
-use tracing::debug;
 
 use ratatui::{
     buffer::Buffer,
@@ -648,8 +647,6 @@ where
             EDIT_BORDER_HEIGHT as u16,
         ]))
         .areas(area);
-
-        debug!("clock render {:?} {:?}", state.format, area.width);
 
         match &state.format {
             Format::MmSs => {
