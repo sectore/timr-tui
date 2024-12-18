@@ -111,7 +111,13 @@ impl<T> Clock<T> {
                     p
                 }
             }
-            mode => Mode::Editable(Time::Minutes, Box::new(mode)),
+            mode => {
+                if self.format <= Format::Ss {
+                    Mode::Editable(Time::Seconds, Box::new(mode))
+                } else {
+                    Mode::Editable(Time::Minutes, Box::new(mode))
+                }
+            }
         };
     }
 
@@ -171,13 +177,6 @@ impl<T> Clock<T> {
 
     pub fn is_edit_mode(&mut self) -> bool {
         matches!(self.mode, Mode::Editable(_, _))
-    }
-
-    pub fn edit_mode(&mut self) -> Option<Time> {
-        match self.mode {
-            Mode::Editable(time, _) => Some(time),
-            _ => None,
-        }
     }
 
     fn edit_mode_next(&mut self) {
@@ -303,14 +302,17 @@ pub struct Countdown {}
 
 impl Clock<Countdown> {
     pub fn new(initial_value: Duration, tick_value: Duration) -> Self {
-        Self {
+        let mut instance = Self {
             initial_value,
             tick_value,
             current_value: initial_value,
             mode: Mode::Initial,
             format: Format::S,
             phantom: PhantomData,
-        }
+        };
+        // update format once
+        instance.update_format();
+        instance
     }
 
     pub fn tick(&mut self) {
@@ -357,14 +359,17 @@ pub struct Timer {}
 
 impl Clock<Timer> {
     pub fn new(initial_value: Duration, tick_value: Duration) -> Self {
-        Self {
+        let mut instance = Self {
             initial_value,
             tick_value,
             current_value: Duration::ZERO,
             mode: Mode::Initial,
             format: Format::S,
             phantom: PhantomData,
-        }
+        };
+        // update format once
+        instance.update_format();
+        instance
     }
 
     pub fn tick(&mut self) {
@@ -385,8 +390,9 @@ impl Clock<Timer> {
 const DIGIT_SYMBOL: &str = "█";
 
 const DIGIT_SIZE: usize = 5;
-const DIGIT_WIDTH: u16 = DIGIT_SIZE as u16 + 1; // 2 => padding left + padding right
-const COLON_WIDTH: u16 = 5; // incl. padding left + padding right
+const DIGIT_WIDTH: u16 = DIGIT_SIZE as u16;
+const COLON_WIDTH: u16 = 4; // incl. padding left + padding right
+const SPACE_WIDTH: u16 = 1;
 const EDIT_BORDER_HEIGHT: usize = 1;
 
 #[rustfmt::skip]
@@ -509,38 +515,47 @@ where
         match format {
             Format::HhMmSs => vec![
                 DIGIT_WIDTH, // h
+                SPACE_WIDTH, // (space)
                 DIGIT_WIDTH, // h
                 COLON_WIDTH, // :
                 DIGIT_WIDTH, // m
+                SPACE_WIDTH, // (space)
                 DIGIT_WIDTH, // m
                 COLON_WIDTH, // :
                 DIGIT_WIDTH, // s
+                SPACE_WIDTH, // (space)
                 DIGIT_WIDTH, // s
             ],
             Format::HMmSs => vec![
                 DIGIT_WIDTH, // h
                 COLON_WIDTH, // :
                 DIGIT_WIDTH, // m
+                SPACE_WIDTH, // (space)
                 DIGIT_WIDTH, // m
                 COLON_WIDTH, // :
                 DIGIT_WIDTH, // s
+                SPACE_WIDTH, // (space)
                 DIGIT_WIDTH, // s
             ],
             Format::MmSs => vec![
                 DIGIT_WIDTH, // m
+                SPACE_WIDTH, // (space)
                 DIGIT_WIDTH, // m
                 COLON_WIDTH, // :
                 DIGIT_WIDTH, // s
+                SPACE_WIDTH, // (space)
                 DIGIT_WIDTH, // s
             ],
             Format::MSs => vec![
                 DIGIT_WIDTH, // m
                 COLON_WIDTH, // :
                 DIGIT_WIDTH, // s
+                SPACE_WIDTH, // (space)
                 DIGIT_WIDTH, // s
             ],
             Format::Ss => vec![
                 DIGIT_WIDTH, // s
+                SPACE_WIDTH, // (space)
                 DIGIT_WIDTH, // s
             ],
             Format::S => vec![
@@ -561,9 +576,8 @@ where
         self.get_digit_height() + (EDIT_BORDER_HEIGHT as u16)
     }
 
-    fn render_digit(number: u64, area: Rect, buf: &mut Buffer) {
-        // offset
-        let left = area.left(); // 1 = x-offset
+    fn render_digit(number: u64, with_border: bool, area: Rect, buf: &mut Buffer) {
+        let left = area.left();
         let top = area.top();
 
         let symbols = match number {
@@ -593,6 +607,19 @@ where
                 }
             }
         });
+
+        // Add border at the bottom
+        if with_border {
+            for x in 0..area.width {
+                let p = Position {
+                    x: left + x,
+                    y: top + area.height - 1,
+                };
+                if let Some(cell) = buf.cell_mut(p) {
+                    cell.set_symbol("─");
+                }
+            }
+        }
     }
 
     fn render_colon(area: Rect, buf: &mut Buffer) {
@@ -636,55 +663,58 @@ where
         let format = &state.format;
         let widths = self.get_horizontal_lengths(format);
         let area = center_horizontal(area, Constraint::Length(self.get_width(format)));
+        let edit_hours = matches!(state.mode, Mode::Editable(Time::Hours, _));
+        let edit_minutes = matches!(state.mode, Mode::Editable(Time::Minutes, _));
+        let edit_secs = matches!(state.mode, Mode::Editable(Time::Seconds, _));
         match format {
             Format::HhMmSs => {
-                let [hh, h, cm, mm, m, cs, ss, s] =
+                let [hh, _, h, c_hm, mm, _, m, c_ms, ss, _, s] =
                     Layout::horizontal(Constraint::from_lengths(widths)).areas(area);
-                Self::render_digit(state.current_hours() / 10, hh, buf);
-                Self::render_digit(state.current_hours() % 10, h, buf);
-                Self::render_colon(cm, buf);
-                Self::render_digit(state.current_minutes_mod() / 10, mm, buf);
-                Self::render_digit(state.current_minutes_mod() % 10, m, buf);
-                Self::render_colon(cs, buf);
-                Self::render_digit(state.current_seconds_mod() / 10, ss, buf);
-                Self::render_digit(state.current_seconds_mod() % 10, s, buf);
+                Self::render_digit(state.current_hours() / 10, edit_hours, hh, buf);
+                Self::render_digit(state.current_hours() % 10, edit_hours, h, buf);
+                Self::render_colon(c_hm, buf);
+                Self::render_digit(state.current_minutes_mod() / 10, edit_minutes, mm, buf);
+                Self::render_digit(state.current_minutes_mod() % 10, edit_minutes, m, buf);
+                Self::render_colon(c_ms, buf);
+                Self::render_digit(state.current_seconds_mod() / 10, edit_secs, ss, buf);
+                Self::render_digit(state.current_seconds_mod() % 10, edit_secs, s, buf);
             }
             Format::HMmSs => {
-                let [h, cm, mm, m, cs, ss, s] =
+                let [h, c_hm, mm, _, m, c_ms, ss, _, s] =
                     Layout::horizontal(Constraint::from_lengths(widths)).areas(area);
-                Self::render_digit(state.current_hours() % 10, h, buf);
-                Self::render_colon(cm, buf);
-                Self::render_digit(state.current_minutes_mod() / 10, mm, buf);
-                Self::render_digit(state.current_minutes_mod() % 10, m, buf);
-                Self::render_colon(cs, buf);
-                Self::render_digit(state.current_seconds_mod() / 10, ss, buf);
-                Self::render_digit(state.current_seconds_mod() % 10, s, buf);
+                Self::render_digit(state.current_hours() % 10, edit_hours, h, buf);
+                Self::render_colon(c_hm, buf);
+                Self::render_digit(state.current_minutes_mod() / 10, edit_minutes, mm, buf);
+                Self::render_digit(state.current_minutes_mod() % 10, edit_minutes, m, buf);
+                Self::render_colon(c_ms, buf);
+                Self::render_digit(state.current_seconds_mod() / 10, edit_secs, ss, buf);
+                Self::render_digit(state.current_seconds_mod() % 10, edit_secs, s, buf);
             }
             Format::MmSs => {
-                let [mm, m, cs, ss, s] =
+                let [mm, _, m, c_ms, ss, _, s] =
                     Layout::horizontal(Constraint::from_lengths(widths)).areas(area);
-                Self::render_digit(state.current_minutes_mod() / 10, mm, buf);
-                Self::render_digit(state.current_minutes_mod() % 10, m, buf);
-                Self::render_colon(cs, buf);
-                Self::render_digit(state.current_seconds_mod() / 10, ss, buf);
-                Self::render_digit(state.current_seconds_mod() % 10, s, buf);
+                Self::render_digit(state.current_minutes_mod() / 10, edit_minutes, mm, buf);
+                Self::render_digit(state.current_minutes_mod() % 10, edit_minutes, m, buf);
+                Self::render_colon(c_ms, buf);
+                Self::render_digit(state.current_seconds_mod() / 10, edit_secs, ss, buf);
+                Self::render_digit(state.current_seconds_mod() % 10, edit_secs, s, buf);
             }
             Format::MSs => {
-                let [m, cs, ss, s] =
+                let [m, c_ms, ss, _, s] =
                     Layout::horizontal(Constraint::from_lengths(widths)).areas(area);
-                Self::render_digit(state.current_minutes_mod() % 10, m, buf);
-                Self::render_colon(cs, buf);
-                Self::render_digit(state.current_seconds_mod() / 10, ss, buf);
-                Self::render_digit(state.current_seconds_mod() % 10, s, buf);
+                Self::render_digit(state.current_minutes_mod() % 10, edit_minutes, m, buf);
+                Self::render_colon(c_ms, buf);
+                Self::render_digit(state.current_seconds_mod() / 10, edit_secs, ss, buf);
+                Self::render_digit(state.current_seconds_mod() % 10, edit_secs, s, buf);
             }
             Format::Ss => {
-                let [ss, s] = Layout::horizontal(Constraint::from_lengths(widths)).areas(area);
-                Self::render_digit(state.current_seconds_mod() / 10, ss, buf);
-                Self::render_digit(state.current_seconds_mod() % 10, s, buf);
+                let [ss, _, s] = Layout::horizontal(Constraint::from_lengths(widths)).areas(area);
+                Self::render_digit(state.current_seconds_mod() / 10, edit_secs, ss, buf);
+                Self::render_digit(state.current_seconds_mod() % 10, edit_secs, s, buf);
             }
             Format::S => {
                 let [s] = Layout::horizontal(Constraint::from_lengths(widths)).areas(area);
-                Self::render_digit(state.current_seconds_mod() % 10, s, buf);
+                Self::render_digit(state.current_seconds_mod() % 10, edit_secs, s, buf);
             }
         }
     }

@@ -47,8 +47,7 @@ impl StatefulWidget for &TimerWidget {
     type State = Timer;
     fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
         let clock = ClockWidget::new();
-        let headline = "Timer".to_uppercase();
-        let label = Line::raw((format!("{} {}", headline, state.clock.get_mode())).to_uppercase());
+        let label = Line::raw((format!("Timer {}", state.clock.get_mode())).to_uppercase());
 
         let area = center(
             area,
