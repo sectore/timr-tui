@@ -25,16 +25,35 @@ impl Timer {
 
 impl EventHandler for Timer {
     fn update(&mut self, event: Event) -> Option<Event> {
+        let edit_mode = self.clock.is_edit_mode();
         match event {
             Event::Tick => {
                 self.clock.tick();
             }
-            Event::Key(key) if key.code == KeyCode::Char('s') => {
-                self.clock.toggle_pause();
-            }
-            Event::Key(key) if key.code == KeyCode::Char('r') => {
-                self.clock.reset();
-            }
+            Event::Key(key) => match key.code {
+                KeyCode::Char('s') => {
+                    self.clock.toggle_pause();
+                }
+                KeyCode::Char('r') => {
+                    self.clock.reset();
+                }
+                KeyCode::Char('e') => {
+                    self.clock.toggle_edit();
+                }
+                KeyCode::Left if edit_mode => {
+                    self.clock.edit_next();
+                }
+                KeyCode::Right if edit_mode => {
+                    self.clock.edit_prev();
+                }
+                KeyCode::Up if edit_mode => {
+                    self.clock.edit_up();
+                }
+                KeyCode::Down if edit_mode => {
+                    self.clock.edit_down();
+                }
+                _ => return Some(event),
+            },
             _ => return Some(event),
         }
         None

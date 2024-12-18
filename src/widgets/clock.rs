@@ -229,6 +229,7 @@ impl<T> Clock<T> {
     pub fn reset(&mut self) {
         self.mode = Mode::Initial;
         self.current_value = self.initial_value;
+        self.update_format();
     }
 
     fn current_hours(&self) -> u64 {
@@ -384,6 +385,22 @@ impl Clock<Timer> {
         if self.current_value == self.initial_value {
             self.mode = Mode::Done;
         }
+    }
+
+    pub fn edit_next(&mut self) {
+        self.edit_mode_next();
+    }
+
+    pub fn edit_prev(&mut self) {
+        self.edit_mode_prev();
+    }
+
+    pub fn edit_up(&mut self) {
+        self.edit_current_up();
+    }
+
+    pub fn edit_down(&mut self) {
+        self.edit_current_down();
     }
 }
 
