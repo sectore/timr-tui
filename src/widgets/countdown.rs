@@ -13,6 +13,8 @@ use crate::{
     widgets::clock::{self, Clock, ClockWidget},
 };
 
+use super::clock::Style;
+
 #[derive(Debug, Clone)]
 pub struct Countdown {
     clock: Clock<clock::Countdown>,
@@ -67,9 +69,11 @@ impl EventHandler for Countdown {
 pub struct CountdownWidget;
 
 impl StatefulWidget for CountdownWidget {
-    type State = Countdown;
+    type State = (Style, Countdown);
     fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
-        let clock = ClockWidget::new();
+        let style = state.0;
+        let state = &mut state.1;
+        let clock = ClockWidget::new(style);
         let label = Line::raw((format!("Countdown {}", state.clock.get_mode())).to_uppercase());
 
         let area = center(

@@ -4,7 +4,7 @@ use crate::{
     events::{Event, EventHandler, Events},
     terminal::Terminal,
     widgets::{
-        clock::{self, Clock},
+        clock::{self, Clock, Style as ClockStyle},
         countdown::{Countdown, CountdownWidget},
         footer::Footer,
         header::Header,
@@ -43,6 +43,7 @@ pub struct App {
     countdown: Countdown,
     timer: Timer,
     pomodoro: Pomodoro,
+    clock_style: ClockStyle,
 }
 
 impl App {
@@ -51,6 +52,7 @@ impl App {
             mode: Mode::Running,
             content: Content::Countdown,
             show_menu: false,
+            clock_style: ClockStyle::Default,
             countdown: Countdown::new(Clock::<clock::Countdown>::new(
                 args.countdown,
                 Duration::from_millis(TICK_VALUE_MS),
@@ -100,6 +102,7 @@ impl App {
             KeyCode::Char('t') => self.content = Content::Timer,
             KeyCode::Char('p') => self.content = Content::Pomodoro,
             KeyCode::Char('m') => self.show_menu = !self.show_menu,
+            KeyCode::Char('b') => self.clock_style = self.clock_style.next(),
             KeyCode::Up => self.show_menu = true,
             KeyCode::Down => self.show_menu = false,
             _ => {}
@@ -119,9 +122,15 @@ struct AppWidget;
 impl AppWidget {
     fn render_content(&self, area: Rect, buf: &mut Buffer, state: &mut App) {
         match state.content {
-            Content::Timer => TimerWidget.render(area, buf, &mut state.timer),
-            Content::Countdown => CountdownWidget.render(area, buf, &mut state.countdown),
-            Content::Pomodoro => PomodoroWidget.render(area, buf, &mut state.pomodoro),
+            Content::Timer => {
+                TimerWidget.render(area, buf, &mut (state.clock_style, state.timer.clone()))
+            }
+            Content::Countdown => {
+                CountdownWidget.render(area, buf, &mut (state.clock_style, state.countdown.clone()))
+            }
+            Content::Pomodoro => {
+                PomodoroWidget.render(area, buf, &mut (state.clock_style, state.pomodoro.clone()))
+            }
         };
     }
 }
