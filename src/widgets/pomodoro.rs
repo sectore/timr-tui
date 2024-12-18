@@ -15,6 +15,8 @@ use std::{cmp::max, time::Duration};
 
 use strum::Display;
 
+use super::clock::Style;
+
 #[derive(Debug, Clone, Display, Hash, Eq, PartialEq)]
 enum Mode {
     Work,
@@ -117,9 +119,11 @@ impl EventHandler for Pomodoro {
 pub struct PomodoroWidget;
 
 impl StatefulWidget for PomodoroWidget {
-    type State = Pomodoro;
+    type State = (Style, Pomodoro);
     fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
-        let clock = ClockWidget::new();
+        let style = state.0;
+        let state = &mut state.1;
+        let clock_widget = ClockWidget::new(style);
         let label = Line::raw(
             (format!(
                 "Pomodoro {} {}",
@@ -132,16 +136,16 @@ impl StatefulWidget for PomodoroWidget {
         let area = center(
             area,
             Constraint::Length(max(
-                clock.get_width(&state.get_clock().get_format()),
+                clock_widget.get_width(&state.get_clock().get_format()),
                 label.width() as u16,
             )),
-            Constraint::Length(clock.get_height() + 1 /* height of mode_str */),
+            Constraint::Length(clock_widget.get_height() + 1 /* height of mode_str */),
         );
 
         let [v1, v2] =
-            Layout::vertical(Constraint::from_lengths([clock.get_height(), 1])).areas(area);
+            Layout::vertical(Constraint::from_lengths([clock_widget.get_height(), 1])).areas(area);
 
-        clock.render(v1, buf, state.get_clock());
+        clock_widget.render(v1, buf, state.get_clock());
         label.centered().render(v2, buf);
     }
 }

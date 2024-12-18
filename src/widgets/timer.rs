@@ -12,6 +12,8 @@ use ratatui::{
 };
 use std::cmp::max;
 
+use super::clock::Style;
+
 #[derive(Debug, Clone)]
 pub struct Timer {
     clock: Clock<clock::Timer>,
@@ -63,23 +65,25 @@ impl EventHandler for Timer {
 pub struct TimerWidget;
 
 impl StatefulWidget for &TimerWidget {
-    type State = Timer;
+    type State = (Style, Timer);
     fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
-        let clock = ClockWidget::new();
-        let label = Line::raw((format!("Timer {}", state.clock.get_mode())).to_uppercase());
+        let style = state.0;
+        let clock = &mut state.1.clock;
+        let clock_widget = ClockWidget::new(style);
+        let label = Line::raw((format!("Timer {}", clock.get_mode())).to_uppercase());
 
         let area = center(
             area,
             Constraint::Length(max(
-                clock.get_width(&state.clock.get_format()),
+                clock_widget.get_width(&clock.get_format()),
                 label.width() as u16,
             )),
-            Constraint::Length(clock.get_height() + 1 /* height of label */),
+            Constraint::Length(clock_widget.get_height() + 1 /* height of label */),
         );
         let [v1, v2] =
-            Layout::vertical(Constraint::from_lengths([clock.get_height(), 1])).areas(area);
+            Layout::vertical(Constraint::from_lengths([clock_widget.get_height(), 1])).areas(area);
 
-        clock.render(v1, buf, &mut state.clock);
+        clock_widget.render(v1, buf, clock);
         label.centered().render(v2, buf);
     }
 }
