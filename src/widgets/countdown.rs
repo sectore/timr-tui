@@ -70,8 +70,7 @@ impl StatefulWidget for CountdownWidget {
     type State = Countdown;
     fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
         let clock = ClockWidget::new();
-        let headline = "Countdown".to_uppercase();
-        let label = Line::raw((format!("{} {}", headline, state.clock.get_mode())).to_uppercase());
+        let label = Line::raw((format!("Countdown {}", state.clock.get_mode())).to_uppercase());
 
         let area = center(
             area,
