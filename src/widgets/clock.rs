@@ -57,8 +57,8 @@ const MINS_PER_HOUR: u64 = 60;
 const HOURS_PER_DAY: u64 = 24;
 
 // max. 99:59:59
-const MAX_EDITABLE_DURATION: Duration =
-    Duration::from_secs(100 * MINS_PER_HOUR * SECS_PER_MINUTE - 1);
+const MAX_DURATION: Duration =
+    Duration::from_secs(100 * MINS_PER_HOUR * SECS_PER_MINUTE).saturating_sub(ONE_SECOND);
 
 const ONE_SECOND: Duration = Duration::from_secs(1);
 const ONE_MINUTE: Duration = Duration::from_secs(SECS_PER_MINUTE);
@@ -127,7 +127,7 @@ impl<T> Clock<T> {
                 if self
                     .current_value
                     // < 99:59:58
-                    .le(&MAX_EDITABLE_DURATION.saturating_sub(ONE_SECOND))
+                    .le(&MAX_DURATION.saturating_sub(ONE_SECOND))
                 {
                     self.current_value.saturating_add(ONE_SECOND)
                 } else {
@@ -138,7 +138,7 @@ impl<T> Clock<T> {
                 if self
                     .current_value
                     // < 99:58:59
-                    .le(&MAX_EDITABLE_DURATION.saturating_sub(ONE_MINUTE))
+                    .le(&MAX_DURATION.saturating_sub(ONE_MINUTE))
                 {
                     self.current_value.saturating_add(ONE_MINUTE)
                 } else {
@@ -149,7 +149,7 @@ impl<T> Clock<T> {
                 if self
                     .current_value
                     // < 98:59:59
-                    .lt(&MAX_EDITABLE_DURATION.saturating_sub(ONE_HOUR))
+                    .lt(&MAX_DURATION.saturating_sub(ONE_HOUR))
                 {
                     self.current_value.saturating_add(ONE_HOUR)
                 } else {
@@ -229,6 +229,7 @@ impl<T> Clock<T> {
     pub fn reset(&mut self) {
         self.mode = Mode::Initial;
         self.current_value = self.initial_value;
+        self.update_format();
     }
 
     fn current_hours(&self) -> u64 {
@@ -381,9 +382,25 @@ impl Clock<Timer> {
     }
 
     fn check_done(&mut self) {
-        if self.current_value == self.initial_value {
+        if self.current_value >= MAX_DURATION {
             self.mode = Mode::Done;
         }
+    }
+
+    pub fn edit_next(&mut self) {
+        self.edit_mode_next();
+    }
+
+    pub fn edit_prev(&mut self) {
+        self.edit_mode_prev();
+    }
+
+    pub fn edit_up(&mut self) {
+        self.edit_current_up();
+    }
+
+    pub fn edit_down(&mut self) {
+        self.edit_current_down();
     }
 }
 
