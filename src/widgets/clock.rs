@@ -391,9 +391,9 @@ const DIGIT_SYMBOL: &str = "█";
 
 const DIGIT_SIZE: usize = 5;
 const DIGIT_WIDTH: u16 = DIGIT_SIZE as u16;
+const DIGIT_HEIGHT: u16 = DIGIT_SIZE as u16 + 1 /* border height */;
 const COLON_WIDTH: u16 = 4; // incl. padding left + padding right
 const SPACE_WIDTH: u16 = 1;
-const EDIT_BORDER_HEIGHT: usize = 1;
 
 #[rustfmt::skip]
 const DIGIT_0: [u8; DIGIT_SIZE * DIGIT_SIZE] = [
@@ -568,12 +568,8 @@ where
         self.get_horizontal_lengths(format).iter().sum()
     }
 
-    pub fn get_digit_height(&self) -> u16 {
-        DIGIT_SIZE as u16
-    }
-
     pub fn get_height(&self) -> u16 {
-        self.get_digit_height() + (EDIT_BORDER_HEIGHT as u16)
+        DIGIT_HEIGHT
     }
 
     fn render_digit(number: u64, with_border: bool, area: Rect, buf: &mut Buffer) {
