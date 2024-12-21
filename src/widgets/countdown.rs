@@ -8,12 +8,11 @@ use ratatui::{
 use std::cmp::max;
 
 use crate::{
+    args::ClockStyle,
     events::{Event, EventHandler},
     utils::center,
     widgets::clock::{self, Clock, ClockWidget},
 };
-
-use super::clock::Style;
 
 #[derive(Debug, Clone)]
 pub struct Countdown {
@@ -25,7 +24,7 @@ impl Countdown {
         Self { clock }
     }
 
-    pub fn set_style(&mut self, style: Style) {
+    pub fn set_style(&mut self, style: ClockStyle) {
         self.clock.style = style;
     }
 

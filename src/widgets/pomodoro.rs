@@ -1,4 +1,5 @@
 use crate::{
+    args::ClockStyle,
     constants::TICK_VALUE_MS,
     events::{Event, EventHandler},
     utils::center,
@@ -15,7 +16,7 @@ use std::{cmp::max, time::Duration};
 
 use strum::Display;
 
-use super::clock::{ClockArgs, Style};
+use super::clock::ClockArgs;
 
 #[derive(Debug, Clone, Display, Hash, Eq, PartialEq)]
 enum Mode {
@@ -47,7 +48,7 @@ pub struct Pomodoro {
 pub struct PomodoroArgs {
     pub work: Duration,
     pub pause: Duration,
-    pub style: Style,
+    pub style: ClockStyle,
     pub with_decis: bool,
 }
 
@@ -82,7 +83,7 @@ impl Pomodoro {
         self.clock_map.get(&self.mode)
     }
 
-    pub fn set_style(&mut self, style: Style) {
+    pub fn set_style(&mut self, style: crate::args::ClockStyle) {
         self.clock_map.work.style = style;
         self.clock_map.pause.style = style;
     }

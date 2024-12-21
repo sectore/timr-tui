@@ -1,10 +1,10 @@
 use crate::{
-    args::Args,
+    args::{Args, ClockStyle, Content},
     constants::TICK_VALUE_MS,
     events::{Event, EventHandler, Events},
     terminal::Terminal,
     widgets::{
-        clock::{self, Clock, ClockArgs, Style as ClockStyle},
+        clock::{self, Clock, ClockArgs},
         countdown::{Countdown, CountdownWidget},
         footer::Footer,
         header::Header,
@@ -28,13 +28,6 @@ enum Mode {
     Quit,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub enum Content {
-    Countdown,
-    Timer,
-    Pomodoro,
-}
-
 #[derive(Debug)]
 pub struct App {
     content: Content,
@@ -49,29 +42,38 @@ pub struct App {
 
 impl App {
     pub fn new(args: Args) -> Self {
+        let Args {
+            style,
+            work: work_initial_value,
+            pause: pause_initial_value,
+            mode: content,
+            countdown: countdown_initial_value,
+            decis: with_decis,
+            ..
+        } = args;
         Self {
             mode: Mode::Running,
-            content: Content::Countdown,
+            content,
             show_menu: false,
-            clock_style: ClockStyle::Default,
-            with_decis: false,
+            clock_style: style,
+            with_decis,
             countdown: Countdown::new(Clock::<clock::Countdown>::new(ClockArgs {
-                initial_value: args.countdown,
+                initial_value: countdown_initial_value,
                 tick_value: Duration::from_millis(TICK_VALUE_MS),
-                style: ClockStyle::Default,
-                with_decis: false,
+                style,
+                with_decis,
             })),
             timer: Timer::new(Clock::<clock::Timer>::new(ClockArgs {
                 initial_value: Duration::ZERO,
                 tick_value: Duration::from_millis(TICK_VALUE_MS),
-                style: ClockStyle::Default,
-                with_decis: false,
+                style,
+                with_decis,
             })),
             pomodoro: Pomodoro::new(PomodoroArgs {
-                work: args.work,
-                pause: args.pause,
-                style: ClockStyle::Default,
-                with_decis: false,
+                work: work_initial_value,
+                pause: pause_initial_value,
+                style,
+                with_decis,
             }),
         }
     }

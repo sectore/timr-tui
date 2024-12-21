@@ -9,26 +9,7 @@ use ratatui::{
     widgets::StatefulWidget,
 };
 
-use crate::utils::center_horizontal;
-
-#[derive(Debug, Copy, Clone)]
-pub enum Style {
-    Default,
-    Empty,
-    Thick,
-    Cross,
-}
-
-impl Style {
-    pub fn next(&self) -> Self {
-        match self {
-            Style::Default => Style::Empty,
-            Style::Empty => Style::Thick,
-            Style::Thick => Style::Cross,
-            Style::Cross => Style::Default,
-        }
-    }
-}
+use crate::{args::ClockStyle, utils::center_horizontal};
 
 #[derive(Debug, Copy, Clone, Display, PartialEq, Eq)]
 pub enum Time {
@@ -100,7 +81,7 @@ pub struct Clock<T> {
     current_value: Duration,
     mode: Mode,
     format: Format,
-    pub style: Style,
+    pub style: ClockStyle,
     pub with_decis: bool,
     phantom: PhantomData<T>,
 }
@@ -108,7 +89,7 @@ pub struct Clock<T> {
 pub struct ClockArgs {
     pub initial_value: Duration,
     pub tick_value: Duration,
-    pub style: Style,
+    pub style: ClockStyle,
     pub with_decis: bool,
 }
 
@@ -571,12 +552,12 @@ where
         }
     }
 
-    fn get_digit_symbol(&self, style: &Style) -> &str {
+    fn get_digit_symbol(&self, style: &ClockStyle) -> &str {
         match &style {
-            Style::Default => "█",
-            Style::Empty => "░",
-            Style::Cross => "╬",
-            Style::Thick => "┃",
+            ClockStyle::Bold => "█",
+            ClockStyle::Empty => "░",
+            ClockStyle::Cross => "╬",
+            ClockStyle::Thick => "┃",
         }
     }
 

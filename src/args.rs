@@ -1,9 +1,42 @@
-use clap::Parser;
+use clap::{Parser, ValueEnum};
 use color_eyre::{
     eyre::{ensure, eyre},
     Report,
 };
 use std::time::Duration;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
+pub enum Content {
+    #[value(name = "countdown", alias = "c")]
+    Countdown,
+    #[value(name = "timer", alias = "t")]
+    Timer,
+    #[value(name = "pomodoro", alias = "p")]
+    Pomodoro,
+}
+
+#[derive(Debug, Copy, Clone, ValueEnum)]
+pub enum ClockStyle {
+    #[value(name = "bold", alias = "b")]
+    Bold,
+    #[value(name = "empty", alias = "e")]
+    Empty,
+    #[value(name = "thick", alias = "t")]
+    Thick,
+    #[value(name = "cross", alias = "c")]
+    Cross,
+}
+
+impl ClockStyle {
+    pub fn next(&self) -> Self {
+        match self {
+            ClockStyle::Bold => ClockStyle::Empty,
+            ClockStyle::Empty => ClockStyle::Thick,
+            ClockStyle::Thick => ClockStyle::Cross,
+            ClockStyle::Cross => ClockStyle::Bold,
+        }
+    }
+}
 
 #[derive(Parser)]
 pub struct Args {
@@ -22,6 +55,31 @@ pub struct Args {
         help = "Pause time to count down from. Format: 'ss', 'mm:ss', or 'hh:mm:ss'"
     )]
     pub pause: Duration,
+
+    #[arg(
+        long,
+        short = 'd',
+        default_value = "false",
+        help = "Wether to show deciseconds or not"
+    )]
+    pub decis: bool,
+
+    #[arg(
+        short = 'm',
+        value_enum,
+        default_value = "timer",
+        help = "Mode to start with: [t]imer, [c]ountdown, [p]omodoro"
+    )]
+    pub mode: Content,
+
+    #[arg(
+        long,
+        short = 's',
+        value_enum,
+        default_value = "bold",
+        help = "Style to display time with: [b]old, [t]hick, [c]ross, [e]mpty"
+    )]
+    pub style: ClockStyle,
 }
 
 fn parse_duration(arg: &str) -> Result<Duration, Report> {
