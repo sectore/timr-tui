@@ -1,7 +1,8 @@
 use crate::{
+    args::ClockStyle,
     events::{Event, EventHandler},
     utils::center,
-    widgets::clock::{self, Clock, ClockWidget, Style},
+    widgets::clock::{self, Clock, ClockWidget},
 };
 use ratatui::{
     buffer::Buffer,
@@ -22,7 +23,7 @@ impl Timer {
         Self { clock }
     }
 
-    pub fn set_style(&mut self, style: Style) {
+    pub fn set_style(&mut self, style: ClockStyle) {
         self.clock.style = style;
     }
 

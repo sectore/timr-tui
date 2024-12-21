@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use crate::app::Content;
+use crate::args::Content;
 use ratatui::{
     buffer::Buffer,
     layout::{Constraint, Layout, Rect},

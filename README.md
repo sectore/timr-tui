@@ -30,6 +30,9 @@ Options:
   -c, --countdown <COUNTDOWN>  Countdown time to start from. Format: 'ss', 'mm:ss', or 'hh:mm:ss' [default: 10:00]
   -w, --work <WORK>            Work time to count down from. Format: 'ss', 'mm:ss', or 'hh:mm:ss' [default: 25:00]
   -p, --pause <PAUSE>          Pause time to count down from. Format: 'ss', 'mm:ss', or 'hh:mm:ss' [default: 5:00]
+  -d, --decis                  Wether to show deciseconds or not
+  -m, --mode <CONTENT>         Mode to start with: [t]imer, [c]ountdown, [p]omodoro [default: timer] [possible values: countdown, timer, pomodoro]
+  -s, --style <STYLE>          Style to display time with: [b]old, [t]hick, [c]ross, [e]mpty [default: bold] [possible values: bold, empty, thick, cross]
   -h, --help                   Print help
 ```
 
