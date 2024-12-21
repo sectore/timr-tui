@@ -4,7 +4,7 @@ use crate::{
     events::{Event, EventHandler, Events},
     terminal::Terminal,
     widgets::{
-        clock::{self, Clock, Style as ClockStyle},
+        clock::{self, Clock, ClockArgs, Style as ClockStyle},
         countdown::{Countdown, CountdownWidget},
         footer::Footer,
         header::Header,
@@ -44,6 +44,7 @@ pub struct App {
     timer: Timer,
     pomodoro: Pomodoro,
     clock_style: ClockStyle,
+    with_decis: bool,
 }
 
 impl App {
@@ -53,17 +54,24 @@ impl App {
             content: Content::Countdown,
             show_menu: false,
             clock_style: ClockStyle::Default,
-            countdown: Countdown::new(Clock::<clock::Countdown>::new(
-                args.countdown,
-                Duration::from_millis(TICK_VALUE_MS),
-            )),
-            timer: Timer::new(Clock::<clock::Timer>::new(
-                Duration::ZERO,
-                Duration::from_millis(TICK_VALUE_MS),
-            )),
+            with_decis: false,
+            countdown: Countdown::new(Clock::<clock::Countdown>::new(ClockArgs {
+                initial_value: args.countdown,
+                tick_value: Duration::from_millis(TICK_VALUE_MS),
+                style: ClockStyle::Default,
+                with_decis: false,
+            })),
+            timer: Timer::new(Clock::<clock::Timer>::new(ClockArgs {
+                initial_value: Duration::ZERO,
+                tick_value: Duration::from_millis(TICK_VALUE_MS),
+                style: ClockStyle::Default,
+                with_decis: false,
+            })),
             pomodoro: Pomodoro::new(PomodoroArgs {
                 work: args.work,
                 pause: args.pause,
+                style: ClockStyle::Default,
+                with_decis: false,
             }),
         }
     }
@@ -102,7 +110,20 @@ impl App {
             KeyCode::Char('t') => self.content = Content::Timer,
             KeyCode::Char('p') => self.content = Content::Pomodoro,
             KeyCode::Char('m') => self.show_menu = !self.show_menu,
-            KeyCode::Char('b') => self.clock_style = self.clock_style.next(),
+            KeyCode::Char(',') => {
+                self.clock_style = self.clock_style.next();
+                // update clocks
+                self.timer.set_style(self.clock_style);
+                self.countdown.set_style(self.clock_style);
+                self.pomodoro.set_style(self.clock_style);
+            }
+            KeyCode::Char('.') => {
+                self.with_decis = !self.with_decis;
+                // update clocks
+                self.timer.set_with_decis(self.with_decis);
+                self.countdown.set_with_decis(self.with_decis);
+                self.pomodoro.set_with_decis(self.with_decis);
+            }
             KeyCode::Up => self.show_menu = true,
             KeyCode::Down => self.show_menu = false,
             _ => {}
@@ -122,15 +143,9 @@ struct AppWidget;
 impl AppWidget {
     fn render_content(&self, area: Rect, buf: &mut Buffer, state: &mut App) {
         match state.content {
-            Content::Timer => {
-                TimerWidget.render(area, buf, &mut (state.clock_style, state.timer.clone()))
-            }
-            Content::Countdown => {
-                CountdownWidget.render(area, buf, &mut (state.clock_style, state.countdown.clone()))
-            }
-            Content::Pomodoro => {
-                PomodoroWidget.render(area, buf, &mut (state.clock_style, state.pomodoro.clone()))
-            }
+            Content::Timer => TimerWidget.render(area, buf, &mut state.timer.clone()),
+            Content::Countdown => CountdownWidget.render(area, buf, &mut state.countdown.clone()),
+            Content::Pomodoro => PomodoroWidget.render(area, buf, &mut state.pomodoro.clone()),
         };
     }
 }

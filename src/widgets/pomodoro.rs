@@ -15,7 +15,7 @@ use std::{cmp::max, time::Duration};
 
 use strum::Display;
 
-use super::clock::Style;
+use super::clock::{ClockArgs, Style};
 
 #[derive(Debug, Clone, Display, Hash, Eq, PartialEq)]
 enum Mode {
@@ -47,21 +47,49 @@ pub struct Pomodoro {
 pub struct PomodoroArgs {
     pub work: Duration,
     pub pause: Duration,
+    pub style: Style,
+    pub with_decis: bool,
 }
 
 impl Pomodoro {
     pub fn new(args: PomodoroArgs) -> Self {
+        let PomodoroArgs {
+            work,
+            pause,
+            style,
+            with_decis,
+        } = args;
         Self {
             mode: Mode::Work,
             clock_map: ClockMap {
-                work: Clock::<Countdown>::new(args.work, Duration::from_millis(TICK_VALUE_MS)),
-                pause: Clock::<Countdown>::new(args.pause, Duration::from_millis(TICK_VALUE_MS)),
+                work: Clock::<Countdown>::new(ClockArgs {
+                    initial_value: work,
+                    tick_value: Duration::from_millis(TICK_VALUE_MS),
+                    style,
+                    with_decis,
+                }),
+                pause: Clock::<Countdown>::new(ClockArgs {
+                    initial_value: pause,
+                    tick_value: Duration::from_millis(TICK_VALUE_MS),
+                    style,
+                    with_decis,
+                }),
             },
         }
     }
 
     fn get_clock(&mut self) -> &mut Clock<Countdown> {
         self.clock_map.get(&self.mode)
+    }
+
+    pub fn set_style(&mut self, style: Style) {
+        self.clock_map.work.style = style;
+        self.clock_map.pause.style = style;
+    }
+
+    pub fn set_with_decis(&mut self, with_decis: bool) {
+        self.clock_map.work.with_decis = with_decis;
+        self.clock_map.pause.with_decis = with_decis;
     }
 
     pub fn next(&mut self) {
@@ -119,11 +147,9 @@ impl EventHandler for Pomodoro {
 pub struct PomodoroWidget;
 
 impl StatefulWidget for PomodoroWidget {
-    type State = (Style, Pomodoro);
+    type State = Pomodoro;
     fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
-        let style = state.0;
-        let state = &mut state.1;
-        let clock_widget = ClockWidget::new(style);
+        let clock_widget = ClockWidget::new();
         let label = Line::raw(
             (format!(
                 "Pomodoro {} {}",
@@ -136,7 +162,10 @@ impl StatefulWidget for PomodoroWidget {
         let area = center(
             area,
             Constraint::Length(max(
-                clock_widget.get_width(&state.get_clock().get_format()),
+                clock_widget.get_width(
+                    &state.get_clock().get_format(),
+                    state.get_clock().with_decis,
+                ),
                 label.width() as u16,
             )),
             Constraint::Length(clock_widget.get_height() + 1 /* height of mode_str */),
