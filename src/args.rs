@@ -65,13 +65,12 @@ pub struct Args {
     pub decis: bool,
 
     #[arg(
-        long = "mode",
         short = 'm',
         value_enum,
         default_value = "timer",
         help = "Mode to start with: [t]imer, [c]ountdown, [p]omodoro"
     )]
-    pub content: Content,
+    pub mode: Content,
 
     #[arg(
         long,

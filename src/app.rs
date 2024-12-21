@@ -44,10 +44,10 @@ impl App {
     pub fn new(args: Args) -> Self {
         let Args {
             style,
-            work,
-            pause,
-            content,
-            countdown: initial_value,
+            work: work_initial_value,
+            pause: pause_initial_value,
+            mode: content,
+            countdown: countdown_initial_value,
             decis: with_decis,
             ..
         } = args;
@@ -58,7 +58,7 @@ impl App {
             clock_style: style,
             with_decis,
             countdown: Countdown::new(Clock::<clock::Countdown>::new(ClockArgs {
-                initial_value,
+                initial_value: countdown_initial_value,
                 tick_value: Duration::from_millis(TICK_VALUE_MS),
                 style,
                 with_decis,
@@ -70,8 +70,8 @@ impl App {
                 with_decis,
             })),
             pomodoro: Pomodoro::new(PomodoroArgs {
-                work,
-                pause,
+                work: work_initial_value,
+                pause: pause_initial_value,
                 style,
                 with_decis,
             }),
