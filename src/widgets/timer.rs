@@ -1,7 +1,7 @@
 use crate::{
     events::{Event, EventHandler},
     utils::center,
-    widgets::clock::{self, Clock, ClockWidget},
+    widgets::clock::{self, Clock, ClockWidget, Style},
 };
 use ratatui::{
     buffer::Buffer,
@@ -12,8 +12,6 @@ use ratatui::{
 };
 use std::cmp::max;
 
-use super::clock::Style;
-
 #[derive(Debug, Clone)]
 pub struct Timer {
     clock: Clock<clock::Timer>,
@@ -22,6 +20,14 @@ pub struct Timer {
 impl Timer {
     pub const fn new(clock: Clock<clock::Timer>) -> Self {
         Self { clock }
+    }
+
+    pub fn set_style(&mut self, style: Style) {
+        self.clock.style = style;
+    }
+
+    pub fn set_with_decis(&mut self, with_decis: bool) {
+        self.clock.with_decis = with_decis;
     }
 }
 
@@ -65,17 +71,16 @@ impl EventHandler for Timer {
 pub struct TimerWidget;
 
 impl StatefulWidget for &TimerWidget {
-    type State = (Style, Timer);
+    type State = Timer;
     fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
-        let style = state.0;
-        let clock = &mut state.1.clock;
-        let clock_widget = ClockWidget::new(style);
+        let clock = &mut state.clock;
+        let clock_widget = ClockWidget::new();
         let label = Line::raw((format!("Timer {}", clock.get_mode())).to_uppercase());
 
         let area = center(
             area,
             Constraint::Length(max(
-                clock_widget.get_width(&clock.get_format()),
+                clock_widget.get_width(&clock.get_format(), clock.with_decis),
                 label.width() as u16,
             )),
             Constraint::Length(clock_widget.get_height() + 1 /* height of label */),
