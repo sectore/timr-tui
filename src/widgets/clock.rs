@@ -325,7 +325,13 @@ impl Clock<Countdown> {
             initial_value,
             current_value,
             tick_value,
-            mode: Mode::Initial,
+            mode: if current_value == Duration::ZERO {
+                Mode::Done
+            } else if current_value == initial_value {
+                Mode::Initial
+            } else {
+                Mode::Pause
+            },
             format: Format::S,
             style,
             with_decis,
@@ -391,7 +397,13 @@ impl Clock<Timer> {
             initial_value,
             current_value,
             tick_value,
-            mode: Mode::Initial,
+            mode: if current_value == initial_value {
+                Mode::Initial
+            } else if current_value >= MAX_DURATION {
+                Mode::Done
+            } else {
+                Mode::Pause
+            },
             format: Format::S,
             phantom: PhantomData,
             style,
