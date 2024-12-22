@@ -1,9 +1,6 @@
+use crate::args::{ClockStyle, Content};
 use crate::constants::APP_NAME;
 use crate::widgets::pomodoro::Mode as PomodoroMode;
-use crate::{
-    app::App,
-    args::{ClockStyle, Content},
-};
 use color_eyre::eyre::Result;
 use serde::{Deserialize, Serialize};
 use std::fs;
@@ -52,25 +49,6 @@ impl Default for AppStorage {
             current_value_countdown: DEFAULT_COUNTDOWN,
             // timer
             current_value_timer: Duration::ZERO,
-        }
-    }
-}
-
-impl From<App> for AppStorage {
-    fn from(app: App) -> Self {
-        AppStorage {
-            content: app.content,
-            show_menu: app.show_menu,
-            clock_style: app.clock_style,
-            with_decis: app.with_decis,
-            pomodoro_mode: app.pomodoro.get_mode().clone(),
-            inital_value_work: app.pomodoro.get_clock_work().initial_value,
-            current_value_work: app.pomodoro.get_clock_work().current_value,
-            inital_value_pause: app.pomodoro.get_clock_pause().initial_value,
-            current_value_pause: app.pomodoro.get_clock_pause().current_value,
-            inital_value_countdown: app.countdown.clock.initial_value,
-            current_value_countdown: app.countdown.clock.current_value,
-            current_value_timer: app.timer.clock.current_value,
         }
     }
 }

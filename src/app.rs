@@ -31,14 +31,14 @@ enum Mode {
 
 #[derive(Debug)]
 pub struct App {
-    pub content: Content,
+    content: Content,
     mode: Mode,
-    pub show_menu: bool,
-    pub countdown: Countdown,
-    pub timer: Timer,
-    pub pomodoro: Pomodoro,
-    pub clock_style: ClockStyle,
-    pub with_decis: bool,
+    show_menu: bool,
+    countdown: Countdown,
+    timer: Timer,
+    pomodoro: Pomodoro,
+    clock_style: ClockStyle,
+    with_decis: bool,
 }
 
 pub struct AppArgs {
@@ -181,6 +181,23 @@ impl App {
             frame.render_stateful_widget(AppWidget, frame.area(), self);
         })?;
         Ok(())
+    }
+
+    pub fn to_storage(&self) -> AppStorage {
+        AppStorage {
+            content: self.content,
+            show_menu: self.show_menu,
+            clock_style: self.clock_style,
+            with_decis: self.with_decis,
+            pomodoro_mode: self.pomodoro.get_mode().clone(),
+            inital_value_work: self.pomodoro.get_clock_work().initial_value,
+            current_value_work: self.pomodoro.get_clock_work().current_value,
+            inital_value_pause: self.pomodoro.get_clock_pause().initial_value,
+            current_value_pause: self.pomodoro.get_clock_pause().current_value,
+            inital_value_countdown: self.countdown.clock.initial_value,
+            current_value_countdown: self.countdown.clock.current_value,
+            current_value_timer: self.timer.clock.current_value,
+        }
     }
 }
 

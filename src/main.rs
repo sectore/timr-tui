@@ -43,10 +43,9 @@ async fn main() -> Result<()> {
 
     // merge `Args` and `AppStorage`.
     let app_args = (args, stg).into();
-    let app_state = App::new(app_args).run(terminal, events).await?;
-
-    // store app state partially, but persistantly
-    storage.save(app_state.into())?;
+    let app_storage = App::new(app_args).run(terminal, events).await?.to_storage();
+    // store app state persistantly
+    storage.save(app_storage)?;
 
     terminal::teardown()?;
 
