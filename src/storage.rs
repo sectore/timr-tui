@@ -1,6 +1,8 @@
-use crate::args::Content;
-use crate::constants::APP_NAME;
-use crate::widgets::{clock::Style, pomodoro::Mode as PomodoroMode};
+use crate::{
+    app::Content,
+    constants::APP_NAME,
+    widgets::{clock::Style, pomodoro::Mode as PomodoroMode},
+};
 use color_eyre::eyre::Result;
 use serde::{Deserialize, Serialize};
 use std::fs;

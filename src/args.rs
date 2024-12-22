@@ -1,25 +1,11 @@
-use clap::{Parser, ValueEnum};
+use clap::Parser;
 use color_eyre::{
     eyre::{ensure, eyre},
     Report,
 };
-use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
-use crate::widgets::clock::Style;
-
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Default, Serialize, Deserialize,
-)]
-pub enum Content {
-    #[default]
-    #[value(name = "countdown", alias = "c")]
-    Countdown,
-    #[value(name = "timer", alias = "t")]
-    Timer,
-    #[value(name = "pomodoro", alias = "p")]
-    Pomodoro,
-}
+use crate::{app::Content, widgets::clock::Style};
 
 #[derive(Parser)]
 pub struct Args {
@@ -110,19 +96,16 @@ mod tests {
     fn test_parse_duration() {
         // ss
         assert_eq!(parse_duration("50").unwrap(), Duration::from_secs(50));
-
         // mm:ss
         assert_eq!(
             parse_duration("01:30").unwrap(),
             Duration::from_secs(60 + 30)
         );
-
         // hh:mm:ss
         assert_eq!(
             parse_duration("01:30:00").unwrap(),
             Duration::from_secs(60 * 60 + 30 * 60)
         );
-
         // errors
         assert!(parse_duration("1:60").is_err()); // invalid seconds
         assert!(parse_duration("60:00").is_err()); // invalid minutes
