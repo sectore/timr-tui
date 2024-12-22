@@ -1,11 +1,11 @@
 use crate::{
-    args::{Args, ClockStyle, Content},
+    args::{Args, Content},
     constants::TICK_VALUE_MS,
     events::{Event, EventHandler, Events},
     storage::AppStorage,
     terminal::Terminal,
     widgets::{
-        clock::{self, Clock, ClockArgs},
+        clock::{self, Clock, ClockArgs, Style},
         countdown::{Countdown, CountdownWidget},
         footer::Footer,
         header::Header,
@@ -37,12 +37,12 @@ pub struct App {
     countdown: Countdown,
     timer: Timer,
     pomodoro: Pomodoro,
-    clock_style: ClockStyle,
+    style: Style,
     with_decis: bool,
 }
 
 pub struct AppArgs {
-    pub style: ClockStyle,
+    pub style: Style,
     pub with_decis: bool,
     pub content: Content,
     pub pomodoro_mode: PomodoroMode,
@@ -62,7 +62,7 @@ impl From<(Args, AppStorage)> for AppArgs {
         AppArgs {
             with_decis: args.decis || stg.with_decis,
             content: args.mode.unwrap_or(stg.content),
-            style: args.style.unwrap_or(stg.clock_style),
+            style: args.style.unwrap_or(stg.style),
             pomodoro_mode: stg.pomodoro_mode,
             initial_value_work: args.work.unwrap_or(stg.inital_value_work),
             current_value_work: stg.current_value_work,
@@ -94,7 +94,7 @@ impl App {
             mode: Mode::Running,
             content,
             show_menu: false,
-            clock_style: style,
+            style,
             with_decis,
             countdown: Countdown::new(Clock::<clock::Countdown>::new(ClockArgs {
                 initial_value: initial_value_countdown,
@@ -157,11 +157,11 @@ impl App {
             KeyCode::Char('p') => self.content = Content::Pomodoro,
             KeyCode::Char('m') => self.show_menu = !self.show_menu,
             KeyCode::Char(',') => {
-                self.clock_style = self.clock_style.next();
+                self.style = self.style.next();
                 // update clocks
-                self.timer.set_style(self.clock_style);
-                self.countdown.set_style(self.clock_style);
-                self.pomodoro.set_style(self.clock_style);
+                self.timer.set_style(self.style);
+                self.countdown.set_style(self.style);
+                self.pomodoro.set_style(self.style);
             }
             KeyCode::Char('.') => {
                 self.with_decis = !self.with_decis;
@@ -187,7 +187,7 @@ impl App {
         AppStorage {
             content: self.content,
             show_menu: self.show_menu,
-            clock_style: self.clock_style,
+            style: self.style,
             with_decis: self.with_decis,
             pomodoro_mode: self.pomodoro.get_mode().clone(),
             inital_value_work: self.pomodoro.get_clock_work().initial_value,

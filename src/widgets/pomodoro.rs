@@ -1,9 +1,8 @@
 use crate::{
-    args::ClockStyle,
     constants::TICK_VALUE_MS,
     events::{Event, EventHandler},
     utils::center,
-    widgets::clock::{Clock, ClockWidget, Countdown},
+    widgets::clock::{Clock, ClockWidget, Countdown, Style},
 };
 use ratatui::{
     buffer::Buffer,
@@ -53,7 +52,7 @@ pub struct PomodoroArgs {
     pub current_value_work: Duration,
     pub initial_value_pause: Duration,
     pub current_value_pause: Duration,
-    pub style: ClockStyle,
+    pub style: Style,
     pub with_decis: bool,
 }
 
@@ -105,7 +104,7 @@ impl Pomodoro {
         &self.mode
     }
 
-    pub fn set_style(&mut self, style: crate::args::ClockStyle) {
+    pub fn set_style(&mut self, style: Style) {
         self.clock_map.work.style = style;
         self.clock_map.pause.style = style;
     }

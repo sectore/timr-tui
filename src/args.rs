@@ -6,6 +6,8 @@ use color_eyre::{
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
+use crate::widgets::clock::Style;
+
 #[derive(
     Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Default, Serialize, Deserialize,
 )]
@@ -17,30 +19,6 @@ pub enum Content {
     Timer,
     #[value(name = "pomodoro", alias = "p")]
     Pomodoro,
-}
-
-#[derive(Debug, Copy, Clone, ValueEnum, Default, Serialize, Deserialize)]
-pub enum ClockStyle {
-    #[default]
-    #[value(name = "bold", alias = "b")]
-    Bold,
-    #[value(name = "empty", alias = "e")]
-    Empty,
-    #[value(name = "thick", alias = "t")]
-    Thick,
-    #[value(name = "cross", alias = "c")]
-    Cross,
-}
-
-impl ClockStyle {
-    pub fn next(&self) -> Self {
-        match self {
-            ClockStyle::Bold => ClockStyle::Empty,
-            ClockStyle::Empty => ClockStyle::Thick,
-            ClockStyle::Thick => ClockStyle::Cross,
-            ClockStyle::Cross => ClockStyle::Bold,
-        }
-    }
 }
 
 #[derive(Parser)]
@@ -78,7 +56,7 @@ pub struct Args {
         value_enum,
         help = "Style to display time with: [b]old, [t]hick, [c]ross, [e]mpty"
     )]
-    pub style: Option<ClockStyle>,
+    pub style: Option<Style>,
 
     #[arg(long, short = 'r', help = "Reset stored values to default")]
     pub reset: bool,

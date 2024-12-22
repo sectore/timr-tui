@@ -1,6 +1,6 @@
-use crate::args::{ClockStyle, Content};
+use crate::args::Content;
 use crate::constants::APP_NAME;
-use crate::widgets::pomodoro::Mode as PomodoroMode;
+use crate::widgets::{clock::Style, pomodoro::Mode as PomodoroMode};
 use color_eyre::eyre::Result;
 use serde::{Deserialize, Serialize};
 use std::fs;
@@ -11,7 +11,7 @@ use std::time::Duration;
 pub struct AppStorage {
     pub content: Content,
     pub show_menu: bool,
-    pub clock_style: ClockStyle,
+    pub style: Style,
     pub with_decis: bool,
     pub pomodoro_mode: PomodoroMode,
     // pomodoro -> work
@@ -35,7 +35,7 @@ impl Default for AppStorage {
         AppStorage {
             content: Content::default(),
             show_menu: false,
-            clock_style: ClockStyle::default(),
+            style: Style::default(),
             with_decis: false,
             pomodoro_mode: PomodoroMode::Work,
             // pomodoro -> work
