@@ -16,7 +16,7 @@ use crate::{
 
 #[derive(Debug, Clone)]
 pub struct Countdown {
-    pub clock: Clock<clock::Countdown>,
+    clock: Clock<clock::Countdown>,
 }
 
 impl Countdown {
@@ -30,6 +30,10 @@ impl Countdown {
 
     pub fn set_with_decis(&mut self, with_decis: bool) {
         self.clock.with_decis = with_decis;
+    }
+
+    pub fn get_clock(&self) -> &Clock<clock::Countdown> {
+        &self.clock
     }
 }
 

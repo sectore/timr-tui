@@ -194,9 +194,9 @@ impl App {
             current_value_work: self.pomodoro.get_clock_work().current_value,
             inital_value_pause: self.pomodoro.get_clock_pause().initial_value,
             current_value_pause: self.pomodoro.get_clock_pause().current_value,
-            inital_value_countdown: self.countdown.clock.initial_value,
-            current_value_countdown: self.countdown.clock.current_value,
-            current_value_timer: self.timer.clock.current_value,
+            inital_value_countdown: self.countdown.get_clock().initial_value,
+            current_value_countdown: self.countdown.get_clock().current_value,
+            current_value_timer: self.timer.get_clock().current_value,
         }
     }
 }

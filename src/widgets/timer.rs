@@ -15,7 +15,7 @@ use std::cmp::max;
 
 #[derive(Debug, Clone)]
 pub struct Timer {
-    pub clock: Clock<clock::Timer>,
+    clock: Clock<clock::Timer>,
 }
 
 impl Timer {
@@ -29,6 +29,10 @@ impl Timer {
 
     pub fn set_with_decis(&mut self, with_decis: bool) {
         self.clock.with_decis = with_decis;
+    }
+
+    pub fn get_clock(&self) -> &Clock<clock::Timer> {
+        &self.clock
     }
 }
 
