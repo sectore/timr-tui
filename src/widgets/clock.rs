@@ -76,9 +76,9 @@ pub enum Format {
 
 #[derive(Debug, Clone)]
 pub struct Clock<T> {
-    initial_value: Duration,
+    pub initial_value: Duration,
+    pub current_value: Duration,
     tick_value: Duration,
-    current_value: Duration,
     mode: Mode,
     format: Format,
     pub style: ClockStyle,
@@ -88,6 +88,7 @@ pub struct Clock<T> {
 
 pub struct ClockArgs {
     pub initial_value: Duration,
+    pub current_value: Duration,
     pub tick_value: Duration,
     pub style: ClockStyle,
     pub with_decis: bool,
@@ -315,14 +316,15 @@ impl Clock<Countdown> {
     pub fn new(args: ClockArgs) -> Self {
         let ClockArgs {
             initial_value,
+            current_value,
             tick_value,
             style,
             with_decis,
         } = args;
         let mut instance = Self {
             initial_value,
+            current_value,
             tick_value,
-            current_value: initial_value,
             mode: Mode::Initial,
             format: Format::S,
             style,
@@ -380,14 +382,15 @@ impl Clock<Timer> {
     pub fn new(args: ClockArgs) -> Self {
         let ClockArgs {
             initial_value,
+            current_value,
             tick_value,
             style,
             with_decis,
         } = args;
         let mut instance = Self {
             initial_value,
+            current_value,
             tick_value,
-            current_value: Duration::ZERO,
             mode: Mode::Initial,
             format: Format::S,
             phantom: PhantomData,

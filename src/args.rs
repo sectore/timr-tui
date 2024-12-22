@@ -3,10 +3,14 @@ use color_eyre::{
     eyre::{ensure, eyre},
     Report,
 };
+use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Default, Serialize, Deserialize,
+)]
 pub enum Content {
+    #[default]
     #[value(name = "countdown", alias = "c")]
     Countdown,
     #[value(name = "timer", alias = "t")]
@@ -15,8 +19,9 @@ pub enum Content {
     Pomodoro,
 }
 
-#[derive(Debug, Copy, Clone, ValueEnum)]
+#[derive(Debug, Copy, Clone, ValueEnum, Default, Serialize, Deserialize)]
 pub enum ClockStyle {
+    #[default]
     #[value(name = "bold", alias = "b")]
     Bold,
     #[value(name = "empty", alias = "e")]
@@ -45,41 +50,38 @@ pub struct Args {
         help = "Countdown time to start from. Format: 'ss', 'mm:ss', or 'hh:mm:ss'"
     )]
     pub countdown: Duration,
+
     #[arg(long, short, value_parser = parse_duration,
-        default_value="25:00" /* 25min */,
         help = "Work time to count down from. Format: 'ss', 'mm:ss', or 'hh:mm:ss'"
     )]
-    pub work: Duration,
+    pub work: Option<Duration>,
+
     #[arg(long, short, value_parser = parse_duration,
         default_value="5:00" /* 5min */,
         help = "Pause time to count down from. Format: 'ss', 'mm:ss', or 'hh:mm:ss'"
     )]
     pub pause: Duration,
 
-    #[arg(
-        long,
-        short = 'd',
-        default_value = "false",
-        help = "Wether to show deciseconds or not"
-    )]
+    #[arg(long, short = 'd', help = "Whether to show deciseconds or not")]
     pub decis: bool,
 
     #[arg(
         short = 'm',
         value_enum,
-        default_value = "timer",
         help = "Mode to start with: [t]imer, [c]ountdown, [p]omodoro"
     )]
-    pub mode: Content,
+    pub mode: Option<Content>,
 
     #[arg(
         long,
         short = 's',
         value_enum,
-        default_value = "bold",
         help = "Style to display time with: [b]old, [t]hick, [c]ross, [e]mpty"
     )]
-    pub style: ClockStyle,
+    pub style: Option<ClockStyle>,
+
+    #[arg(long, short = 'r', help = "Reset stored values to default")]
+    pub reset: bool,
 }
 
 fn parse_duration(arg: &str) -> Result<Duration, Report> {

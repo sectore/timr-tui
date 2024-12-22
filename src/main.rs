@@ -6,6 +6,7 @@ mod events;
 mod logging;
 
 mod args;
+mod storage;
 mod terminal;
 mod utils;
 mod widgets;
@@ -14,20 +15,39 @@ use app::App;
 use args::Args;
 use clap::Parser;
 use color_eyre::Result;
+use config::Config;
+use storage::{AppStorage, Storage};
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let config = config::Config::init()?;
+    let Config { log_dir, data_dir } = Config::init()?;
     #[cfg(debug_assertions)]
-    logging::Logger::new(config.log_dir).init()?;
+    logging::Logger::new(log_dir).init()?;
 
     color_eyre::install()?;
 
-    let args = Args::parse();
-
     let terminal = terminal::setup()?;
     let events = events::Events::new();
-    App::new(args).run(terminal, events).await?;
+
+    // get args given by CLI
+    let args = Args::parse();
+
+    // check persistant storage
+    let storage = Storage::new(data_dir);
+    // option to reset previous stored data to `default`
+    let stg = if args.reset {
+        AppStorage::default()
+    } else {
+        storage.load().unwrap_or_default()
+    };
+
+    // merge `Args` and `AppStorage`.
+    let app_args = (args, stg).into();
+    let app_state = App::new(app_args).run(terminal, events).await?;
+
+    // store app state partially, but persistantly
+    storage.save(app_state.into())?;
+
     terminal::teardown()?;
 
     Ok(())

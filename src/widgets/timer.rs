@@ -15,7 +15,7 @@ use std::cmp::max;
 
 #[derive(Debug, Clone)]
 pub struct Timer {
-    clock: Clock<clock::Timer>,
+    pub clock: Clock<clock::Timer>,
 }
 
 impl Timer {

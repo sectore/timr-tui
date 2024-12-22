@@ -16,10 +16,12 @@ use std::{cmp::max, time::Duration};
 
 use strum::Display;
 
+use serde::{Deserialize, Serialize};
+
 use super::clock::ClockArgs;
 
-#[derive(Debug, Clone, Display, Hash, Eq, PartialEq)]
-enum Mode {
+#[derive(Debug, Clone, Display, Hash, Eq, PartialEq, Deserialize, Serialize)]
+pub enum Mode {
     Work,
     Pause,
 }
@@ -46,8 +48,11 @@ pub struct Pomodoro {
 }
 
 pub struct PomodoroArgs {
-    pub work: Duration,
-    pub pause: Duration,
+    pub mode: Mode,
+    pub initial_value_work: Duration,
+    pub current_value_work: Duration,
+    pub initial_value_pause: Duration,
+    pub current_value_pause: Duration,
     pub style: ClockStyle,
     pub with_decis: bool,
 }
@@ -55,22 +60,27 @@ pub struct PomodoroArgs {
 impl Pomodoro {
     pub fn new(args: PomodoroArgs) -> Self {
         let PomodoroArgs {
-            work,
-            pause,
+            mode,
+            initial_value_work,
+            current_value_work,
+            initial_value_pause,
+            current_value_pause,
             style,
             with_decis,
         } = args;
         Self {
-            mode: Mode::Work,
+            mode,
             clock_map: ClockMap {
                 work: Clock::<Countdown>::new(ClockArgs {
-                    initial_value: work,
+                    initial_value: initial_value_work,
+                    current_value: current_value_work,
                     tick_value: Duration::from_millis(TICK_VALUE_MS),
                     style,
                     with_decis,
                 }),
                 pause: Clock::<Countdown>::new(ClockArgs {
-                    initial_value: pause,
+                    initial_value: initial_value_pause,
+                    current_value: current_value_pause,
                     tick_value: Duration::from_millis(TICK_VALUE_MS),
                     style,
                     with_decis,
@@ -79,8 +89,20 @@ impl Pomodoro {
         }
     }
 
-    fn get_clock(&mut self) -> &mut Clock<Countdown> {
+    pub fn get_clock(&mut self) -> &mut Clock<Countdown> {
         self.clock_map.get(&self.mode)
+    }
+
+    pub fn get_clock_work(&self) -> &Clock<Countdown> {
+        &self.clock_map.work
+    }
+
+    pub fn get_clock_pause(&self) -> &Clock<Countdown> {
+        &self.clock_map.pause
+    }
+
+    pub fn get_mode(&self) -> &Mode {
+        &self.mode
     }
 
     pub fn set_style(&mut self, style: crate::args::ClockStyle) {

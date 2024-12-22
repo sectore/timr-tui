@@ -16,7 +16,7 @@ use crate::{
 
 #[derive(Debug, Clone)]
 pub struct Countdown {
-    clock: Clock<clock::Countdown>,
+    pub clock: Clock<clock::Countdown>,
 }
 
 impl Countdown {

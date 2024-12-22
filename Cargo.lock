@@ -894,6 +894,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "serde_json"
+version = "1.0.134"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d00f4175c42ee48b15416f6193a959ba3a0d67fc699a0db9ad12df9f83991c7d"
+dependencies = [
+ "itoa",
+ "memchr",
+ "ryu",
+ "serde",
+]
+
+[[package]]
 name = "sharded-slab"
 version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1049,6 +1061,7 @@ dependencies = [
  "futures",
  "ratatui",
  "serde",
+ "serde_json",
  "strum",
  "tokio",
  "tokio-stream",
