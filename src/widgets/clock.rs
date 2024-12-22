@@ -1,3 +1,5 @@
+use clap::ValueEnum;
+use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::marker::PhantomData;
 use std::time::Duration;
@@ -9,7 +11,7 @@ use ratatui::{
     widgets::StatefulWidget,
 };
 
-use crate::{args::ClockStyle, utils::center_horizontal};
+use crate::utils::center_horizontal;
 
 #[derive(Debug, Copy, Clone, Display, PartialEq, Eq)]
 pub enum Time {
@@ -74,22 +76,47 @@ pub enum Format {
     HhMmSs,
 }
 
+#[derive(Debug, Copy, Clone, ValueEnum, Default, Serialize, Deserialize)]
+pub enum Style {
+    #[default]
+    #[value(name = "bold", alias = "b")]
+    Bold,
+    #[value(name = "empty", alias = "e")]
+    Empty,
+    #[value(name = "thick", alias = "t")]
+    Thick,
+    #[value(name = "cross", alias = "c")]
+    Cross,
+}
+
+impl Style {
+    pub fn next(&self) -> Self {
+        match self {
+            Style::Bold => Style::Empty,
+            Style::Empty => Style::Thick,
+            Style::Thick => Style::Cross,
+            Style::Cross => Style::Bold,
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct Clock<T> {
-    initial_value: Duration,
+    pub initial_value: Duration,
+    pub current_value: Duration,
     tick_value: Duration,
-    current_value: Duration,
     mode: Mode,
     format: Format,
-    pub style: ClockStyle,
+    pub style: Style,
     pub with_decis: bool,
     phantom: PhantomData<T>,
 }
 
 pub struct ClockArgs {
     pub initial_value: Duration,
+    pub current_value: Duration,
     pub tick_value: Duration,
-    pub style: ClockStyle,
+    pub style: Style,
     pub with_decis: bool,
 }
 
@@ -315,15 +342,22 @@ impl Clock<Countdown> {
     pub fn new(args: ClockArgs) -> Self {
         let ClockArgs {
             initial_value,
+            current_value,
             tick_value,
             style,
             with_decis,
         } = args;
         let mut instance = Self {
             initial_value,
+            current_value,
             tick_value,
-            current_value: initial_value,
-            mode: Mode::Initial,
+            mode: if current_value == Duration::ZERO {
+                Mode::Done
+            } else if current_value == initial_value {
+                Mode::Initial
+            } else {
+                Mode::Pause
+            },
             format: Format::S,
             style,
             with_decis,
@@ -380,15 +414,22 @@ impl Clock<Timer> {
     pub fn new(args: ClockArgs) -> Self {
         let ClockArgs {
             initial_value,
+            current_value,
             tick_value,
             style,
             with_decis,
         } = args;
         let mut instance = Self {
             initial_value,
+            current_value,
             tick_value,
-            current_value: Duration::ZERO,
-            mode: Mode::Initial,
+            mode: if current_value == initial_value {
+                Mode::Initial
+            } else if current_value >= MAX_DURATION {
+                Mode::Done
+            } else {
+                Mode::Pause
+            },
             format: Format::S,
             phantom: PhantomData,
             style,
@@ -552,12 +593,12 @@ where
         }
     }
 
-    fn get_digit_symbol(&self, style: &ClockStyle) -> &str {
+    fn get_digit_symbol(&self, style: &Style) -> &str {
         match &style {
-            ClockStyle::Bold => "█",
-            ClockStyle::Empty => "░",
-            ClockStyle::Cross => "╬",
-            ClockStyle::Thick => "┃",
+            Style::Bold => "█",
+            Style::Empty => "░",
+            Style::Cross => "╬",
+            Style::Thick => "┃",
         }
     }
 

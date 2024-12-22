@@ -1,42 +1,11 @@
-use clap::{Parser, ValueEnum};
+use clap::Parser;
 use color_eyre::{
     eyre::{ensure, eyre},
     Report,
 };
 use std::time::Duration;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
-pub enum Content {
-    #[value(name = "countdown", alias = "c")]
-    Countdown,
-    #[value(name = "timer", alias = "t")]
-    Timer,
-    #[value(name = "pomodoro", alias = "p")]
-    Pomodoro,
-}
-
-#[derive(Debug, Copy, Clone, ValueEnum)]
-pub enum ClockStyle {
-    #[value(name = "bold", alias = "b")]
-    Bold,
-    #[value(name = "empty", alias = "e")]
-    Empty,
-    #[value(name = "thick", alias = "t")]
-    Thick,
-    #[value(name = "cross", alias = "c")]
-    Cross,
-}
-
-impl ClockStyle {
-    pub fn next(&self) -> Self {
-        match self {
-            ClockStyle::Bold => ClockStyle::Empty,
-            ClockStyle::Empty => ClockStyle::Thick,
-            ClockStyle::Thick => ClockStyle::Cross,
-            ClockStyle::Cross => ClockStyle::Bold,
-        }
-    }
-}
+use crate::{app::Content, widgets::clock::Style};
 
 #[derive(Parser)]
 pub struct Args {
@@ -45,41 +14,38 @@ pub struct Args {
         help = "Countdown time to start from. Format: 'ss', 'mm:ss', or 'hh:mm:ss'"
     )]
     pub countdown: Duration,
+
     #[arg(long, short, value_parser = parse_duration,
-        default_value="25:00" /* 25min */,
         help = "Work time to count down from. Format: 'ss', 'mm:ss', or 'hh:mm:ss'"
     )]
-    pub work: Duration,
+    pub work: Option<Duration>,
+
     #[arg(long, short, value_parser = parse_duration,
         default_value="5:00" /* 5min */,
         help = "Pause time to count down from. Format: 'ss', 'mm:ss', or 'hh:mm:ss'"
     )]
     pub pause: Duration,
 
-    #[arg(
-        long,
-        short = 'd',
-        default_value = "false",
-        help = "Wether to show deciseconds or not"
-    )]
+    #[arg(long, short = 'd', help = "Whether to show deciseconds or not")]
     pub decis: bool,
 
     #[arg(
         short = 'm',
         value_enum,
-        default_value = "timer",
         help = "Mode to start with: [t]imer, [c]ountdown, [p]omodoro"
     )]
-    pub mode: Content,
+    pub mode: Option<Content>,
 
     #[arg(
         long,
         short = 's',
         value_enum,
-        default_value = "bold",
         help = "Style to display time with: [b]old, [t]hick, [c]ross, [e]mpty"
     )]
-    pub style: ClockStyle,
+    pub style: Option<Style>,
+
+    #[arg(long, short = 'r', help = "Reset stored values to default")]
+    pub reset: bool,
 }
 
 fn parse_duration(arg: &str) -> Result<Duration, Report> {
@@ -130,19 +96,16 @@ mod tests {
     fn test_parse_duration() {
         // ss
         assert_eq!(parse_duration("50").unwrap(), Duration::from_secs(50));
-
         // mm:ss
         assert_eq!(
             parse_duration("01:30").unwrap(),
             Duration::from_secs(60 + 30)
         );
-
         // hh:mm:ss
         assert_eq!(
             parse_duration("01:30:00").unwrap(),
             Duration::from_secs(60 * 60 + 30 * 60)
         );
-
         // errors
         assert!(parse_duration("1:60").is_err()); // invalid seconds
         assert!(parse_duration("60:00").is_err()); // invalid minutes
