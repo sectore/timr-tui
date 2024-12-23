@@ -24,13 +24,13 @@ _soon_
 Usage: timr [OPTIONS]
 
 Options:
-  -c, --countdown <COUNTDOWN>  Countdown time to start from. Format: 'ss', 'mm:ss', or 'hh:mm:ss' [default: 10:00]
-  -w, --work <WORK>            Work time to count down from. Format: 'ss', 'mm:ss', or 'hh:mm:ss' [default: 25:00]
-  -p, --pause <PAUSE>          Pause time to count down from. Format: 'ss', 'mm:ss', or 'hh:mm:ss' [default: 5:00]
-  -d, --decis                  Wether to show deciseconds or not
-  -m, --mode <CONTENT>         Mode to start with: [t]imer, [c]ountdown, [p]omodoro [default: timer] [possible values: countdown, timer, pomodoro]
-  -s, --style <STYLE>          Style to display time with: [b]old, [t]hick, [c]ross, [e]mpty [default: bold] [possible values: bold, empty, thick, cross]
-  -r, --reset                  Reset stored values to default
+  -c, --countdown <COUNTDOWN>  Countdown time to start from. Formats: 'ss', 'mm:ss', or 'hh:mm:ss' [default: 10:00]
+  -w, --work <WORK>            Work time to count down from. Formats: 'ss', 'mm:ss', or 'hh:mm:ss' [default: 25:00]
+  -p, --pause <PAUSE>          Pause time to count down from. Formats: 'ss', 'mm:ss', or 'hh:mm:ss' [default: 5:00]
+  -d, --decis                  Wether to show deciseconds or not.
+  -m, --mode <MODE>            Mode to start with. [possible values: countdown, timer, pomodoro]
+  -s, --style <STYLE>          Style to display time with. [possible values: full, light, medium, dark, thick, cross, braille]
+  -r, --reset                  Reset stored values to default.
   -h, --help                   Print help
 ```
 
