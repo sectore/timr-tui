@@ -251,7 +251,7 @@ impl StatefulWidget for AppWidget {
     fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
         let [v0, v1] = Layout::vertical([
             Constraint::Percentage(100),
-            Constraint::Length(if state.show_menu { 5 } else { 1 }),
+            Constraint::Length(if state.show_menu { 4 } else { 1 }),
         ])
         .areas(area);
 

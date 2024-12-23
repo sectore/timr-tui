@@ -26,8 +26,11 @@ impl Widget for Footer {
             (Content::Pomodoro, "[p]omodoro"),
         ]);
 
+        let [_, area] =
+            Layout::horizontal([Constraint::Length(1), Constraint::Percentage(100)]).areas(area);
+
         let [border_area, menu_area] =
-            Layout::vertical([Constraint::Length(2), Constraint::Percentage(100)]).areas(area);
+            Layout::vertical([Constraint::Length(1), Constraint::Percentage(100)]).areas(area);
         Block::new()
             .borders(Borders::TOP)
             .title(format! {"[m]enu {:} ", if self.show_menu {"↓"} else {"↑"}})
@@ -119,6 +122,7 @@ impl Widget for Footer {
                 ],
                 widths,
             )
+            .column_spacing(1)
             .render(menu_area, buf);
         }
     }
