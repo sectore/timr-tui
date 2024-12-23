@@ -5,7 +5,7 @@ use ratatui::{
     buffer::Buffer,
     layout::{Constraint, Layout, Rect},
     style::{Modifier, Style},
-    symbols,
+    symbols::{border, scrollbar},
     text::{Line, Span},
     widgets::{Block, Borders, Cell, Row, Table, Widget},
 };
@@ -33,8 +33,10 @@ impl Widget for Footer {
             Layout::vertical([Constraint::Length(1), Constraint::Percentage(100)]).areas(area);
         Block::new()
             .borders(Borders::TOP)
-            .title(format! {"[m]enu {:} ", if self.show_menu {"↓"} else {"↑"}})
-            .border_set(symbols::border::DOUBLE)
+            .title(
+                format! {"[m]enu {:} ", if self.show_menu {scrollbar::VERTICAL.end} else {scrollbar::VERTICAL.begin}},
+            )
+            .border_set(border::DOUBLE)
             .render(border_area, buf);
         // show menu
         if self.show_menu {
@@ -56,7 +58,7 @@ impl Widget for Footer {
                 })
                 .collect();
 
-            const SPACE: &str = "  ";
+            const SPACE: &str = "  "; // 2 empty spaces
             let widths = [Constraint::Length(12), Constraint::Percentage(100)];
             Table::new(
                 [
@@ -91,11 +93,15 @@ impl Widget for Footer {
                                 vec![
                                     Span::from("[e]dit done"),
                                     Span::from(SPACE),
-                                    Span::from("[← →]edit selection"),
+                                    Span::from(format!(
+                                        "[{} {}]edit selection",
+                                        scrollbar::HORIZONTAL.begin,
+                                        scrollbar::HORIZONTAL.end
+                                    )), // ← →,
                                     Span::from(SPACE),
-                                    Span::from("[↑]edit up"),
+                                    Span::from(format!("[{}]edit up", scrollbar::VERTICAL.begin)), // ↑
                                     Span::from(SPACE),
-                                    Span::from("[↓]edit down"),
+                                    Span::from(format!("[{}]edit up", scrollbar::VERTICAL.end)), // ↓,
                                 ]
                             } else {
                                 let mut spans = vec![
