@@ -2,9 +2,6 @@
 
 **Pronounced `/ˈtʌɪmə/` or `/ˈtaɪmər/`.**
 
-> [!WARNING]
-> _Still WIP_
-
 # About
 
 `tim:r` is a TUI app to help you to organize one of the most important thing you have in live: `time`!
@@ -14,7 +11,7 @@
 - `[p]omodoro` Organize your working time to be focused all the time by following the [Pomodoro Technique](https://en.wikipedia.org/wiki/Pomodoro_Technique).
 
 
-It's built with [`ratatui`](https://ratatui.rs/) ([Rust](https://www.rust-lang.org/))
+It's built with [`ratatui`](https://ratatui.rs/) ([Rust](https://www.rust-lang.org/)).
 
 
 # Screens
@@ -33,6 +30,7 @@ Options:
   -d, --decis                  Wether to show deciseconds or not
   -m, --mode <CONTENT>         Mode to start with: [t]imer, [c]ountdown, [p]omodoro [default: timer] [possible values: countdown, timer, pomodoro]
   -s, --style <STYLE>          Style to display time with: [b]old, [t]hick, [c]ross, [e]mpty [default: bold] [possible values: bold, empty, thick, cross]
+  -r, --reset                  Reset stored values to default
   -h, --help                   Print help
 ```
 
@@ -40,21 +38,21 @@ Options:
 
 ## Requirements
 
-### Nix (recommend)
+### Nix users (recommend)
 
 `cd` into root directory.
 
-[`direnv`](https://direnv.net) users run `direnv allow` once to install dependencies. Others run `nix develop`.
+If you have [`direnv`](https://direnv.net) installed, run `direnv allow` once to install dependencies. In other case run `nix develop`.
 
 
-### Non Nix user
+### Non Nix users
 
 - [`Rust`](https://www.rust-lang.org/learn/get-started)
 - [`Clippy`](https://github.com/rust-lang/rust-clippy)
 - [`rustfmt`](https://github.com/rust-lang/rustfmt)
 - [`just`](https://just.systems)
 
-### Commands to `run`, `lint`, `format` etc.
+### Commands
 
 ```sh
 just --list
@@ -87,10 +85,20 @@ nix build .#windows
 
 # Misc.
 
+## Persistant app state
+
+Stored on file system.
+
+- `Linux`
+```sh
+cat ~/.local/state/timr/data/timr.data
+```
+
 ## Logs
 
 In `debug` mode only.
 
+- `Linux`
 ```sh
 tail -f ~/.local/state/timr/logs/timr.log
 ```

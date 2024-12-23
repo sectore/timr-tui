@@ -207,7 +207,7 @@ impl<T> Clock<T> {
         self.update_mode();
     }
 
-    pub fn get_mode(&mut self) -> &Mode {
+    pub fn get_mode(&self) -> &Mode {
         &self.mode
     }
 
@@ -215,7 +215,7 @@ impl<T> Clock<T> {
         self.mode == Mode::Tick
     }
 
-    pub fn is_edit_mode(&mut self) -> bool {
+    pub fn is_edit_mode(&self) -> bool {
         matches!(self.mode, Mode::Editable(_, _))
     }
 
@@ -301,7 +301,7 @@ impl<T> Clock<T> {
         (self.current_value.subsec_millis() / 100) as u64
     }
 
-    pub fn is_done(&mut self) -> bool {
+    pub fn is_done(&self) -> bool {
         self.mode == Mode::Done
     }
 
@@ -375,12 +375,12 @@ impl Clock<Countdown> {
     pub fn tick(&mut self) {
         if self.mode == Mode::Tick {
             self.current_value = self.current_value.saturating_sub(self.tick_value);
-            self.check_done();
+            self.set_done();
             self.update_format();
         }
     }
 
-    pub fn check_done(&mut self) {
+    pub fn set_done(&mut self) {
         if self.current_value.is_zero() {
             self.mode = Mode::Done;
         }
@@ -447,12 +447,12 @@ impl Clock<Timer> {
     pub fn tick(&mut self) {
         if self.mode == Mode::Tick {
             self.current_value = self.current_value.saturating_add(self.tick_value);
-            self.check_done();
+            self.set_done();
             self.update_format();
         }
     }
 
-    fn check_done(&mut self) {
+    fn set_done(&mut self) {
         if self.current_value >= MAX_DURATION {
             self.mode = Mode::Done;
         }
