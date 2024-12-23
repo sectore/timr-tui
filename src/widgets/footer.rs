@@ -12,44 +12,20 @@ use ratatui::{
 
 #[derive(Debug, Clone)]
 pub struct Footer {
-    show_menu: bool,
-    running_clock: bool,
-    selected_content: Content,
-    content_labels: BTreeMap<Content, String>,
-    edit_mode: bool,
-}
-
-pub struct FooterArgs {
     pub show_menu: bool,
     pub running_clock: bool,
     pub selected_content: Content,
     pub edit_mode: bool,
 }
 
-impl Footer {
-    pub fn new(args: FooterArgs) -> Self {
-        let FooterArgs {
-            show_menu,
-            running_clock,
-            selected_content,
-            edit_mode,
-        } = args;
-        Self {
-            show_menu,
-            running_clock,
-            selected_content,
-            edit_mode,
-            content_labels: BTreeMap::from([
-                (Content::Countdown, "[c]ountdown".into()),
-                (Content::Timer, "[t]imer".into()),
-                (Content::Pomodoro, "[p]omodoro".into()),
-            ]),
-        }
-    }
-}
-
 impl Widget for Footer {
     fn render(self, area: Rect, buf: &mut Buffer) {
+        let content_labels: BTreeMap<Content, &str> = BTreeMap::from([
+            (Content::Countdown, "[c]ountdown"),
+            (Content::Timer, "[t]imer"),
+            (Content::Pomodoro, "[p]omodoro"),
+        ]);
+
         let [border_area, menu_area] =
             Layout::vertical([Constraint::Length(2), Constraint::Percentage(100)]).areas(area);
         Block::new()
@@ -59,17 +35,16 @@ impl Widget for Footer {
             .render(border_area, buf);
         // show menu
         if self.show_menu {
-            let content_labels: Vec<Span> = self
-                .content_labels
+            let content_labels: Vec<Span> = content_labels
                 .iter()
                 .enumerate()
                 .map(|(index, (content, label))| {
                     let mut style = Style::default();
                     // Add space for all except last
-                    let label = if index < self.content_labels.len() - 1 {
+                    let label = if index < content_labels.len() - 1 {
                         format!("{}  ", label)
                     } else {
-                        label.into()
+                        label.to_string()
                     };
                     if *content == self.selected_content {
                         style = style.add_modifier(Modifier::BOLD);
