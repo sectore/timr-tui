@@ -36,7 +36,7 @@ impl Widget for Footer {
             .title(
                 format! {"[m]enu {:} ", if self.show_menu {scrollbar::VERTICAL.end} else {scrollbar::VERTICAL.begin}},
             )
-            .border_set(border::DOUBLE)
+            .border_set(border::PLAIN)
             .render(border_area, buf);
         // show menu
         if self.show_menu {
