@@ -8,6 +8,7 @@ use strum::Display;
 use ratatui::{
     buffer::Buffer,
     layout::{Constraint, Layout, Position, Rect},
+    symbols::shade,
     widgets::StatefulWidget,
 };
 
@@ -79,23 +80,35 @@ pub enum Format {
 #[derive(Debug, Copy, Clone, ValueEnum, Default, Serialize, Deserialize)]
 pub enum Style {
     #[default]
-    #[value(name = "bold", alias = "b")]
-    Bold,
-    #[value(name = "empty", alias = "e")]
-    Empty,
+    #[value(name = "full", alias = "f")]
+    Full,
+    #[value(name = "light", alias = "l")]
+    Light,
+    #[value(name = "medium", alias = "m")]
+    Medium,
+    #[value(name = "dark", alias = "d")]
+    Dark,
     #[value(name = "thick", alias = "t")]
     Thick,
     #[value(name = "cross", alias = "c")]
     Cross,
+    /// https://en.wikipedia.org/wiki/Braille_Patterns
+    /// Note: Might not be supported in all terminals
+    /// see https://docs.rs/ratatui/latest/src/ratatui/symbols.rs.html#150
+    #[value(name = "braille", alias = "b")]
+    Braille,
 }
 
 impl Style {
     pub fn next(&self) -> Self {
         match self {
-            Style::Bold => Style::Empty,
-            Style::Empty => Style::Thick,
+            Style::Full => Style::Dark,
+            Style::Dark => Style::Medium,
+            Style::Medium => Style::Light,
+            Style::Light => Style::Braille,
+            Style::Braille => Style::Thick,
             Style::Thick => Style::Cross,
-            Style::Cross => Style::Bold,
+            Style::Cross => Style::Full,
         }
     }
 }
@@ -599,10 +612,13 @@ where
 
     fn get_digit_symbol(&self, style: &Style) -> &str {
         match &style {
-            Style::Bold => "█",
-            Style::Empty => "░",
+            Style::Full => shade::FULL,
+            Style::Light => shade::LIGHT,
+            Style::Medium => shade::MEDIUM,
+            Style::Dark => shade::DARK,
             Style::Cross => "╬",
             Style::Thick => "┃",
+            Style::Braille => "⣿",
         }
     }
 

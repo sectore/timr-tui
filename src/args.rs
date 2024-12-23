@@ -11,40 +11,31 @@ use crate::{app::Content, widgets::clock::Style};
 pub struct Args {
     #[arg(long, short, value_parser = parse_duration,
         default_value="10:00" /* 10min */,
-        help = "Countdown time to start from. Format: 'ss', 'mm:ss', or 'hh:mm:ss'"
+        help = "Countdown time to start from. Formats: 'ss', 'mm:ss', or 'hh:mm:ss'"
     )]
     pub countdown: Duration,
 
     #[arg(long, short, value_parser = parse_duration,
-        help = "Work time to count down from. Format: 'ss', 'mm:ss', or 'hh:mm:ss'"
+        help = "Work time to count down from. Formats: 'ss', 'mm:ss', or 'hh:mm:ss'"
     )]
     pub work: Option<Duration>,
 
     #[arg(long, short, value_parser = parse_duration,
         default_value="5:00" /* 5min */,
-        help = "Pause time to count down from. Format: 'ss', 'mm:ss', or 'hh:mm:ss'"
+        help = "Pause time to count down from. Formats: 'ss', 'mm:ss', or 'hh:mm:ss'"
     )]
     pub pause: Duration,
 
-    #[arg(long, short = 'd', help = "Whether to show deciseconds or not")]
+    #[arg(long, short = 'd', help = "Whether to show deciseconds or not.")]
     pub decis: bool,
 
-    #[arg(
-        short = 'm',
-        value_enum,
-        help = "Mode to start with: [t]imer, [c]ountdown, [p]omodoro"
-    )]
+    #[arg(long, short = 'm', value_enum, help = "Mode to start with.")]
     pub mode: Option<Content>,
 
-    #[arg(
-        long,
-        short = 's',
-        value_enum,
-        help = "Style to display time with: [b]old, [t]hick, [c]ross, [e]mpty"
-    )]
+    #[arg(long, short = 's', value_enum, help = "Style to display time with.")]
     pub style: Option<Style>,
 
-    #[arg(long, short = 'r', help = "Reset stored values to default")]
+    #[arg(long, short = 'r', help = "Reset stored values to default.")]
     pub reset: bool,
 }
 
