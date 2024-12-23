@@ -7,7 +7,7 @@ use crate::{
     widgets::{
         clock::{self, Clock, ClockArgs, Style},
         countdown::{Countdown, CountdownWidget},
-        footer::{Footer, FooterArgs},
+        footer::Footer,
         header::Header,
         pomodoro::{Mode as PomodoroMode, Pomodoro, PomodoroArgs, PomodoroWidget},
         timer::{Timer, TimerWidget},
@@ -166,10 +166,10 @@ impl App {
         self.mode != Mode::Quit
     }
 
-    fn is_edit_mode(&mut self) -> bool {
+    fn is_edit_mode(&self) -> bool {
         match self.content {
-            Content::Countdown => self.countdown.get_clock().clone().is_edit_mode(),
-            Content::Timer => self.timer.get_clock().clone().is_edit_mode(),
+            Content::Countdown => self.countdown.get_clock().is_edit_mode(),
+            Content::Timer => self.timer.get_clock().is_edit_mode(),
             Content::Pomodoro => self.pomodoro.get_clock().is_edit_mode(),
         }
     }
@@ -262,12 +262,12 @@ impl StatefulWidget for AppWidget {
         // content
         self.render_content(v1, buf, state);
         // footer
-        Footer::new(FooterArgs {
+        Footer {
             show_menu: state.show_menu,
             running_clock: state.clock_is_running(),
             selected_content: state.content,
             edit_mode: state.is_edit_mode(),
-        })
+        }
         .render(v2, buf);
     }
 }

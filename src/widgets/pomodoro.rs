@@ -32,10 +32,16 @@ pub struct ClockMap {
 }
 
 impl ClockMap {
-    fn get(&mut self, mode: &Mode) -> &mut Clock<Countdown> {
+    fn get_mut(&mut self, mode: &Mode) -> &mut Clock<Countdown> {
         match mode {
             Mode::Work => &mut self.work,
             Mode::Pause => &mut self.pause,
+        }
+    }
+    fn get(&self, mode: &Mode) -> &Clock<Countdown> {
+        match mode {
+            Mode::Work => &self.work,
+            Mode::Pause => &self.pause,
         }
     }
 }
@@ -88,7 +94,11 @@ impl Pomodoro {
         }
     }
 
-    pub fn get_clock(&mut self) -> &mut Clock<Countdown> {
+    fn get_clock_mut(&mut self) -> &mut Clock<Countdown> {
+        self.clock_map.get_mut(&self.mode)
+    }
+
+    pub fn get_clock(&self) -> &Clock<Countdown> {
         self.clock_map.get(&self.mode)
     }
 
@@ -127,36 +137,36 @@ impl EventHandler for Pomodoro {
         let edit_mode = self.get_clock().is_edit_mode();
         match event {
             Event::Tick => {
-                self.get_clock().tick();
+                self.get_clock_mut().tick();
             }
             Event::Key(key) => match key.code {
                 KeyCode::Char('s') => {
-                    self.get_clock().toggle_pause();
+                    self.get_clock_mut().toggle_pause();
                 }
                 KeyCode::Char('e') => {
-                    self.get_clock().toggle_edit();
+                    self.get_clock_mut().toggle_edit();
                 }
                 KeyCode::Left if edit_mode => {
-                    self.get_clock().edit_next();
+                    self.get_clock_mut().edit_next();
                 }
                 KeyCode::Left => {
                     // `next` is acting as same as a `prev` function, we don't have
                     self.next();
                 }
                 KeyCode::Right if edit_mode => {
-                    self.get_clock().edit_prev();
+                    self.get_clock_mut().edit_prev();
                 }
                 KeyCode::Right => {
                     self.next();
                 }
                 KeyCode::Up if edit_mode => {
-                    self.get_clock().edit_up();
+                    self.get_clock_mut().edit_up();
                 }
                 KeyCode::Down if edit_mode => {
-                    self.get_clock().edit_down();
+                    self.get_clock_mut().edit_down();
                 }
                 KeyCode::Char('r') => {
-                    self.get_clock().reset();
+                    self.get_clock_mut().reset();
                 }
                 _ => return Some(event),
             },
@@ -176,7 +186,7 @@ impl StatefulWidget for PomodoroWidget {
             (format!(
                 "Pomodoro {} {}",
                 state.mode.clone(),
-                state.get_clock().get_mode()
+                state.get_clock_mut().get_mode()
             ))
             .to_uppercase(),
         );
@@ -196,7 +206,7 @@ impl StatefulWidget for PomodoroWidget {
         let [v1, v2] =
             Layout::vertical(Constraint::from_lengths([clock_widget.get_height(), 1])).areas(area);
 
-        clock_widget.render(v1, buf, state.get_clock());
+        clock_widget.render(v1, buf, state.get_clock_mut());
         label.centered().render(v2, buf);
     }
 }
