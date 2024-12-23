@@ -7,7 +7,7 @@ use crate::{
     widgets::{
         clock::{self, Clock, ClockArgs, Style},
         countdown::{Countdown, CountdownWidget},
-        footer::Footer,
+        footer::{Footer, FooterArgs},
         header::Header,
         pomodoro::{Mode as PomodoroMode, Pomodoro, PomodoroArgs, PomodoroWidget},
         timer::{Timer, TimerWidget},
@@ -59,6 +59,7 @@ pub struct App {
 pub struct AppArgs {
     pub style: Style,
     pub with_decis: bool,
+    pub show_menu: bool,
     pub content: Content,
     pub pomodoro_mode: PomodoroMode,
     pub initial_value_work: Duration,
@@ -76,6 +77,7 @@ impl From<(Args, AppStorage)> for AppArgs {
     fn from((args, stg): (Args, AppStorage)) -> Self {
         AppArgs {
             with_decis: args.decis || stg.with_decis,
+            show_menu: stg.show_menu,
             content: args.mode.unwrap_or(stg.content),
             style: args.style.unwrap_or(stg.style),
             pomodoro_mode: stg.pomodoro_mode,
@@ -94,6 +96,7 @@ impl App {
     pub fn new(args: AppArgs) -> Self {
         let AppArgs {
             style,
+            show_menu,
             initial_value_work,
             initial_value_pause,
             initial_value_countdown,
@@ -108,7 +111,7 @@ impl App {
         Self {
             mode: Mode::Running,
             content,
-            show_menu: false,
+            show_menu,
             style,
             with_decis,
             countdown: Countdown::new(Clock::<clock::Countdown>::new(ClockArgs {
@@ -161,6 +164,22 @@ impl App {
 
     fn is_running(&self) -> bool {
         self.mode != Mode::Quit
+    }
+
+    fn is_edit_mode(&mut self) -> bool {
+        match self.content {
+            Content::Countdown => self.countdown.get_clock().clone().is_edit_mode(),
+            Content::Timer => self.timer.get_clock().clone().is_edit_mode(),
+            Content::Pomodoro => self.pomodoro.get_clock().is_edit_mode(),
+        }
+    }
+
+    fn clock_is_running(&mut self) -> bool {
+        match self.content {
+            Content::Countdown => self.countdown.get_clock().clone().is_running(),
+            Content::Timer => self.timer.get_clock().clone().is_running(),
+            Content::Pomodoro => self.pomodoro.get_clock().is_running(),
+        }
     }
 
     fn handle_key_event(&mut self, key: KeyEvent) {
@@ -234,12 +253,21 @@ impl StatefulWidget for AppWidget {
         let vertical = Layout::vertical([
             Constraint::Length(1),
             Constraint::Percentage(100),
-            Constraint::Length(if state.show_menu { 2 } else { 1 }),
+            Constraint::Length(if state.show_menu { 5 } else { 1 }),
         ]);
         let [v0, v1, v2] = vertical.areas(area);
 
+        // header
         Header::new(true).render(v0, buf);
+        // content
         self.render_content(v1, buf, state);
-        Footer::new(state.show_menu, state.content).render(v2, buf);
+        // footer
+        Footer::new(FooterArgs {
+            show_menu: state.show_menu,
+            running_clock: state.clock_is_running(),
+            selected_content: state.content,
+            edit_mode: state.is_edit_mode(),
+        })
+        .render(v2, buf);
     }
 }

@@ -211,6 +211,10 @@ impl<T> Clock<T> {
         &self.mode
     }
 
+    pub fn is_running(&self) -> bool {
+        self.mode == Mode::Tick
+    }
+
     pub fn is_edit_mode(&mut self) -> bool {
         matches!(self.mode, Mode::Editable(_, _))
     }
