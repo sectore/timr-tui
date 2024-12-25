@@ -8,8 +8,8 @@ use crate::{
         clock::{self, Clock, ClockArgs, Style},
         countdown::{Countdown, CountdownWidget},
         footer::Footer,
+        header::Header,
         pomodoro::{Mode as PomodoroMode, Pomodoro, PomodoroArgs, PomodoroWidget},
-        progressbar::Progressbar,
         timer::{Timer, TimerWidget},
     },
 };
@@ -266,7 +266,7 @@ impl StatefulWidget for AppWidget {
         .areas(area);
 
         // header
-        Progressbar {
+        Header {
             percentage: state.get_percentage_done(),
         }
         .render(v0, buf);
