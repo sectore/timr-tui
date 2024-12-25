@@ -1,4 +1,8 @@
-use ratatui::{buffer::Buffer, layout::Rect, symbols::line, text::Span, widgets::Widget};
+use ratatui::{
+    buffer::Buffer,
+    layout::Rect,
+    widgets::{Block, Borders, Widget},
+};
 
 use crate::widgets::progressbar::Progressbar;
 
@@ -12,8 +16,7 @@ impl Widget for Header {
         if let Some(percentage) = self.percentage {
             Progressbar::new(percentage).render(area, buf);
         } else {
-            // done
-            Span::from(line::HORIZONTAL.repeat(area.width as usize)).render(area, buf);
+            Block::new().borders(Borders::TOP).render(area, buf);
         }
     }
 }
