@@ -393,10 +393,20 @@ impl Clock<Countdown> {
         }
     }
 
-    pub fn set_done(&mut self) {
+    fn set_done(&mut self) {
         if self.current_value.is_zero() {
             self.mode = Mode::Done;
         }
+    }
+
+    pub fn get_percentage_done(&self) -> u16 {
+        let initial = self.initial_value.as_millis();
+        let elapsed = self
+            .initial_value
+            .saturating_sub(self.current_value)
+            .as_millis();
+
+        (elapsed * 100 / initial) as u16
     }
 
     pub fn edit_next(&mut self) {

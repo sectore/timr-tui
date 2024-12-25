@@ -8,6 +8,7 @@ use crate::{
         clock::{self, Clock, ClockArgs, Style},
         countdown::{Countdown, CountdownWidget},
         footer::Footer,
+        header::Header,
         pomodoro::{Mode as PomodoroMode, Pomodoro, PomodoroArgs, PomodoroWidget},
         timer::{Timer, TimerWidget},
     },
@@ -173,11 +174,19 @@ impl App {
         }
     }
 
-    fn clock_is_running(&mut self) -> bool {
+    fn clock_is_running(&self) -> bool {
         match self.content {
-            Content::Countdown => self.countdown.get_clock().clone().is_running(),
-            Content::Timer => self.timer.get_clock().clone().is_running(),
+            Content::Countdown => self.countdown.get_clock().is_running(),
+            Content::Timer => self.timer.get_clock().is_running(),
             Content::Pomodoro => self.pomodoro.get_clock().is_running(),
+        }
+    }
+
+    fn get_percentage_done(&self) -> Option<u16> {
+        match self.content {
+            Content::Countdown => Some(self.countdown.get_clock().get_percentage_done()),
+            Content::Timer => None,
+            Content::Pomodoro => Some(self.pomodoro.get_clock().get_percentage_done()),
         }
     }
 
@@ -249,14 +258,20 @@ impl AppWidget {
 impl StatefulWidget for AppWidget {
     type State = App;
     fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
-        let [v0, v1] = Layout::vertical([
+        let [v0, v1, v2] = Layout::vertical([
+            Constraint::Length(1),
             Constraint::Percentage(100),
             Constraint::Length(if state.show_menu { 4 } else { 1 }),
         ])
         .areas(area);
 
+        // header
+        Header {
+            percentage: state.get_percentage_done(),
+        }
+        .render(v0, buf);
         // content
-        self.render_content(v0, buf, state);
+        self.render_content(v1, buf, state);
         // footer
         Footer {
             show_menu: state.show_menu,
@@ -264,6 +279,6 @@ impl StatefulWidget for AppWidget {
             selected_content: state.content,
             edit_mode: state.is_edit_mode(),
         }
-        .render(v1, buf);
+        .render(v2, buf);
     }
 }
