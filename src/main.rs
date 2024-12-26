@@ -6,6 +6,7 @@ mod events;
 mod logging;
 
 mod args;
+mod duration;
 mod storage;
 mod terminal;
 mod utils;

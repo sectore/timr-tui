@@ -12,7 +12,14 @@ use ratatui::{
     widgets::StatefulWidget,
 };
 
-use crate::utils::center_horizontal;
+use crate::{
+    duration::{DurationEx, MINS_PER_HOUR, ONE_HOUR, ONE_MINUTE, ONE_SECOND, SECS_PER_MINUTE},
+    utils::center_horizontal,
+};
+
+// max. 99:59:59
+const MAX_DURATION: Duration =
+    Duration::from_secs(100 * MINS_PER_HOUR * SECS_PER_MINUTE).saturating_sub(ONE_SECOND);
 
 #[derive(Debug, Copy, Clone, Display, PartialEq, Eq)]
 pub enum Time {
@@ -48,24 +55,6 @@ impl fmt::Display for Mode {
         }
     }
 }
-
-// unstable
-// https://doc.rust-lang.org/src/core/time.rs.html#32
-const SECS_PER_MINUTE: u64 = 60;
-// unstable
-// https://doc.rust-lang.org/src/core/time.rs.html#34
-const MINS_PER_HOUR: u64 = 60;
-// unstable
-// https://doc.rust-lang.org/src/core/time.rs.html#36
-const HOURS_PER_DAY: u64 = 24;
-
-// max. 99:59:59
-const MAX_DURATION: Duration =
-    Duration::from_secs(100 * MINS_PER_HOUR * SECS_PER_MINUTE).saturating_sub(ONE_SECOND);
-
-const ONE_SECOND: Duration = Duration::from_secs(1);
-const ONE_MINUTE: Duration = Duration::from_secs(SECS_PER_MINUTE);
-const ONE_HOUR: Duration = Duration::from_secs(MINS_PER_HOUR * SECS_PER_MINUTE);
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Display, PartialOrd, Ord)]
 pub enum Format {
@@ -115,9 +104,9 @@ impl Style {
 
 #[derive(Debug, Clone)]
 pub struct Clock<T> {
-    pub initial_value: Duration,
-    pub current_value: Duration,
-    tick_value: Duration,
+    initial_value: DurationEx,
+    current_value: DurationEx,
+    tick_value: DurationEx,
     mode: Mode,
     format: Format,
     pub style: Style,
@@ -142,17 +131,25 @@ impl<T> Clock<T> {
         }
     }
 
+    pub fn get_initial_value(&self) -> &DurationEx {
+        &self.initial_value
+    }
+
+    pub fn get_current_value(&self) -> &DurationEx {
+        &self.current_value
+    }
+
     pub fn toggle_edit(&mut self) {
         self.mode = match self.mode.clone() {
             Mode::Editable(_, prev) => {
                 let p = *prev;
                 // special cases: Should `Mode` be updated?
                 // 1. `Done` -> `Initial` ?
-                if p == Mode::Done && self.current_value.gt(&Duration::ZERO) {
+                if p == Mode::Done && self.current_value.gt(&Duration::ZERO.into()) {
                     Mode::Initial
                 }
                 // 2. `_` -> `Done` ?
-                else if p != Mode::Done && self.current_value.eq(&Duration::ZERO) {
+                else if p != Mode::Done && self.current_value.eq(&Duration::ZERO.into()) {
                     Mode::Done
                 }
                 // 3. `_` -> `_` (no change)
@@ -171,14 +168,14 @@ impl<T> Clock<T> {
     }
 
     pub fn edit_current_up(&mut self) {
-        self.current_value = match self.mode {
+        match self.mode {
             Mode::Editable(Time::Seconds, _) => {
                 if self
                     .current_value
                     // < 99:59:58
-                    .le(&MAX_DURATION.saturating_sub(ONE_SECOND))
+                    .le(&MAX_DURATION.saturating_sub(ONE_SECOND).into())
                 {
-                    self.current_value.saturating_add(ONE_SECOND)
+                    self.current_value.saturating_add(ONE_SECOND.into())
                 } else {
                     self.current_value
                 }
@@ -187,9 +184,9 @@ impl<T> Clock<T> {
                 if self
                     .current_value
                     // < 99:58:59
-                    .le(&MAX_DURATION.saturating_sub(ONE_MINUTE))
+                    .le(&MAX_DURATION.saturating_sub(ONE_MINUTE).into())
                 {
-                    self.current_value.saturating_add(ONE_MINUTE)
+                    self.current_value.saturating_add(ONE_MINUTE.into())
                 } else {
                     self.current_value
                 }
@@ -198,9 +195,9 @@ impl<T> Clock<T> {
                 if self
                     .current_value
                     // < 98:59:59
-                    .lt(&MAX_DURATION.saturating_sub(ONE_HOUR))
+                    .lt(&MAX_DURATION.saturating_sub(ONE_HOUR).into())
                 {
-                    self.current_value.saturating_add(ONE_HOUR)
+                    self.current_value.saturating_add(ONE_HOUR.into())
                 } else {
                     self.current_value
                 }
@@ -211,9 +208,13 @@ impl<T> Clock<T> {
     }
     pub fn edit_current_down(&mut self) {
         self.current_value = match self.mode {
-            Mode::Editable(Time::Seconds, _) => self.current_value.saturating_sub(ONE_SECOND),
-            Mode::Editable(Time::Minutes, _) => self.current_value.saturating_sub(ONE_MINUTE),
-            Mode::Editable(Time::Hours, _) => self.current_value.saturating_sub(ONE_HOUR),
+            Mode::Editable(Time::Seconds, _) => {
+                self.current_value.saturating_sub(ONE_SECOND.into())
+            }
+            Mode::Editable(Time::Minutes, _) => {
+                self.current_value.saturating_sub(ONE_MINUTE.into())
+            }
+            Mode::Editable(Time::Hours, _) => self.current_value.saturating_sub(ONE_HOUR.into()),
             _ => self.current_value,
         };
         self.update_format();
@@ -285,35 +286,6 @@ impl<T> Clock<T> {
         self.update_format();
     }
 
-    fn current_hours(&self) -> u64 {
-        self.current_seconds() / (SECS_PER_MINUTE * MINS_PER_HOUR)
-    }
-
-    fn current_hours_mod(&self) -> u64 {
-        self.current_hours() % HOURS_PER_DAY
-    }
-
-    fn current_minutes(&self) -> u64 {
-        self.current_seconds() / MINS_PER_HOUR
-    }
-
-    fn current_minutes_mod(&self) -> u64 {
-        self.current_minutes() % SECS_PER_MINUTE
-    }
-
-    fn current_seconds(&self) -> u64 {
-        self.current_value.as_secs()
-    }
-
-    fn current_seconds_mod(&self) -> u64 {
-        self.current_seconds() % SECS_PER_MINUTE
-    }
-
-    // deciseconds
-    fn current_decis(&self) -> u64 {
-        (self.current_value.subsec_millis() / 100) as u64
-    }
-
     pub fn is_done(&self) -> bool {
         self.mode == Mode::Done
     }
@@ -323,32 +295,19 @@ impl<T> Clock<T> {
     }
 
     pub fn get_format(&self) -> Format {
-        if self.current_hours() >= 10 {
+        if self.current_value.hours() >= 10 {
             Format::HhMmSs
-        } else if self.current_hours() >= 1 {
+        } else if self.current_value.hours() >= 1 {
             Format::HMmSs
-        } else if self.current_minutes() >= 10 {
+        } else if self.current_value.minutes() >= 10 {
             Format::MmSs
-        } else if self.current_minutes() >= 1 {
+        } else if self.current_value.minutes() >= 1 {
             Format::MSs
-        } else if self.current_seconds() >= 10 {
+        } else if self.current_value.seconds() >= 10 {
             Format::Ss
         } else {
             Format::S
         }
-    }
-}
-
-impl<T> fmt::Display for Clock<T> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "{:02}:{:02}:{:02}.{}",
-            self.current_hours_mod(),
-            self.current_minutes_mod(),
-            self.current_seconds_mod(),
-            self.current_decis()
-        )
     }
 }
 
@@ -365,9 +324,9 @@ impl Clock<Countdown> {
             with_decis,
         } = args;
         let mut instance = Self {
-            initial_value,
-            current_value,
-            tick_value,
+            initial_value: initial_value.into(),
+            current_value: current_value.into(),
+            tick_value: tick_value.into(),
             mode: if current_value == Duration::ZERO {
                 Mode::Done
             } else if current_value == initial_value {
@@ -394,19 +353,15 @@ impl Clock<Countdown> {
     }
 
     fn set_done(&mut self) {
-        if self.current_value.is_zero() {
+        if self.current_value.eq(&Duration::ZERO.into()) {
             self.mode = Mode::Done;
         }
     }
 
     pub fn get_percentage_done(&self) -> u16 {
-        let initial = self.initial_value.as_millis();
-        let elapsed = self
-            .initial_value
-            .saturating_sub(self.current_value)
-            .as_millis();
+        let elapsed = self.initial_value.saturating_sub(self.current_value);
 
-        (elapsed * 100 / initial) as u16
+        (elapsed.millis() * 100 / self.initial_value.millis()) as u16
     }
 
     pub fn edit_next(&mut self) {
@@ -447,9 +402,9 @@ impl Clock<Timer> {
             with_decis,
         } = args;
         let mut instance = Self {
-            initial_value,
-            current_value,
-            tick_value,
+            initial_value: initial_value.into(),
+            current_value: current_value.into(),
+            tick_value: tick_value.into(),
             mode: if current_value == initial_value {
                 Mode::Initial
             } else if current_value >= MAX_DURATION {
@@ -469,14 +424,14 @@ impl Clock<Timer> {
 
     pub fn tick(&mut self) {
         if self.mode == Mode::Tick {
-            self.current_value = self.current_value.saturating_add(self.tick_value);
+            self.current_value.saturating_add(self.tick_value);
             self.set_done();
             self.update_format();
         }
     }
 
     fn set_done(&mut self) {
-        if self.current_value >= MAX_DURATION {
+        if self.current_value.ge(&MAX_DURATION.into()) {
             self.mode = Mode::Done;
         }
     }
@@ -846,197 +801,341 @@ where
             Format::HhMmSs if with_decis => {
                 let [hh, _, h, c_hm, mm, _, m, c_ms, ss, _, s, d, ds] =
                     Layout::horizontal(Constraint::from_lengths(widths)).areas(area);
-                self.render_digit(state.current_hours() / 10, symbol, edit_hours, hh, buf);
-                self.render_digit(state.current_hours() % 10, symbol, edit_hours, h, buf);
+                self.render_digit(
+                    state.current_value.hours() / 10,
+                    symbol,
+                    edit_hours,
+                    hh,
+                    buf,
+                );
+                self.render_digit(state.current_value.hours() % 10, symbol, edit_hours, h, buf);
                 self.render_colon(symbol, c_hm, buf);
                 self.render_digit(
-                    state.current_minutes_mod() / 10,
+                    state.current_value.minutes_mod() / 10,
                     symbol,
                     edit_minutes,
                     mm,
                     buf,
                 );
                 self.render_digit(
-                    state.current_minutes_mod() % 10,
+                    state.current_value.minutes_mod() % 10,
                     symbol,
                     edit_minutes,
                     m,
                     buf,
                 );
                 self.render_colon(symbol, c_ms, buf);
-                self.render_digit(state.current_seconds_mod() / 10, symbol, edit_secs, ss, buf);
-                self.render_digit(state.current_seconds_mod() % 10, symbol, edit_secs, s, buf);
+                self.render_digit(
+                    state.current_value.seconds_mod() / 10,
+                    symbol,
+                    edit_secs,
+                    ss,
+                    buf,
+                );
+                self.render_digit(
+                    state.current_value.seconds_mod() % 10,
+                    symbol,
+                    edit_secs,
+                    s,
+                    buf,
+                );
                 self.render_dot(symbol, d, buf);
-                self.render_digit(state.current_decis(), symbol, false, ds, buf);
+                self.render_digit(state.current_value.decis(), symbol, false, ds, buf);
             }
             Format::HhMmSs => {
                 let [hh, _, h, c_hm, mm, _, m, c_ms, ss, _, s] =
                     Layout::horizontal(Constraint::from_lengths(widths)).areas(area);
-                self.render_digit(state.current_hours() / 10, symbol, edit_hours, hh, buf);
-                self.render_digit(state.current_hours() % 10, symbol, edit_hours, h, buf);
+                self.render_digit(
+                    state.current_value.hours() / 10,
+                    symbol,
+                    edit_hours,
+                    hh,
+                    buf,
+                );
+                self.render_digit(state.current_value.hours() % 10, symbol, edit_hours, h, buf);
                 self.render_colon(symbol, c_hm, buf);
                 self.render_digit(
-                    state.current_minutes_mod() / 10,
+                    state.current_value.minutes_mod() / 10,
                     symbol,
                     edit_minutes,
                     mm,
                     buf,
                 );
                 self.render_digit(
-                    state.current_minutes_mod() % 10,
+                    state.current_value.minutes_mod() % 10,
                     symbol,
                     edit_minutes,
                     m,
                     buf,
                 );
                 self.render_colon(symbol, c_ms, buf);
-                self.render_digit(state.current_seconds_mod() / 10, symbol, edit_secs, ss, buf);
-                self.render_digit(state.current_seconds_mod() % 10, symbol, edit_secs, s, buf);
+                self.render_digit(
+                    state.current_value.seconds_mod() / 10,
+                    symbol,
+                    edit_secs,
+                    ss,
+                    buf,
+                );
+                self.render_digit(
+                    state.current_value.seconds_mod() % 10,
+                    symbol,
+                    edit_secs,
+                    s,
+                    buf,
+                );
             }
             Format::HMmSs if with_decis => {
                 let [h, c_hm, mm, _, m, c_ms, ss, _, s, d, ds] =
                     Layout::horizontal(Constraint::from_lengths(widths)).areas(area);
-                self.render_digit(state.current_hours() % 10, symbol, edit_hours, h, buf);
+                self.render_digit(state.current_value.hours() % 10, symbol, edit_hours, h, buf);
                 self.render_colon(symbol, c_hm, buf);
                 self.render_digit(
-                    state.current_minutes_mod() / 10,
+                    state.current_value.minutes_mod() / 10,
                     symbol,
                     edit_minutes,
                     mm,
                     buf,
                 );
                 self.render_digit(
-                    state.current_minutes_mod() % 10,
+                    state.current_value.minutes_mod() % 10,
                     symbol,
                     edit_minutes,
                     m,
                     buf,
                 );
                 self.render_colon(symbol, c_ms, buf);
-                self.render_digit(state.current_seconds_mod() / 10, symbol, edit_secs, ss, buf);
-                self.render_digit(state.current_seconds_mod() % 10, symbol, edit_secs, s, buf);
+                self.render_digit(
+                    state.current_value.seconds_mod() / 10,
+                    symbol,
+                    edit_secs,
+                    ss,
+                    buf,
+                );
+                self.render_digit(
+                    state.current_value.seconds_mod() % 10,
+                    symbol,
+                    edit_secs,
+                    s,
+                    buf,
+                );
                 self.render_dot(symbol, d, buf);
-                self.render_digit(state.current_decis(), symbol, false, ds, buf);
+                self.render_digit(state.current_value.decis(), symbol, false, ds, buf);
             }
             Format::HMmSs => {
                 let [h, c_hm, mm, _, m, c_ms, ss, _, s] =
                     Layout::horizontal(Constraint::from_lengths(widths)).areas(area);
-                self.render_digit(state.current_hours() % 10, symbol, edit_hours, h, buf);
+                self.render_digit(state.current_value.hours() % 10, symbol, edit_hours, h, buf);
                 self.render_colon(symbol, c_hm, buf);
                 self.render_digit(
-                    state.current_minutes_mod() / 10,
+                    state.current_value.minutes_mod() / 10,
                     symbol,
                     edit_minutes,
                     mm,
                     buf,
                 );
                 self.render_digit(
-                    state.current_minutes_mod() % 10,
+                    state.current_value.minutes_mod() % 10,
                     symbol,
                     edit_minutes,
                     m,
                     buf,
                 );
                 self.render_colon(symbol, c_ms, buf);
-                self.render_digit(state.current_seconds_mod() / 10, symbol, edit_secs, ss, buf);
-                self.render_digit(state.current_seconds_mod() % 10, symbol, edit_secs, s, buf);
+                self.render_digit(
+                    state.current_value.seconds_mod() / 10,
+                    symbol,
+                    edit_secs,
+                    ss,
+                    buf,
+                );
+                self.render_digit(
+                    state.current_value.seconds_mod() % 10,
+                    symbol,
+                    edit_secs,
+                    s,
+                    buf,
+                );
             }
             Format::MmSs if with_decis => {
                 let [mm, _, m, c_ms, ss, _, s, d, ds] =
                     Layout::horizontal(Constraint::from_lengths(widths)).areas(area);
                 self.render_digit(
-                    state.current_minutes_mod() / 10,
+                    state.current_value.minutes_mod() / 10,
                     symbol,
                     edit_minutes,
                     mm,
                     buf,
                 );
                 self.render_digit(
-                    state.current_minutes_mod() % 10,
+                    state.current_value.minutes_mod() % 10,
                     symbol,
                     edit_minutes,
                     m,
                     buf,
                 );
                 self.render_colon(symbol, c_ms, buf);
-                self.render_digit(state.current_seconds_mod() / 10, symbol, edit_secs, ss, buf);
-                self.render_digit(state.current_seconds_mod() % 10, symbol, edit_secs, s, buf);
+                self.render_digit(
+                    state.current_value.seconds_mod() / 10,
+                    symbol,
+                    edit_secs,
+                    ss,
+                    buf,
+                );
+                self.render_digit(
+                    state.current_value.seconds_mod() % 10,
+                    symbol,
+                    edit_secs,
+                    s,
+                    buf,
+                );
                 self.render_dot(symbol, d, buf);
-                self.render_digit(state.current_decis(), symbol, false, ds, buf);
+                self.render_digit(state.current_value.decis(), symbol, false, ds, buf);
             }
             Format::MmSs => {
                 let [mm, _, m, c_ms, ss, _, s] =
                     Layout::horizontal(Constraint::from_lengths(widths)).areas(area);
                 self.render_digit(
-                    state.current_minutes_mod() / 10,
+                    state.current_value.minutes_mod() / 10,
                     symbol,
                     edit_minutes,
                     mm,
                     buf,
                 );
                 self.render_digit(
-                    state.current_minutes_mod() % 10,
+                    state.current_value.minutes_mod() % 10,
                     symbol,
                     edit_minutes,
                     m,
                     buf,
                 );
                 self.render_colon(symbol, c_ms, buf);
-                self.render_digit(state.current_seconds_mod() / 10, symbol, edit_secs, ss, buf);
-                self.render_digit(state.current_seconds_mod() % 10, symbol, edit_secs, s, buf);
+                self.render_digit(
+                    state.current_value.seconds_mod() / 10,
+                    symbol,
+                    edit_secs,
+                    ss,
+                    buf,
+                );
+                self.render_digit(
+                    state.current_value.seconds_mod() % 10,
+                    symbol,
+                    edit_secs,
+                    s,
+                    buf,
+                );
             }
             Format::MSs if with_decis => {
                 let [m, c_ms, ss, _, s, d, ds] =
                     Layout::horizontal(Constraint::from_lengths(widths)).areas(area);
                 self.render_digit(
-                    state.current_minutes_mod() % 10,
+                    state.current_value.minutes_mod() % 10,
                     symbol,
                     edit_minutes,
                     m,
                     buf,
                 );
                 self.render_colon(symbol, c_ms, buf);
-                self.render_digit(state.current_seconds_mod() / 10, symbol, edit_secs, ss, buf);
-                self.render_digit(state.current_seconds_mod() % 10, symbol, edit_secs, s, buf);
+                self.render_digit(
+                    state.current_value.seconds_mod() / 10,
+                    symbol,
+                    edit_secs,
+                    ss,
+                    buf,
+                );
+                self.render_digit(
+                    state.current_value.seconds_mod() % 10,
+                    symbol,
+                    edit_secs,
+                    s,
+                    buf,
+                );
                 self.render_dot(symbol, d, buf);
-                self.render_digit(state.current_decis(), symbol, false, ds, buf);
+                self.render_digit(state.current_value.decis(), symbol, false, ds, buf);
             }
             Format::MSs => {
                 let [m, c_ms, ss, _, s] =
                     Layout::horizontal(Constraint::from_lengths(widths)).areas(area);
                 self.render_digit(
-                    state.current_minutes_mod() % 10,
+                    state.current_value.minutes_mod() % 10,
                     symbol,
                     edit_minutes,
                     m,
                     buf,
                 );
                 self.render_colon(symbol, c_ms, buf);
-                self.render_digit(state.current_seconds_mod() / 10, symbol, edit_secs, ss, buf);
-                self.render_digit(state.current_seconds_mod() % 10, symbol, edit_secs, s, buf);
+                self.render_digit(
+                    state.current_value.seconds_mod() / 10,
+                    symbol,
+                    edit_secs,
+                    ss,
+                    buf,
+                );
+                self.render_digit(
+                    state.current_value.seconds_mod() % 10,
+                    symbol,
+                    edit_secs,
+                    s,
+                    buf,
+                );
             }
             Format::Ss if state.with_decis => {
                 let [ss, _, s, d, ds] =
                     Layout::horizontal(Constraint::from_lengths(widths)).areas(area);
-                self.render_digit(state.current_seconds_mod() / 10, symbol, edit_secs, ss, buf);
-                self.render_digit(state.current_seconds_mod() % 10, symbol, edit_secs, s, buf);
+                self.render_digit(
+                    state.current_value.seconds_mod() / 10,
+                    symbol,
+                    edit_secs,
+                    ss,
+                    buf,
+                );
+                self.render_digit(
+                    state.current_value.seconds_mod() % 10,
+                    symbol,
+                    edit_secs,
+                    s,
+                    buf,
+                );
                 self.render_dot(symbol, d, buf);
-                self.render_digit(state.current_decis(), symbol, false, ds, buf);
+                self.render_digit(state.current_value.decis(), symbol, false, ds, buf);
             }
             Format::Ss => {
                 let [ss, _, s] = Layout::horizontal(Constraint::from_lengths(widths)).areas(area);
-                self.render_digit(state.current_seconds_mod() / 10, symbol, edit_secs, ss, buf);
-                self.render_digit(state.current_seconds_mod() % 10, symbol, edit_secs, s, buf);
+                self.render_digit(
+                    state.current_value.seconds_mod() / 10,
+                    symbol,
+                    edit_secs,
+                    ss,
+                    buf,
+                );
+                self.render_digit(
+                    state.current_value.seconds_mod() % 10,
+                    symbol,
+                    edit_secs,
+                    s,
+                    buf,
+                );
             }
             Format::S if with_decis => {
                 let [s, d, ds] = Layout::horizontal(Constraint::from_lengths(widths)).areas(area);
-                self.render_digit(state.current_seconds_mod() % 10, symbol, edit_secs, s, buf);
+                self.render_digit(
+                    state.current_value.seconds_mod() % 10,
+                    symbol,
+                    edit_secs,
+                    s,
+                    buf,
+                );
                 self.render_dot(symbol, d, buf);
-                self.render_digit(state.current_decis(), symbol, false, ds, buf);
+                self.render_digit(state.current_value.decis(), symbol, false, ds, buf);
             }
             Format::S => {
                 let [s] = Layout::horizontal(Constraint::from_lengths(widths)).areas(area);
-                self.render_digit(state.current_seconds_mod() % 10, symbol, edit_secs, s, buf);
+                self.render_digit(
+                    state.current_value.seconds_mod() % 10,
+                    symbol,
+                    edit_secs,
+                    s,
+                    buf,
+                );
             }
         }
     }

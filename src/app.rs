@@ -232,13 +232,19 @@ impl App {
             style: self.style,
             with_decis: self.with_decis,
             pomodoro_mode: self.pomodoro.get_mode().clone(),
-            inital_value_work: self.pomodoro.get_clock_work().initial_value,
-            current_value_work: self.pomodoro.get_clock_work().current_value,
-            inital_value_pause: self.pomodoro.get_clock_pause().initial_value,
-            current_value_pause: self.pomodoro.get_clock_pause().current_value,
-            inital_value_countdown: self.countdown.get_clock().initial_value,
-            current_value_countdown: self.countdown.get_clock().current_value,
-            current_value_timer: self.timer.get_clock().current_value,
+            inital_value_work: Duration::from(*self.pomodoro.get_clock_work().get_initial_value()),
+            current_value_work: Duration::from(*self.pomodoro.get_clock_work().get_current_value()),
+            inital_value_pause: Duration::from(
+                *self.pomodoro.get_clock_pause().get_initial_value(),
+            ),
+            current_value_pause: Duration::from(
+                *self.pomodoro.get_clock_pause().get_current_value(),
+            ),
+            inital_value_countdown: Duration::from(*self.countdown.get_clock().get_initial_value()),
+            current_value_countdown: Duration::from(
+                *self.countdown.get_clock().get_current_value(),
+            ),
+            current_value_timer: Duration::from(*self.timer.get_clock().get_current_value()),
         }
     }
 }
