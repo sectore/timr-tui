@@ -10,10 +10,9 @@ use crate::{app::Content, widgets::clock::Style};
 #[derive(Parser)]
 pub struct Args {
     #[arg(long, short, value_parser = parse_duration,
-        default_value="10:00" /* 10min */,
         help = "Countdown time to start from. Formats: 'ss', 'mm:ss', or 'hh:mm:ss'"
     )]
-    pub countdown: Duration,
+    pub countdown: Option<Duration>,
 
     #[arg(long, short, value_parser = parse_duration,
         help = "Work time to count down from. Formats: 'ss', 'mm:ss', or 'hh:mm:ss'"
@@ -21,10 +20,9 @@ pub struct Args {
     pub work: Option<Duration>,
 
     #[arg(long, short, value_parser = parse_duration,
-        default_value="5:00" /* 5min */,
         help = "Pause time to count down from. Formats: 'ss', 'mm:ss', or 'hh:mm:ss'"
     )]
-    pub pause: Duration,
+    pub pause: Option<Duration>,
 
     #[arg(long, short = 'd', help = "Whether to show deciseconds or not.")]
     pub decis: bool,

@@ -82,11 +82,14 @@ impl From<(Args, AppStorage)> for AppArgs {
             style: args.style.unwrap_or(stg.style),
             pomodoro_mode: stg.pomodoro_mode,
             initial_value_work: args.work.unwrap_or(stg.inital_value_work),
-            current_value_work: stg.current_value_work,
-            initial_value_pause: args.pause,
-            current_value_pause: stg.current_value_pause,
-            initial_value_countdown: args.countdown,
-            current_value_countdown: stg.current_value_countdown,
+            // invalidate `current_value_work` if an initial value is set via args
+            current_value_work: args.work.unwrap_or(stg.current_value_work),
+            initial_value_pause: args.pause.unwrap_or(stg.inital_value_pause),
+            // invalidate `current_value_pause` if an initial value is set via args
+            current_value_pause: args.pause.unwrap_or(stg.current_value_pause),
+            initial_value_countdown: args.countdown.unwrap_or(stg.inital_value_countdown),
+            // invalidate `current_value_countdown` if an initial value is set via args
+            current_value_countdown: args.countdown.unwrap_or(stg.current_value_countdown),
             current_value_timer: stg.current_value_timer,
         }
     }

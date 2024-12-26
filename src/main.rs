@@ -12,7 +12,7 @@ mod terminal;
 mod utils;
 mod widgets;
 
-use app::App;
+use app::{App, AppArgs};
 use args::Args;
 use clap::Parser;
 use color_eyre::Result;
@@ -43,7 +43,7 @@ async fn main() -> Result<()> {
     };
 
     // merge `Args` and `AppStorage`.
-    let app_args = (args, stg).into();
+    let app_args: AppArgs = (args, stg).into();
     let app_storage = App::new(app_args).run(terminal, events).await?.to_storage();
     // store app state persistantly
     storage.save(app_storage)?;
