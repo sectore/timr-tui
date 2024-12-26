@@ -13,7 +13,10 @@ use ratatui::{
 };
 
 use crate::{
-    duration::{DurationEx, MINS_PER_HOUR, ONE_HOUR, ONE_MINUTE, ONE_SECOND, SECS_PER_MINUTE},
+    duration::{
+        DurationEx, MINS_PER_HOUR, ONE_DECI_SECOND, ONE_HOUR, ONE_MINUTE, ONE_SECOND,
+        SECS_PER_MINUTE,
+    },
     utils::center_horizontal,
 };
 
@@ -23,6 +26,7 @@ const MAX_DURATION: Duration =
 
 #[derive(Debug, Copy, Clone, Display, PartialEq, Eq)]
 pub enum Time {
+    Decis,
     Seconds,
     Minutes,
     Hours,
@@ -47,6 +51,7 @@ impl fmt::Display for Mode {
             Mode::Tick => write!(f, ">"),
             Mode::Pause => write!(f, "||"),
             Mode::Editable(time, _) => match time {
+                Time::Decis => write!(f, "[edit deciseconds]"),
                 Time::Seconds => write!(f, "[edit seconds]"),
                 Time::Minutes => write!(f, "[edit minutes]"),
                 Time::Hours => write!(f, "[edit hours]"),
@@ -168,7 +173,18 @@ impl<T> Clock<T> {
     }
 
     pub fn edit_current_up(&mut self) {
-        match self.mode {
+        self.current_value = match self.mode {
+            Mode::Editable(Time::Decis, _) => {
+                if self
+                    .current_value
+                    // < 99:59:58
+                    .le(&MAX_DURATION.saturating_sub(ONE_DECI_SECOND).into())
+                {
+                    self.current_value.saturating_add(ONE_DECI_SECOND.into())
+                } else {
+                    self.current_value
+                }
+            }
             Mode::Editable(Time::Seconds, _) => {
                 if self
                     .current_value
@@ -208,6 +224,9 @@ impl<T> Clock<T> {
     }
     pub fn edit_current_down(&mut self) {
         self.current_value = match self.mode {
+            Mode::Editable(Time::Decis, _) => {
+                self.current_value.saturating_sub(ONE_DECI_SECOND.into())
+            }
             Mode::Editable(Time::Seconds, _) => {
                 self.current_value.saturating_sub(ONE_SECOND.into())
             }
@@ -236,14 +255,25 @@ impl<T> Clock<T> {
     fn edit_mode_next(&mut self) {
         let mode = self.mode.clone();
         self.mode = match mode {
-            Mode::Editable(Time::Seconds, prev) if self.format >= Format::MSs => {
-                Mode::Editable(Time::Minutes, prev)
+            Mode::Editable(Time::Decis, prev) => Mode::Editable(Time::Seconds, prev),
+            Mode::Editable(Time::Seconds, prev) if self.format <= Format::Ss && self.with_decis => {
+                Mode::Editable(Time::Decis, prev)
+            }
+            Mode::Editable(Time::Seconds, prev) if self.format <= Format::Ss => {
+                Mode::Editable(Time::Seconds, prev)
+            }
+            Mode::Editable(Time::Seconds, prev) => Mode::Editable(Time::Minutes, prev),
+            Mode::Editable(Time::Minutes, prev)
+                if self.format <= Format::MmSs && self.with_decis =>
+            {
+                Mode::Editable(Time::Decis, prev)
             }
             Mode::Editable(Time::Minutes, prev) if self.format <= Format::MmSs => {
                 Mode::Editable(Time::Seconds, prev)
             }
-            Mode::Editable(Time::Minutes, prev) if self.format >= Format::MmSs => {
-                Mode::Editable(Time::Hours, prev)
+            Mode::Editable(Time::Minutes, prev) => Mode::Editable(Time::Hours, prev),
+            Mode::Editable(Time::Hours, prev) if self.with_decis => {
+                Mode::Editable(Time::Decis, prev)
             }
             Mode::Editable(Time::Hours, prev) => Mode::Editable(Time::Seconds, prev),
             _ => mode,
@@ -254,11 +284,26 @@ impl<T> Clock<T> {
     fn edit_mode_prev(&mut self) {
         let mode = self.mode.clone();
         self.mode = match mode {
-            Mode::Editable(Time::Seconds, prev) if self.format >= Format::HMmSs => {
+            Mode::Editable(Time::Decis, prev) if self.format <= Format::Ss => {
+                Mode::Editable(Time::Seconds, prev)
+            }
+            Mode::Editable(Time::Decis, prev) if self.format <= Format::MmSs => {
+                Mode::Editable(Time::Minutes, prev)
+            }
+            Mode::Editable(Time::Decis, prev) if self.format <= Format::HhMmSs => {
                 Mode::Editable(Time::Hours, prev)
+            }
+            Mode::Editable(Time::Seconds, prev) if self.with_decis => {
+                Mode::Editable(Time::Decis, prev)
+            }
+            Mode::Editable(Time::Seconds, prev) if self.format <= Format::Ss => {
+                Mode::Editable(Time::Seconds, prev)
             }
             Mode::Editable(Time::Seconds, prev) if self.format <= Format::MmSs => {
                 Mode::Editable(Time::Minutes, prev)
+            }
+            Mode::Editable(Time::Seconds, prev) if self.format <= Format::HhMmSs => {
+                Mode::Editable(Time::Hours, prev)
             }
             Mode::Editable(Time::Minutes, prev) => Mode::Editable(Time::Seconds, prev),
             Mode::Editable(Time::Hours, prev) => Mode::Editable(Time::Minutes, prev),
@@ -374,18 +419,14 @@ impl Clock<Countdown> {
 
     pub fn edit_up(&mut self) {
         self.edit_current_up();
-        // update `initial_value` if needed
+        // re-align `current_value` if needed
         if self.initial_value.lt(&self.current_value) {
-            self.initial_value = self.current_value;
+            self.current_value = self.initial_value;
         }
     }
 
     pub fn edit_down(&mut self) {
         self.edit_current_down();
-        // update `initial_value` if needed
-        if self.initial_value.gt(&self.current_value) {
-            self.initial_value = self.current_value;
-        }
     }
 }
 
@@ -797,6 +838,7 @@ where
         let edit_hours = matches!(state.mode, Mode::Editable(Time::Hours, _));
         let edit_minutes = matches!(state.mode, Mode::Editable(Time::Minutes, _));
         let edit_secs = matches!(state.mode, Mode::Editable(Time::Seconds, _));
+        let edit_deci = matches!(state.mode, Mode::Editable(Time::Decis, _));
         match format {
             Format::HhMmSs if with_decis => {
                 let [hh, _, h, c_hm, mm, _, m, c_ms, ss, _, s, d, ds] =
@@ -840,7 +882,7 @@ where
                     buf,
                 );
                 self.render_dot(symbol, d, buf);
-                self.render_digit(state.current_value.decis(), symbol, false, ds, buf);
+                self.render_digit(state.current_value.decis(), symbol, edit_deci, ds, buf);
             }
             Format::HhMmSs => {
                 let [hh, _, h, c_hm, mm, _, m, c_ms, ss, _, s] =
@@ -919,7 +961,7 @@ where
                     buf,
                 );
                 self.render_dot(symbol, d, buf);
-                self.render_digit(state.current_value.decis(), symbol, false, ds, buf);
+                self.render_digit(state.current_value.decis(), symbol, edit_deci, ds, buf);
             }
             Format::HMmSs => {
                 let [h, c_hm, mm, _, m, c_ms, ss, _, s] =
@@ -989,7 +1031,7 @@ where
                     buf,
                 );
                 self.render_dot(symbol, d, buf);
-                self.render_digit(state.current_value.decis(), symbol, false, ds, buf);
+                self.render_digit(state.current_value.decis(), symbol, edit_deci, ds, buf);
             }
             Format::MmSs => {
                 let [mm, _, m, c_ms, ss, _, s] =
@@ -1050,7 +1092,7 @@ where
                     buf,
                 );
                 self.render_dot(symbol, d, buf);
-                self.render_digit(state.current_value.decis(), symbol, false, ds, buf);
+                self.render_digit(state.current_value.decis(), symbol, edit_deci, ds, buf);
             }
             Format::MSs => {
                 let [m, c_ms, ss, _, s] =
@@ -1096,7 +1138,7 @@ where
                     buf,
                 );
                 self.render_dot(symbol, d, buf);
-                self.render_digit(state.current_value.decis(), symbol, false, ds, buf);
+                self.render_digit(state.current_value.decis(), symbol, edit_deci, ds, buf);
             }
             Format::Ss => {
                 let [ss, _, s] = Layout::horizontal(Constraint::from_lengths(widths)).areas(area);
@@ -1125,7 +1167,7 @@ where
                     buf,
                 );
                 self.render_dot(symbol, d, buf);
-                self.render_digit(state.current_value.decis(), symbol, false, ds, buf);
+                self.render_digit(state.current_value.decis(), symbol, edit_deci, ds, buf);
             }
             Format::S => {
                 let [s] = Layout::horizontal(Constraint::from_lengths(widths)).areas(area);

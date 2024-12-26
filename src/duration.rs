@@ -1,6 +1,7 @@
 use std::fmt;
 use std::time::Duration;
 
+pub const ONE_DECI_SECOND: Duration = Duration::from_millis(100);
 pub const ONE_SECOND: Duration = Duration::from_secs(1);
 pub const ONE_MINUTE: Duration = Duration::from_secs(SECS_PER_MINUTE);
 pub const ONE_HOUR: Duration = Duration::from_secs(MINS_PER_HOUR * SECS_PER_MINUTE);
@@ -139,5 +140,21 @@ mod tests {
         // s
         let ex: DurationEx = Duration::from_secs(1).into();
         assert_eq!(format!("{}", ex), "1");
+    }
+
+    #[test]
+    fn test_saturating_sub() {
+        let ex: DurationEx = Duration::from_secs(10).into();
+        let ex2: DurationEx = Duration::from_secs(1).into();
+        let ex3 = ex.saturating_sub(ex2);
+        assert_eq!(format!("{}", ex3), "9");
+    }
+
+    #[test]
+    fn test_saturating_add() {
+        let ex: DurationEx = Duration::from_secs(10).into();
+        let ex2: DurationEx = Duration::from_secs(1).into();
+        let ex3 = ex.saturating_add(ex2);
+        assert_eq!(format!("{}", ex3), "11");
     }
 }
