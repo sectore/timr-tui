@@ -27,9 +27,9 @@ Options:
   -c, --countdown <COUNTDOWN>  Countdown time to start from. Formats: 'ss', 'mm:ss', or 'hh:mm:ss' [default: 10:00]
   -w, --work <WORK>            Work time to count down from. Formats: 'ss', 'mm:ss', or 'hh:mm:ss' [default: 25:00]
   -p, --pause <PAUSE>          Pause time to count down from. Formats: 'ss', 'mm:ss', or 'hh:mm:ss' [default: 5:00]
-  -d, --decis                  Wether to show deciseconds or not.
-  -m, --mode <MODE>            Mode to start with. [possible values: countdown, timer, pomodoro]
-  -s, --style <STYLE>          Style to display time with. [possible values: full, light, medium, dark, thick, cross, braille]
+  -d, --decis                  Wether to show deciseconds or not. [default: false]
+  -m, --mode <MODE>            Mode to start with. [possible values: countdown, timer, pomodoro] [default: timer]
+  -s, --style <STYLE>          Style to display time with. [possible values: full, light, medium, dark, thick, cross, braille] [default: full]
   -r, --reset                  Reset stored values to default.
   -h, --help                   Print help
 ```
