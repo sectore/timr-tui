@@ -14,6 +14,7 @@ Set LoopOffset 4
 Hide
 Type "cargo run -- -r -d -m c"
 Enter
+Sleep 0.2
 Show
 # --- STYLES ---
 Sleep 0.5
