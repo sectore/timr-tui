@@ -14,11 +14,39 @@
 It's built with [`ratatui`](https://ratatui.rs/) ([Rust](https://www.rust-lang.org/)).
 
 
-# Screens
+# Preview
 
-_soon_
+## Pomodoro
 
-# Args
+<a href="demo/pomodoro.gif">
+  <img alt="pomodoro" src="demo/pomodoro.gif" />
+</a>
+
+## Timer
+
+<a href="demo/timer.gif">
+  <img alt="pomodoro" src="demo/timer.gif" />
+</a>
+
+## Countdown
+
+<a href="demo/countdown.gif">
+  <img alt="countdown" src="demo/countdown.gif" />
+</a>
+
+## Change style
+
+<a href="demo/style.gif">
+  <img alt="style" src="demo/style.gif" />
+</a>
+
+## Toggle deciseconds
+
+<a href="demo/decis.gif">
+  <img alt="deciseconds" src="demo/decis.gif" />
+</a>
+
+# Args ⚙️
 
 ```sh
 Usage: timr [OPTIONS]
@@ -34,7 +62,7 @@ Options:
   -h, --help                   Print help
 ```
 
-# Build from source
+# Build from source 🔧
 
 ## Requirements
 
