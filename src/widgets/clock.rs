@@ -465,7 +465,7 @@ impl Clock<Timer> {
 
     pub fn tick(&mut self) {
         if self.mode == Mode::Tick {
-            self.current_value.saturating_add(self.tick_value);
+            self.current_value = self.current_value.saturating_add(self.tick_value);
             self.set_done();
             self.update_format();
         }
