@@ -4,17 +4,19 @@
 
 # About
 
-`tim:r` is a TUI app to help you to organize one of the most important thing you have in live: `time`!
+`tim:r` is a TUI app to help organize one of the most important thing you might have in live: `time`!
 
 - `[t]imer` Check the time on anything you are you doing.
 - `[c]ountdown` Use it for your workout, yoga session, meditation, handstand or whatever.
 - `[p]omodoro` Organize your working time to be focused all the time by following the [Pomodoro Technique](https://en.wikipedia.org/wiki/Pomodoro_Technique).
 
 
-It's built with [`ratatui`](https://ratatui.rs/) ([Rust](https://www.rust-lang.org/)).
+It's built with [`Ratatui`](https://ratatui.rs/) written in [Rust 🦀](https://www.rust-lang.org/).
 
 
 # Preview
+
+_Side note: Theme colors depend on terminal preferences._
 
 ## Pomodoro
 
@@ -44,6 +46,12 @@ It's built with [`ratatui`](https://ratatui.rs/) ([Rust](https://www.rust-lang.o
 
 <a href="demo/decis.gif">
   <img alt="deciseconds" src="demo/decis.gif" />
+</a>
+
+## Use menu
+
+<a href="demo/menu.gif">
+  <img alt="menu" src="demo/menu.gif" />
 </a>
 
 # Args ⚙️

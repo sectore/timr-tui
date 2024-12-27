@@ -52,3 +52,7 @@ demo-style:
 alias dd := demo-decis
 demo-decis:
     vhs demo/decis.tape
+
+alias dm := demo-menu
+demo-menu:
+    vhs demo/menu.tape
