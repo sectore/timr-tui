@@ -12,7 +12,7 @@ It's built with [`Ratatui`](https://ratatui.rs/) written in [Rust 🦀](https://
 
 # Preview
 
-_Side note: Theme colors depend on terminal preferences._
+_Side note:_ Theme colors depend on your terminal preferences.
 
 ## Pomodoro
 
