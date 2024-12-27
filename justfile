@@ -31,3 +31,28 @@ lint:
 # run app
 run:
     cargo run
+
+# demos
+alias dp := demo-pomodoro
+demo-pomodoro:
+    vhs demo/pomodoro.tape
+
+alias dt := demo-timer
+demo-timer:
+    vhs demo/timer.tape
+
+alias dc := demo-countdown
+demo-countdown:
+    vhs demo/countdown.tape
+
+alias ds := demo-style
+demo-style:
+    vhs demo/style.tape
+
+alias dd := demo-decis
+demo-decis:
+    vhs demo/decis.tape
+
+alias dm := demo-menu
+demo-menu:
+    vhs demo/menu.tape
