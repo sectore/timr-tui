@@ -125,7 +125,7 @@ impl<'a> Digit<'a> {
     }
 }
 
-impl<'a> Widget for Digit<'a> {
+impl Widget for Digit<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let left = area.left();
         let top = area.top();
@@ -183,7 +183,7 @@ impl<'a> Dot<'a> {
     }
 }
 
-impl<'a> Widget for Dot<'a> {
+impl Widget for Dot<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let positions = [
             Position {
@@ -214,7 +214,7 @@ impl<'a> Colon<'a> {
     }
 }
 
-impl<'a> Widget for Colon<'a> {
+impl Widget for Colon<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let left = area.left();
         let top = area.top();
