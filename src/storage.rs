@@ -1,7 +1,5 @@
 use crate::{
-    app::Content,
-    constants::APP_NAME,
-    widgets::{clock::Style, pomodoro::Mode as PomodoroMode},
+    app::Content, common::Style, constants::APP_NAME, widgets::pomodoro::Mode as PomodoroMode,
 };
 use color_eyre::eyre::Result;
 use serde::{Deserialize, Serialize};
