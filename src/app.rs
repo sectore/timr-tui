@@ -1,11 +1,12 @@
 use crate::{
     args::Args,
+    common::Style,
     constants::TICK_VALUE_MS,
     events::{Event, EventHandler, Events},
     storage::AppStorage,
     terminal::Terminal,
     widgets::{
-        clock::{self, Clock, ClockArgs, Style},
+        clock::{self, Clock, ClockArgs},
         countdown::{Countdown, CountdownWidget},
         footer::Footer,
         header::Header,

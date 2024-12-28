@@ -1,4 +1,7 @@
 pub mod clock;
+pub mod clock_elements;
+#[cfg(test)]
+pub mod clock_elements_test;
 #[cfg(test)]
 pub mod clock_test;
 pub mod countdown;

@@ -1,8 +1,9 @@
 use crate::{
+    common::Style,
     constants::TICK_VALUE_MS,
     events::{Event, EventHandler},
     utils::center,
-    widgets::clock::{Clock, ClockWidget, Countdown, Style},
+    widgets::clock::{Clock, ClockWidget, Countdown},
 };
 use ratatui::{
     buffer::Buffer,

@@ -1,4 +1,5 @@
 use crate::{
+    common::Style,
     duration::{ONE_DECI_SECOND, ONE_HOUR, ONE_MINUTE, ONE_SECOND},
     widgets::clock::*,
 };
