@@ -1,6 +1,6 @@
 use crate::{
     args::Args,
-    common::Style,
+    common::{Content, Style},
     constants::TICK_VALUE_MS,
     events::{Event, EventHandler, Events},
     storage::AppStorage,
@@ -14,7 +14,6 @@ use crate::{
         timer::{Timer, TimerWidget},
     },
 };
-use clap::ValueEnum;
 use color_eyre::Result;
 use ratatui::{
     buffer::Buffer,
@@ -22,22 +21,8 @@ use ratatui::{
     layout::{Constraint, Layout, Rect},
     widgets::{StatefulWidget, Widget},
 };
-use serde::{Deserialize, Serialize};
 use std::time::Duration;
 use tracing::debug;
-
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Default, Serialize, Deserialize,
-)]
-pub enum Content {
-    #[default]
-    #[value(name = "countdown", alias = "c")]
-    Countdown,
-    #[value(name = "timer", alias = "t")]
-    Timer,
-    #[value(name = "pomodoro", alias = "p")]
-    Pomodoro,
-}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Mode {

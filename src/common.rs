@@ -2,6 +2,19 @@ use clap::ValueEnum;
 use ratatui::symbols::shade;
 use serde::{Deserialize, Serialize};
 
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Default, Serialize, Deserialize,
+)]
+pub enum Content {
+    #[default]
+    #[value(name = "countdown", alias = "c")]
+    Countdown,
+    #[value(name = "timer", alias = "t")]
+    Timer,
+    #[value(name = "pomodoro", alias = "p")]
+    Pomodoro,
+}
+
 #[derive(Debug, Copy, Clone, ValueEnum, Default, Serialize, Deserialize)]
 pub enum Style {
     #[default]

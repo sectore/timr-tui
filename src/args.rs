@@ -5,7 +5,7 @@ use color_eyre::{
 };
 use std::time::Duration;
 
-use crate::{app::Content, common::Style};
+use crate::common::{Content, Style};
 
 #[derive(Parser)]
 pub struct Args {
