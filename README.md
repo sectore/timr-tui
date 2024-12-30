@@ -126,6 +126,16 @@ Stored on file system.
 cat ~/.local/state/timr/data/timr.data
 ```
 
+- `macOS`
+```sh
+cat /Users/{user}/Library/Application Support/timr/data/timr.data
+```
+
+- `Windows`
+```sh
+cat C:/Users/{user}/AppData/Local/timr/data/timr.data
+```
+
 ## Logs
 
 In `debug` mode only.
@@ -133,4 +143,14 @@ In `debug` mode only.
 - `Linux`
 ```sh
 tail -f ~/.local/state/timr/logs/timr.log
+```
+
+- `macOS`
+```sh
+tail -f /Users/{user}/Library/Application Support/timr/logs/timr.log
+```
+
+- `Windows`
+```sh
+tail -f C:/Users/{user}/AppData/Local/timr/logs/timr.log
 ```

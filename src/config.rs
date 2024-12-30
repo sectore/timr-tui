@@ -27,10 +27,11 @@ pub fn get_project_dir() -> Result<ProjectDirs> {
 }
 
 fn get_default_state_dir() -> Result<PathBuf> {
-    let directory = get_project_dir()?
+    let dirs = get_project_dir()?;
+    let directory: PathBuf = dirs
         .state_dir()
-        .map(|d| d.to_path_buf())
-        .ok_or_else(|| eyre!("Failed to get state directory"))?;
+        .unwrap_or_else(|| dirs.data_local_dir())
+        .to_path_buf();
 
     Ok(directory)
 }
