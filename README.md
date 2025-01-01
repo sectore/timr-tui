@@ -61,9 +61,11 @@ Options:
   -p, --pause <PAUSE>          Pause time to count down from. Formats: 'ss', 'mm:ss', or 'hh:mm:ss' [default: 5:00]
   -d, --decis                  Wether to show deciseconds or not. [default: false]
   -m, --mode <MODE>            Mode to start with. [possible values: countdown, timer, pomodoro] [default: timer]
+      --menu                   Whether to open the menu or not.
   -s, --style <STYLE>          Style to display time with. [possible values: full, light, medium, dark, thick, cross, braille] [default: full]
   -r, --reset                  Reset stored values to default.
   -h, --help                   Print help
+  -V, --version                Print version
 ```
 
 # Build from source 🔧

@@ -30,9 +30,9 @@ pub enum Style {
     Thick,
     #[value(name = "cross", alias = "c")]
     Cross,
-    /// https://en.wikipedia.org/wiki/Braille_Patterns
-    /// Note: Might not be supported in all terminals
-    /// see https://docs.rs/ratatui/latest/src/ratatui/symbols.rs.html#150
+    // https://en.wikipedia.org/wiki/Braille_Patterns
+    // Note: Might not be supported in all terminals
+    // see https://docs.rs/ratatui/latest/src/ratatui/symbols.rs.html#150
     #[value(name = "braille", alias = "b")]
     Braille,
 }

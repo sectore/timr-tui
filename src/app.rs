@@ -63,7 +63,7 @@ impl From<(Args, AppStorage)> for AppArgs {
     fn from((args, stg): (Args, AppStorage)) -> Self {
         AppArgs {
             with_decis: args.decis || stg.with_decis,
-            show_menu: stg.show_menu,
+            show_menu: args.menu || stg.show_menu,
             content: args.mode.unwrap_or(stg.content),
             style: args.style.unwrap_or(stg.style),
             pomodoro_mode: stg.pomodoro_mode,
