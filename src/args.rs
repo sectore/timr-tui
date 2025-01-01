@@ -8,6 +8,7 @@ use std::time::Duration;
 use crate::common::{Content, Style};
 
 #[derive(Parser)]
+#[command(version)]
 pub struct Args {
     #[arg(long, short, value_parser = parse_duration,
         help = "Countdown time to start from. Formats: 'ss', 'mm:ss', or 'hh:mm:ss'"
@@ -32,6 +33,9 @@ pub struct Args {
 
     #[arg(long, short = 's', value_enum, help = "Style to display time with.")]
     pub style: Option<Style>,
+
+    #[arg(long, value_enum, help = "Whether to open the menu or not.")]
+    pub menu: bool,
 
     #[arg(long, short = 'r', help = "Reset stored values to default.")]
     pub reset: bool,

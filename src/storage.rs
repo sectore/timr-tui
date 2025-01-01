@@ -36,7 +36,7 @@ impl Default for AppStorage {
         const DEFAULT_COUNTDOWN: Duration = Duration::from_secs(60 * 10); /* 10min */
         AppStorage {
             content: Content::default(),
-            show_menu: false,
+            show_menu: true,
             style: Style::default(),
             with_decis: false,
             pomodoro_mode: PomodoroMode::Work,
