@@ -27,12 +27,11 @@ async fn main() -> Result<()> {
     logging::Logger::new(log_dir).init()?;
 
     color_eyre::install()?;
+    // get args given by CLI
+    let args = Args::parse();
 
     let terminal = terminal::setup()?;
     let events = events::Events::new();
-
-    // get args given by CLI
-    let args = Args::parse();
 
     // check persistant storage
     let storage = Storage::new(data_dir);
