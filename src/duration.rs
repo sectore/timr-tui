@@ -1,3 +1,7 @@
+use color_eyre::{
+    eyre::{ensure, eyre},
+    Report,
+};
 use std::fmt;
 use std::time::Duration;
 
@@ -114,6 +118,47 @@ impl fmt::Display for DurationEx {
     }
 }
 
+/// Parses  `Duration` from `hh:mm:ss`, `mm:ss` or `ss`
+pub fn parse_duration(arg: &str) -> Result<Duration, Report> {
+    let parts: Vec<&str> = arg.split(':').rev().collect();
+
+    let parse_seconds = |s: &str| -> Result<u64, Report> {
+        let secs = s.parse::<u64>().map_err(|_| eyre!("Invalid seconds"))?;
+        ensure!(secs < 60, "Seconds must be less than 60.");
+        Ok(secs)
+    };
+
+    let parse_minutes = |m: &str| -> Result<u64, Report> {
+        let mins = m.parse::<u64>().map_err(|_| eyre!("Invalid minutes"))?;
+        ensure!(mins < 60, "Minutes must be less than 60.");
+        Ok(mins)
+    };
+
+    let parse_hours = |h: &str| -> Result<u64, Report> {
+        let hours = h.parse::<u64>().map_err(|_| eyre!("Invalid hours"))?;
+        ensure!(hours < 100, "Hours must be less than 100.");
+        Ok(hours)
+    };
+
+    let seconds = match parts.as_slice() {
+        [ss] => parse_seconds(ss)?,
+        [ss, mm] => {
+            let s = parse_seconds(ss)?;
+            let m = parse_minutes(mm)?;
+            m * 60 + s
+        }
+        [ss, mm, hh] => {
+            let s = parse_seconds(ss)?;
+            let m = parse_minutes(mm)?;
+            let h = parse_hours(hh)?;
+            h * 60 * 60 + m * 60 + s
+        }
+        _ => return Err(eyre!("Invalid time format. Use 'ss', mm:ss, or hh:mm:ss")),
+    };
+
+    Ok(Duration::from_secs(seconds))
+}
+
 #[cfg(test)]
 mod tests {
 
@@ -156,5 +201,27 @@ mod tests {
         let ex2: DurationEx = Duration::from_secs(1).into();
         let ex3 = ex.saturating_add(ex2);
         assert_eq!(format!("{}", ex3), "11");
+    }
+
+    #[test]
+    fn test_parse_duration() {
+        // ss
+        assert_eq!(parse_duration("50").unwrap(), Duration::from_secs(50));
+        // mm:ss
+        assert_eq!(
+            parse_duration("01:30").unwrap(),
+            Duration::from_secs(60 + 30)
+        );
+        // hh:mm:ss
+        assert_eq!(
+            parse_duration("01:30:00").unwrap(),
+            Duration::from_secs(60 * 60 + 30 * 60)
+        );
+        // errors
+        assert!(parse_duration("1:60").is_err()); // invalid seconds
+        assert!(parse_duration("60:00").is_err()); // invalid minutes
+        assert!(parse_duration("100:00:00").is_err()); // invalid hours
+        assert!(parse_duration("abc").is_err()); // invalid input
+        assert!(parse_duration("01:02:03:04").is_err()); // too many parts
     }
 }
