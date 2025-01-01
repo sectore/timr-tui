@@ -384,10 +384,6 @@ impl Clock<Countdown> {
 
     pub fn edit_up(&mut self) {
         self.edit_current_up();
-        // re-align `current_value` if needed
-        if self.initial_value.lt(&self.current_value) {
-            self.current_value = self.initial_value;
-        }
     }
 
     pub fn edit_down(&mut self) {
