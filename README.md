@@ -50,10 +50,12 @@ _Side note:_ Theme colors depend on your terminal preferences.
   <img alt="menu" src="demo/menu.gif" />
 </a>
 
-# Args ⚙️
+# CLI
 
 ```sh
-Usage: timr [OPTIONS]
+timr-tui --help
+
+Usage: timr-tui [OPTIONS]
 
 Options:
   -c, --countdown <COUNTDOWN>  Countdown time to start from. Formats: 'ss', 'mm:ss', or 'hh:mm:ss' [default: 10:00]
@@ -66,6 +68,12 @@ Options:
   -r, --reset                  Reset stored values to default.
   -h, --help                   Print help
   -V, --version                Print version
+```
+
+# Installation
+
+```sh
+cargo install timr-tui
 ```
 
 # Build from source 🔧
@@ -121,38 +129,26 @@ nix build .#windows
 
 ## Persistant app state
 
-Stored on file system.
+Stored on file system:
 
-- `Linux`
 ```sh
-cat ~/.local/state/timr/data/timr.data
-```
-
-- `macOS`
-```sh
-cat /Users/{user}/Library/Application Support/timr/data/timr.data
-```
-
-- `Windows`
-```sh
-cat C:/Users/{user}/AppData/Local/timr/data/timr.data
+# Linux
+~/.local/state/timr-tui/data/app.data
+# macOS
+/Users/{user}/Library/Application Support/timr-tui/data/app.data
+# Windows
+C:/Users/{user}/AppData/Local/timr-tui/data/app.data
 ```
 
 ## Logs
 
-In `debug` mode only.
+In `debug` mode only. Locations:
 
-- `Linux`
 ```sh
-tail -f ~/.local/state/timr/logs/timr.log
-```
-
-- `macOS`
-```sh
-tail -f /Users/{user}/Library/Application Support/timr/logs/timr.log
-```
-
-- `Windows`
-```sh
-tail -f C:/Users/{user}/AppData/Local/timr/logs/timr.log
+# Linux
+~/.local/state/timr/logs/app.log
+# macOS
+/Users/{user}/Library/Application Support/timr-tui/logs/app.log
+# `Windows`
+C:/Users/{user}/AppData/Local/timr-tui/logs/app.log
 ```
