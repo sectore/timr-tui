@@ -72,8 +72,16 @@ Options:
 
 # Installation
 
+From [crates.io](https://crates.io/crates/timr-tui) run:
+
 ```sh
 cargo install timr-tui
+```
+
+Latest version from git repository:
+
+```sh
+cargo install --git https://github.com/sectore/timr-tui
 ```
 
 # Build from source 🔧
