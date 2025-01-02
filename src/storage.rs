@@ -1,6 +1,5 @@
 use crate::{
     common::{Content, Style},
-    constants::APP_NAME,
     widgets::pomodoro::Mode as PomodoroMode,
 };
 use color_eyre::eyre::Result;
@@ -65,7 +64,7 @@ impl Storage {
     }
 
     fn get_storage_path(&self) -> PathBuf {
-        self.data_dir.join(format!("{}.data", APP_NAME))
+        self.data_dir.join("app.data")
     }
 
     pub fn save(&self, data: AppStorage) -> Result<()> {

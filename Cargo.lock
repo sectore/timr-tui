@@ -1051,8 +1051,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "timr"
-version = "0.1.0"
+name = "timr-tui"
+version = "0.9.0"
 dependencies = [
  "clap",
  "color-eyre",

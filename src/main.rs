@@ -22,9 +22,9 @@ use storage::{AppStorage, Storage};
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let Config { log_dir, data_dir } = Config::init()?;
+    let cfg = Config::init()?;
     #[cfg(debug_assertions)]
-    logging::Logger::new(log_dir).init()?;
+    logging::Logger::new(cfg.log_dir).init()?;
 
     color_eyre::install()?;
     // get args given by CLI
@@ -34,7 +34,7 @@ async fn main() -> Result<()> {
     let events = events::Events::new();
 
     // check persistant storage
-    let storage = Storage::new(data_dir);
+    let storage = Storage::new(cfg.data_dir);
     // option to reset previous stored data to `default`
     let stg = if args.reset {
         AppStorage::default()
