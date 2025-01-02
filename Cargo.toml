@@ -8,7 +8,7 @@ homepage = "https://github.com/sectore/timr-tui"
 repository = "https://github.com/sectore/timr-tui"
 readme = "README.md"
 license = "MIT"
-keywords = ["tui", "timer"]
+keywords = ["tui", "timer", "countdown", "pomodoro"]
 categories = ["command-line-utilities"]
 
 [dependencies]
