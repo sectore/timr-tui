@@ -1,7 +1,11 @@
 [package]
 name = "timr-tui"
 version = "0.9.0"
+description = "TUI to organize your time: Pomodoro, Countdown, Timer."
 edition = "2021"
+repository = "https://github.com/sectore/timr-tui"
+readme = "README.md"
+license = "MIT"
 
 [dependencies]
 ratatui = "0.29.0"
