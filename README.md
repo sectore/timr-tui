@@ -1,8 +1,6 @@
-# tim:r
+# timr-tui
 
-**Pronounced `/ˈtʌɪmə/` or `/ˈtaɪmər/`.**
-
-`tim:r` is a TUI app to help organize one of the most important thing you might have in live: `time`!
+TUI to organize your time: Pomodoro, Countdown, Timer.
 
 - `[t]imer` Check the time on anything you are you doing.
 - `[c]ountdown` Use it for your workout, yoga session, meditation, handstand or whatever.
