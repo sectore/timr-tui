@@ -6,6 +6,8 @@ edition = "2021"
 repository = "https://github.com/sectore/timr-tui"
 readme = "README.md"
 license = "MIT"
+keywords = ["tui", "timer"]
+categories = ["command-line-utilities"]
 
 [dependencies]
 ratatui = "0.29.0"
