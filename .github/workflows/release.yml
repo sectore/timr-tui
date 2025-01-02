@@ -45,7 +45,6 @@ jobs:
 
       - name: Get version from binary
         id: get_version
-        if: matrix.target == 'linux'
         run: |
           VERSION=$(result/bin/${{ matrix.binary_name }} -V | cut -d ' ' -f2)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
