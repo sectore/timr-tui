@@ -22,22 +22,22 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
   build:
-    name: Build ${{ matrix.target }} on ${{ matrix.os }}
+    name: Build ${{ matrix.os_target }} on ${{ matrix.os }}
     needs: get-version
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         include:
           - os: ubuntu-latest
-            os_name: linux
+            os_target: linux
             binary_name: timr-tui
             arch: x86_64 # `x86_64` by default
           - os: ubuntu-latest
-            os_name: windows
+            os_target: windows
             binary_name: timr-tui.exe
             arch: x86_64 # based on target 'x86_64-pc-windows-gnu' defined by `CARGO_BUILD_TARGET` in flake.nix
           - os: macOS-latest
-            os_name: macos
+            os_target: macos
             binary_name: timr-tui
             arch: x86_64 # `x86_64` by default
     steps:
@@ -46,11 +46,11 @@ jobs:
       - uses: DeterminateSystems/magic-nix-cache-action@main
 
       - name: Build (windows)
-        if: matrix.os_name == 'windows'
+        if: matrix.os_target == 'windows'
         run: nix build .#windows
 
       - name: Build (linux/macos)
-        if: matrix.os_name != 'windows'
+        if: matrix.os_target != 'windows'
         run: nix build
 
       - name: Copy artifact
@@ -58,17 +58,21 @@ jobs:
           mkdir artifacts
           cp result/bin/${{ matrix.binary_name }} "artifacts/"
 
+      - name: Install zip
+        if: matrix.os_target == 'windows'
+        run: sudo apt-get install -y zip
+
       - name: Archive (windows)
-        if: matrix.os_name == 'windows'
+        if: matrix.os_target == 'windows'
         run: |
           cd artifacts
-          zip "${{ matrix.asset_name }}-${{ needs.get-version.outputs.version }}-${{ matrix.os_name }}_${{ matrix.arch }}.zip" "${{ matrix.asset_name }}"
+          zip "${{ matrix.asset_name }}-${{ needs.get-version.outputs.version }}-${{ matrix.os_target }}_${{ matrix.arch }}.zip" "${{ matrix.asset_name }}"
 
       - name: Archive (linux/macos)
-        if: matrix.os_name == 'windows'
+        if: matrix.os_target == 'windows'
         run: |
           cd artifacts
-          tar -cvf "${{ matrix.asset_name }}-${{ needs.get-version.outputs.version }}-${{ matrix.os_name }}_${{ matrix.arch }}.tar.gz" "${{ matrix.asset_name }}"
+          tar -cvf "${{ matrix.asset_name }}-${{ needs.get-version.outputs.version }}-${{ matrix.os_target }}_${{ matrix.arch }}.tar.gz" "${{ matrix.asset_name }}"
 
       - name: Upload archive
         uses: actions/upload-artifact@v4
