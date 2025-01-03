@@ -4,8 +4,8 @@ on:
   push:
     branches:
       - "release/**"
-    # tags:
-    #   - "v*"
+    tags:
+      - "v*"
 
 jobs:
   get-version:
