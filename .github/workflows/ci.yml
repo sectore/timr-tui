@@ -3,8 +3,7 @@ name: lint, format, test, build
 on:
   push:
     branches: [ main ]
-  # ignore for now
-  # pull_request:
+  pull_request:
 
 jobs:
 
