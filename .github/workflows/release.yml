@@ -56,7 +56,7 @@ jobs:
       - name: Copy artifact
         run: |
           mkdir artifacts
-          cp result/bin/${{ matrix.binary_name }} "artifacts/"
+          cp -p result/bin/${{ matrix.binary_name }} "artifacts/${{ matrix.binary_name }}"
 
       - name: Install zip
         if: matrix.os_target == 'windows'
