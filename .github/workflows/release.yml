@@ -66,13 +66,13 @@ jobs:
         if: matrix.os_target == 'windows'
         run: |
           cd artifacts
-          zip ${{ matrix.asset_name }}-${{ needs.get-version.outputs.version }}-${{ matrix.os_target }}_${{ matrix.arch }}.zip ${{ matrix.asset_name }}
+          zip ${{ matrix.binary_name }}-${{ needs.get-version.outputs.version }}-${{ matrix.os_target }}_${{ matrix.arch }}.zip ${{ matrix.binary_name }}
 
       - name: Archive (linux/macos)
         if: matrix.os_target == 'windows'
         run: |
           cd artifacts
-          tar -cvf ${{ matrix.asset_name }}-${{ needs.get-version.outputs.version }}-${{ matrix.os_target }}_${{ matrix.arch }}.tar.gz ${{ matrix.asset_name }}
+          tar -cvf ${{ matrix.binary_name }}-${{ needs.get-version.outputs.version }}-${{ matrix.os_target }}_${{ matrix.arch }}.tar.gz ${{ matrix.binary_name }}
 
       - name: Upload archive
         uses: actions/upload-artifact@v4
