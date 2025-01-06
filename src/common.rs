@@ -62,3 +62,36 @@ impl Style {
         }
     }
 }
+
+#[derive(Debug, Clone, Default)]
+pub enum LocalTimeFormat {
+    /// `hh:mm:ss`
+    #[default]
+    HhMmSs,
+    /// `hh:mm`
+    HhMm,
+    /// `hh:mm AM` (or PM)
+    Hh12Mm,
+    /// empty
+    Empty,
+}
+
+impl LocalTimeFormat {
+    pub fn next(&self) -> Self {
+        match self {
+            LocalTimeFormat::HhMmSs => LocalTimeFormat::HhMm,
+            LocalTimeFormat::HhMm => LocalTimeFormat::Hh12Mm,
+            LocalTimeFormat::Hh12Mm => LocalTimeFormat::Empty,
+            LocalTimeFormat::Empty => LocalTimeFormat::HhMmSs,
+        }
+    }
+
+    pub fn fmt(&self) -> &str {
+        match &self {
+            LocalTimeFormat::HhMmSs => "%H:%M:%S",
+            LocalTimeFormat::HhMm => "%H:%M",
+            LocalTimeFormat::Hh12Mm => "%-I:%M %p",
+            LocalTimeFormat::Empty => "",
+        }
+    }
+}

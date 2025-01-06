@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use crate::common::Content;
+use crate::common::{Content, LocalTimeFormat};
 use chrono::{DateTime, Local};
 use ratatui::{
     buffer::Buffer,
@@ -8,19 +8,60 @@ use ratatui::{
     style::{Modifier, Style},
     symbols::{border, scrollbar},
     text::{Line, Span},
-    widgets::{Block, Borders, Cell, Row, Table, Widget},
+    widgets::{Block, Borders, Cell, Row, StatefulWidget, Table, Widget},
 };
+
+#[derive(Debug, Clone, Default)]
+pub struct FooterState {
+    show_menu: bool,
+    local_time: DateTime<Local>,
+    local_time_format: LocalTimeFormat,
+}
+
+impl FooterState {
+    pub const fn new(
+        show_menu: bool,
+        local_time: DateTime<Local>,
+        local_time_format: LocalTimeFormat,
+    ) -> Self {
+        Self {
+            show_menu,
+            local_time,
+            local_time_format,
+        }
+    }
+
+    pub fn set_show_menu(&mut self, value: bool) {
+        self.show_menu = value;
+    }
+
+    pub const fn get_show_menu(&self) -> bool {
+        self.show_menu
+    }
+
+    pub fn set_local_time(&mut self, value: DateTime<Local>) {
+        self.local_time = value;
+    }
+
+    // pub const fn get_local_time_format(&self) -> &LocalTimeFormat {
+    //     &self.local_time_format
+    // }
+
+    pub fn toggle_local_time_format(&mut self) {
+        self.local_time_format = self.local_time_format.next();
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct Footer {
-    pub show_menu: bool,
     pub running_clock: bool,
     pub selected_content: Content,
     pub edit_mode: bool,
-    pub local_time: DateTime<Local>,
 }
 
-impl Widget for Footer {
-    fn render(self, area: Rect, buf: &mut Buffer) {
+impl StatefulWidget for Footer {
+    type State = FooterState;
+    fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
         let content_labels: BTreeMap<Content, &str> = BTreeMap::from([
             (Content::Countdown, "[c]ountdown"),
             (Content::Timer, "[t]imer"),
@@ -32,17 +73,26 @@ impl Widget for Footer {
 
         let [border_area, menu_area] =
             Layout::vertical([Constraint::Length(1), Constraint::Percentage(100)]).areas(area);
+
+        let local_time_str = match state.local_time_format {
+            LocalTimeFormat::Empty => "".into(),
+            _ => format!(
+                " {}", // empty space to add padding after border
+                state.local_time.format(state.local_time_format.fmt())
+            ),
+        };
+
         Block::new()
             .borders(Borders::TOP)
             .title(
-                format! {"[m]enu {:} ", if self.show_menu {scrollbar::VERTICAL.end} else {scrollbar::VERTICAL.begin}},
+                format! {"[m]enu {:} ", if state.show_menu {scrollbar::VERTICAL.end} else {scrollbar::VERTICAL.begin}},
             )
             .title(
-                Line::from(format!("{}", self.local_time.format("%H:%M:%S"))).right_aligned())
+                Line::from(local_time_str).right_aligned())
             .border_set(border::PLAIN)
             .render(border_area, buf);
         // show menu
-        if self.show_menu {
+        if state.show_menu {
             let content_labels: Vec<Span> = content_labels
                 .iter()
                 .enumerate()
@@ -63,7 +113,7 @@ impl Widget for Footer {
 
             const SPACE: &str = "  "; // 2 empty spaces
             let widths = [Constraint::Length(12), Constraint::Percentage(100)];
-            Table::new(
+            let table = Table::new(
                 [
                     // content
                     Row::new(vec![
@@ -131,8 +181,9 @@ impl Widget for Footer {
                 ],
                 widths,
             )
-            .column_spacing(1)
-            .render(menu_area, buf);
+            .column_spacing(1);
+
+            Widget::render(table, menu_area, buf);
         }
     }
 }
