@@ -82,6 +82,12 @@ Latest version from git repository:
 cargo install --git https://github.com/sectore/timr-tui
 ```
 
+Arch Linux users can install [from the AUR](https://aur.archlinux.org/packages/timr/):
+
+```sh
+paru -S timr
+```
+
 # Build from source 🔧
 
 ## Requirements
