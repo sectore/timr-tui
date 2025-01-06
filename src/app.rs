@@ -1,6 +1,6 @@
 use crate::{
     args::Args,
-    common::{Content, Style},
+    common::{AppTime, AppTimeFormat, Content, Style},
     constants::TICK_VALUE_MS,
     events::{Event, EventHandler, Events},
     storage::AppStorage,
@@ -8,7 +8,7 @@ use crate::{
     widgets::{
         clock::{self, Clock, ClockArgs},
         countdown::{Countdown, CountdownWidget},
-        footer::Footer,
+        footer::{Footer, FooterState},
         header::Header,
         pomodoro::{Mode as PomodoroMode, Pomodoro, PomodoroArgs, PomodoroWidget},
         timer::{Timer, TimerWidget},
@@ -22,6 +22,7 @@ use ratatui::{
     widgets::{StatefulWidget, Widget},
 };
 use std::time::Duration;
+use time::OffsetDateTime;
 use tracing::debug;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -34,18 +35,20 @@ enum Mode {
 pub struct App {
     content: Content,
     mode: Mode,
-    show_menu: bool,
+    app_time: AppTime,
     countdown: Countdown,
     timer: Timer,
     pomodoro: Pomodoro,
     style: Style,
     with_decis: bool,
+    footer_state: FooterState,
 }
 
 pub struct AppArgs {
     pub style: Style,
     pub with_decis: bool,
     pub show_menu: bool,
+    pub app_time_format: AppTimeFormat,
     pub content: Content,
     pub pomodoro_mode: PomodoroMode,
     pub initial_value_work: Duration,
@@ -64,6 +67,7 @@ impl From<(Args, AppStorage)> for AppArgs {
         AppArgs {
             with_decis: args.decis || stg.with_decis,
             show_menu: args.menu || stg.show_menu,
+            app_time_format: stg.app_time_format,
             content: args.mode.unwrap_or(stg.content),
             style: args.style.unwrap_or(stg.style),
             pomodoro_mode: stg.pomodoro_mode,
@@ -81,11 +85,19 @@ impl From<(Args, AppStorage)> for AppArgs {
     }
 }
 
+fn get_app_time() -> AppTime {
+    match OffsetDateTime::now_local() {
+        Ok(t) => AppTime::Local(t),
+        Err(_) => AppTime::Utc(OffsetDateTime::now_utc()),
+    }
+}
+
 impl App {
     pub fn new(args: AppArgs) -> Self {
         let AppArgs {
             style,
             show_menu,
+            app_time_format,
             initial_value_work,
             initial_value_pause,
             initial_value_countdown,
@@ -100,7 +112,7 @@ impl App {
         Self {
             mode: Mode::Running,
             content,
-            show_menu,
+            app_time: get_app_time(),
             style,
             with_decis,
             countdown: Countdown::new(Clock::<clock::Countdown>::new(ClockArgs {
@@ -126,12 +138,17 @@ impl App {
                 style,
                 with_decis,
             }),
+            footer_state: FooterState::new(show_menu, app_time_format),
         }
     }
 
     pub async fn run(mut self, mut terminal: Terminal, mut events: Events) -> Result<Self> {
         while self.is_running() {
             if let Some(event) = events.next().await {
+                if matches!(event, Event::Tick) {
+                    self.app_time = get_app_time();
+                }
+
                 // Pipe events into subviews and handle only 'unhandled' events afterwards
                 if let Some(unhandled) = match self.content {
                     Content::Countdown => self.countdown.update(event.clone()),
@@ -186,7 +203,12 @@ impl App {
             KeyCode::Char('c') => self.content = Content::Countdown,
             KeyCode::Char('t') => self.content = Content::Timer,
             KeyCode::Char('p') => self.content = Content::Pomodoro,
-            KeyCode::Char('m') => self.show_menu = !self.show_menu,
+            // toogle app time format
+            KeyCode::Char(':') => self.footer_state.toggle_app_time_format(),
+            // toogle menu
+            KeyCode::Char('m') => self
+                .footer_state
+                .set_show_menu(!self.footer_state.get_show_menu()),
             KeyCode::Char(',') => {
                 self.style = self.style.next();
                 // update clocks
@@ -201,8 +223,8 @@ impl App {
                 self.countdown.set_with_decis(self.with_decis);
                 self.pomodoro.set_with_decis(self.with_decis);
             }
-            KeyCode::Up => self.show_menu = true,
-            KeyCode::Down => self.show_menu = false,
+            KeyCode::Up => self.footer_state.set_show_menu(true),
+            KeyCode::Down => self.footer_state.set_show_menu(false),
             _ => {}
         };
     }
@@ -217,7 +239,8 @@ impl App {
     pub fn to_storage(&self) -> AppStorage {
         AppStorage {
             content: self.content,
-            show_menu: self.show_menu,
+            show_menu: self.footer_state.get_show_menu(),
+            app_time_format: *self.footer_state.app_time_format(),
             style: self.style,
             with_decis: self.with_decis,
             pomodoro_mode: self.pomodoro.get_mode().clone(),
@@ -256,7 +279,11 @@ impl StatefulWidget for AppWidget {
         let [v0, v1, v2] = Layout::vertical([
             Constraint::Length(1),
             Constraint::Percentage(100),
-            Constraint::Length(if state.show_menu { 4 } else { 1 }),
+            Constraint::Length(if state.footer_state.get_show_menu() {
+                4
+            } else {
+                1
+            }),
         ])
         .areas(area);
 
@@ -268,12 +295,12 @@ impl StatefulWidget for AppWidget {
         // content
         self.render_content(v1, buf, state);
         // footer
-        Footer {
-            show_menu: state.show_menu,
+        let footer = Footer {
             running_clock: state.clock_is_running(),
             selected_content: state.content,
             edit_mode: state.is_edit_mode(),
-        }
-        .render(v2, buf);
+            app_time: state.app_time,
+        };
+        StatefulWidget::render(footer, v2, buf, &mut state.footer_state);
     }
 }

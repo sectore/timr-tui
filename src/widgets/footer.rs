@@ -1,25 +1,57 @@
 use std::collections::BTreeMap;
 
-use crate::common::Content;
+use crate::common::{AppTime, AppTimeFormat, Content};
 use ratatui::{
     buffer::Buffer,
     layout::{Constraint, Layout, Rect},
     style::{Modifier, Style},
     symbols::{border, scrollbar},
     text::{Line, Span},
-    widgets::{Block, Borders, Cell, Row, Table, Widget},
+    widgets::{Block, Borders, Cell, Row, StatefulWidget, Table, Widget},
 };
 
 #[derive(Debug, Clone)]
+pub struct FooterState {
+    show_menu: bool,
+    app_time_format: AppTimeFormat,
+}
+
+impl FooterState {
+    pub const fn new(show_menu: bool, app_time_format: AppTimeFormat) -> Self {
+        Self {
+            show_menu,
+            app_time_format,
+        }
+    }
+
+    pub fn set_show_menu(&mut self, value: bool) {
+        self.show_menu = value;
+    }
+
+    pub const fn get_show_menu(&self) -> bool {
+        self.show_menu
+    }
+
+    pub const fn app_time_format(&self) -> &AppTimeFormat {
+        &self.app_time_format
+    }
+
+    pub fn toggle_app_time_format(&mut self) {
+        self.app_time_format = self.app_time_format.next();
+    }
+}
+
+#[derive(Debug)]
 pub struct Footer {
-    pub show_menu: bool,
     pub running_clock: bool,
     pub selected_content: Content,
     pub edit_mode: bool,
+    pub app_time: AppTime,
 }
 
-impl Widget for Footer {
-    fn render(self, area: Rect, buf: &mut Buffer) {
+impl StatefulWidget for Footer {
+    type State = FooterState;
+    fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
         let content_labels: BTreeMap<Content, &str> = BTreeMap::from([
             (Content::Countdown, "[c]ountdown"),
             (Content::Timer, "[t]imer"),
@@ -31,15 +63,25 @@ impl Widget for Footer {
 
         let [border_area, menu_area] =
             Layout::vertical([Constraint::Length(1), Constraint::Percentage(100)]).areas(area);
+
         Block::new()
             .borders(Borders::TOP)
             .title(
-                format! {"[m]enu {:} ", if self.show_menu {scrollbar::VERTICAL.end} else {scrollbar::VERTICAL.begin}},
+                format! {"[m]enu {:} ", if state.show_menu {scrollbar::VERTICAL.end} else {scrollbar::VERTICAL.begin}},
             )
+            .title(
+                Line::from(
+                    match state.app_time_format {
+                        // `Hidden` -> no (empty) title
+                        AppTimeFormat::Hidden => "".into(),
+                        // others -> add some space around
+                        _ => format!(" {} ", self.app_time.format(&state.app_time_format))
+                    }
+                ).right_aligned())
             .border_set(border::PLAIN)
             .render(border_area, buf);
         // show menu
-        if self.show_menu {
+        if state.show_menu {
             let content_labels: Vec<Span> = content_labels
                 .iter()
                 .enumerate()
@@ -60,7 +102,7 @@ impl Widget for Footer {
 
             const SPACE: &str = "  "; // 2 empty spaces
             let widths = [Constraint::Length(12), Constraint::Percentage(100)];
-            Table::new(
+            let table = Table::new(
                 [
                     // content
                     Row::new(vec![
@@ -80,6 +122,14 @@ impl Widget for Footer {
                             Span::from("[,]change style"),
                             Span::from(SPACE),
                             Span::from("[.]toggle deciseconds"),
+                            Span::from(SPACE),
+                            Span::from(format!(
+                                "[:]toggle {} time",
+                                match self.app_time {
+                                    AppTime::Local(_) => "local",
+                                    AppTime::Utc(_) => "utc",
+                                }
+                            )),
                         ])),
                     ]),
                     // edit
@@ -128,8 +178,9 @@ impl Widget for Footer {
                 ],
                 widths,
             )
-            .column_spacing(1)
-            .render(menu_area, buf);
+            .column_spacing(1);
+
+            Widget::render(table, menu_area, buf);
         }
     }
 }
