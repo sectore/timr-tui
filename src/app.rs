@@ -14,6 +14,7 @@ use crate::{
         timer::{Timer, TimerWidget},
     },
 };
+use chrono::{DateTime, Local};
 use color_eyre::Result;
 use ratatui::{
     buffer::Buffer,
@@ -35,6 +36,7 @@ pub struct App {
     content: Content,
     mode: Mode,
     show_menu: bool,
+    local_time: DateTime<Local>,
     countdown: Countdown,
     timer: Timer,
     pomodoro: Pomodoro,
@@ -103,6 +105,7 @@ impl App {
             show_menu,
             style,
             with_decis,
+            local_time: Local::now(),
             countdown: Countdown::new(Clock::<clock::Countdown>::new(ClockArgs {
                 initial_value: initial_value_countdown,
                 current_value: current_value_countdown,
@@ -132,6 +135,10 @@ impl App {
     pub async fn run(mut self, mut terminal: Terminal, mut events: Events) -> Result<Self> {
         while self.is_running() {
             if let Some(event) = events.next().await {
+                if matches!(event, Event::Tick) {
+                    self.local_time = Local::now();
+                }
+
                 // Pipe events into subviews and handle only 'unhandled' events afterwards
                 if let Some(unhandled) = match self.content {
                     Content::Countdown => self.countdown.update(event.clone()),
@@ -273,6 +280,7 @@ impl StatefulWidget for AppWidget {
             running_clock: state.clock_is_running(),
             selected_content: state.content,
             edit_mode: state.is_edit_mode(),
+            local_time: state.local_time,
         }
         .render(v2, buf);
     }

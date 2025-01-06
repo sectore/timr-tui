@@ -1,6 +1,7 @@
 use std::collections::BTreeMap;
 
 use crate::common::Content;
+use chrono::{DateTime, Local};
 use ratatui::{
     buffer::Buffer,
     layout::{Constraint, Layout, Rect},
@@ -9,13 +10,13 @@ use ratatui::{
     text::{Line, Span},
     widgets::{Block, Borders, Cell, Row, Table, Widget},
 };
-
 #[derive(Debug, Clone)]
 pub struct Footer {
     pub show_menu: bool,
     pub running_clock: bool,
     pub selected_content: Content,
     pub edit_mode: bool,
+    pub local_time: DateTime<Local>,
 }
 
 impl Widget for Footer {
@@ -36,6 +37,8 @@ impl Widget for Footer {
             .title(
                 format! {"[m]enu {:} ", if self.show_menu {scrollbar::VERTICAL.end} else {scrollbar::VERTICAL.begin}},
             )
+            .title(
+                Line::from(format!("{}", self.local_time.format("%H:%M:%S"))).right_aligned())
             .border_set(border::PLAIN)
             .render(border_area, buf);
         // show menu
