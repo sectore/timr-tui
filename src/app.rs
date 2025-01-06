@@ -47,6 +47,7 @@ pub struct AppArgs {
     pub style: Style,
     pub with_decis: bool,
     pub show_menu: bool,
+    pub local_time_format: LocalTimeFormat,
     pub content: Content,
     pub pomodoro_mode: PomodoroMode,
     pub initial_value_work: Duration,
@@ -65,6 +66,7 @@ impl From<(Args, AppStorage)> for AppArgs {
         AppArgs {
             with_decis: args.decis || stg.with_decis,
             show_menu: args.menu || stg.show_menu,
+            local_time_format: stg.local_time_format,
             content: args.mode.unwrap_or(stg.content),
             style: args.style.unwrap_or(stg.style),
             pomodoro_mode: stg.pomodoro_mode,
@@ -87,6 +89,7 @@ impl App {
         let AppArgs {
             style,
             show_menu,
+            local_time_format,
             initial_value_work,
             initial_value_pause,
             initial_value_countdown,
@@ -126,7 +129,7 @@ impl App {
                 style,
                 with_decis,
             }),
-            footer_state: FooterState::new(show_menu, Local::now(), LocalTimeFormat::default()),
+            footer_state: FooterState::new(show_menu, Local::now(), local_time_format),
         }
     }
 
@@ -228,6 +231,7 @@ impl App {
         AppStorage {
             content: self.content,
             show_menu: self.footer_state.get_show_menu(),
+            local_time_format: *self.footer_state.get_local_time_format(),
             style: self.style,
             with_decis: self.with_decis,
             pomodoro_mode: self.pomodoro.get_mode().clone(),

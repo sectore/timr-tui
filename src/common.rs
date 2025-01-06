@@ -63,7 +63,7 @@ impl Style {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Copy, Default, Serialize, Deserialize)]
 pub enum LocalTimeFormat {
     /// `hh:mm:ss`
     #[default]

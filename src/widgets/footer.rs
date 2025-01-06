@@ -43,9 +43,9 @@ impl FooterState {
         self.local_time = value;
     }
 
-    // pub const fn get_local_time_format(&self) -> &LocalTimeFormat {
-    //     &self.local_time_format
-    // }
+    pub const fn get_local_time_format(&self) -> &LocalTimeFormat {
+        &self.local_time_format
+    }
 
     pub fn toggle_local_time_format(&mut self) {
         self.local_time_format = self.local_time_format.next();
