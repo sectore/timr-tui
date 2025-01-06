@@ -1,6 +1,6 @@
 use crate::{
     args::Args,
-    common::{Content, LocalTimeFormat, Style},
+    common::{AppTime, AppTimeFormat, Content, Style},
     constants::TICK_VALUE_MS,
     events::{Event, EventHandler, Events},
     storage::AppStorage,
@@ -14,7 +14,6 @@ use crate::{
         timer::{Timer, TimerWidget},
     },
 };
-use chrono::Local;
 use color_eyre::Result;
 use ratatui::{
     buffer::Buffer,
@@ -23,6 +22,7 @@ use ratatui::{
     widgets::{StatefulWidget, Widget},
 };
 use std::time::Duration;
+use time::OffsetDateTime;
 use tracing::debug;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -35,6 +35,7 @@ enum Mode {
 pub struct App {
     content: Content,
     mode: Mode,
+    app_time: AppTime,
     countdown: Countdown,
     timer: Timer,
     pomodoro: Pomodoro,
@@ -47,7 +48,7 @@ pub struct AppArgs {
     pub style: Style,
     pub with_decis: bool,
     pub show_menu: bool,
-    pub local_time_format: LocalTimeFormat,
+    pub app_time_format: AppTimeFormat,
     pub content: Content,
     pub pomodoro_mode: PomodoroMode,
     pub initial_value_work: Duration,
@@ -66,7 +67,7 @@ impl From<(Args, AppStorage)> for AppArgs {
         AppArgs {
             with_decis: args.decis || stg.with_decis,
             show_menu: args.menu || stg.show_menu,
-            local_time_format: stg.local_time_format,
+            app_time_format: stg.app_time_format,
             content: args.mode.unwrap_or(stg.content),
             style: args.style.unwrap_or(stg.style),
             pomodoro_mode: stg.pomodoro_mode,
@@ -84,12 +85,19 @@ impl From<(Args, AppStorage)> for AppArgs {
     }
 }
 
+fn get_app_time() -> AppTime {
+    match OffsetDateTime::now_local() {
+        Ok(t) => AppTime::Local(t),
+        Err(_) => AppTime::Utc(OffsetDateTime::now_utc()),
+    }
+}
+
 impl App {
     pub fn new(args: AppArgs) -> Self {
         let AppArgs {
             style,
             show_menu,
-            local_time_format,
+            app_time_format,
             initial_value_work,
             initial_value_pause,
             initial_value_countdown,
@@ -104,6 +112,7 @@ impl App {
         Self {
             mode: Mode::Running,
             content,
+            app_time: get_app_time(),
             style,
             with_decis,
             countdown: Countdown::new(Clock::<clock::Countdown>::new(ClockArgs {
@@ -129,7 +138,7 @@ impl App {
                 style,
                 with_decis,
             }),
-            footer_state: FooterState::new(show_menu, Local::now(), local_time_format),
+            footer_state: FooterState::new(show_menu, app_time_format),
         }
     }
 
@@ -137,7 +146,7 @@ impl App {
         while self.is_running() {
             if let Some(event) = events.next().await {
                 if matches!(event, Event::Tick) {
-                    self.footer_state.set_local_time(Local::now());
+                    self.app_time = get_app_time();
                 }
 
                 // Pipe events into subviews and handle only 'unhandled' events afterwards
@@ -194,8 +203,8 @@ impl App {
             KeyCode::Char('c') => self.content = Content::Countdown,
             KeyCode::Char('t') => self.content = Content::Timer,
             KeyCode::Char('p') => self.content = Content::Pomodoro,
-            // toogle local time format
-            KeyCode::Char('l') => self.footer_state.toggle_local_time_format(),
+            // toogle app time format
+            KeyCode::Char(':') => self.footer_state.toggle_app_time_format(),
             // toogle menu
             KeyCode::Char('m') => self
                 .footer_state
@@ -231,7 +240,7 @@ impl App {
         AppStorage {
             content: self.content,
             show_menu: self.footer_state.get_show_menu(),
-            local_time_format: *self.footer_state.get_local_time_format(),
+            app_time_format: *self.footer_state.app_time_format(),
             style: self.style,
             with_decis: self.with_decis,
             pomodoro_mode: self.pomodoro.get_mode().clone(),
@@ -290,6 +299,7 @@ impl StatefulWidget for AppWidget {
             running_clock: state.clock_is_running(),
             selected_content: state.content,
             edit_mode: state.is_edit_mode(),
+            app_time: state.app_time,
         };
         StatefulWidget::render(footer, v2, buf, &mut state.footer_state);
     }

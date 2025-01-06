@@ -1,7 +1,6 @@
 use std::collections::BTreeMap;
 
-use crate::common::{Content, LocalTimeFormat};
-use chrono::{DateTime, Local};
+use crate::common::{AppTime, AppTimeFormat, Content};
 use ratatui::{
     buffer::Buffer,
     layout::{Constraint, Layout, Rect},
@@ -11,23 +10,17 @@ use ratatui::{
     widgets::{Block, Borders, Cell, Row, StatefulWidget, Table, Widget},
 };
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct FooterState {
     show_menu: bool,
-    local_time: DateTime<Local>,
-    local_time_format: LocalTimeFormat,
+    app_time_format: AppTimeFormat,
 }
 
 impl FooterState {
-    pub const fn new(
-        show_menu: bool,
-        local_time: DateTime<Local>,
-        local_time_format: LocalTimeFormat,
-    ) -> Self {
+    pub const fn new(show_menu: bool, app_time_format: AppTimeFormat) -> Self {
         Self {
             show_menu,
-            local_time,
-            local_time_format,
+            app_time_format,
         }
     }
 
@@ -39,24 +32,21 @@ impl FooterState {
         self.show_menu
     }
 
-    pub fn set_local_time(&mut self, value: DateTime<Local>) {
-        self.local_time = value;
+    pub const fn app_time_format(&self) -> &AppTimeFormat {
+        &self.app_time_format
     }
 
-    pub const fn get_local_time_format(&self) -> &LocalTimeFormat {
-        &self.local_time_format
-    }
-
-    pub fn toggle_local_time_format(&mut self) {
-        self.local_time_format = self.local_time_format.next();
+    pub fn toggle_app_time_format(&mut self) {
+        self.app_time_format = self.app_time_format.next();
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct Footer {
     pub running_clock: bool,
     pub selected_content: Content,
     pub edit_mode: bool,
+    pub app_time: AppTime,
 }
 
 impl StatefulWidget for Footer {
@@ -74,21 +64,13 @@ impl StatefulWidget for Footer {
         let [border_area, menu_area] =
             Layout::vertical([Constraint::Length(1), Constraint::Percentage(100)]).areas(area);
 
-        let local_time_str = match state.local_time_format {
-            LocalTimeFormat::Empty => "".into(),
-            _ => format!(
-                " {}", // empty space to add padding after border
-                state.local_time.format(state.local_time_format.fmt())
-            ),
-        };
-
         Block::new()
             .borders(Borders::TOP)
             .title(
                 format! {"[m]enu {:} ", if state.show_menu {scrollbar::VERTICAL.end} else {scrollbar::VERTICAL.begin}},
             )
             .title(
-                Line::from(local_time_str).right_aligned())
+                Line::from(self.app_time.format(&state.app_time_format)).right_aligned())
             .border_set(border::PLAIN)
             .render(border_area, buf);
         // show menu
@@ -134,7 +116,13 @@ impl StatefulWidget for Footer {
                             Span::from(SPACE),
                             Span::from("[.]toggle deciseconds"),
                             Span::from(SPACE),
-                            Span::from("[l]ocal time"),
+                            Span::from(format!(
+                                "[:]toggle {} time",
+                                match self.app_time {
+                                    AppTime::Local(_) => "local",
+                                    AppTime::Utc(_) => "utc",
+                                }
+                            )),
                         ])),
                     ]),
                     // edit
