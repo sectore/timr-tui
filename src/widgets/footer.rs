@@ -70,7 +70,14 @@ impl StatefulWidget for Footer {
                 format! {"[m]enu {:} ", if state.show_menu {scrollbar::VERTICAL.end} else {scrollbar::VERTICAL.begin}},
             )
             .title(
-                Line::from(self.app_time.format(&state.app_time_format)).right_aligned())
+                Line::from(
+                    match state.app_time_format {
+                        // `Hidden` -> no (empty) title
+                        AppTimeFormat::Hidden => "".into(),
+                        // others -> add some space around
+                        _ => format!(" {} ", self.app_time.format(&state.app_time_format))
+                    }
+                ).right_aligned())
             .border_set(border::PLAIN)
             .render(border_area, buf);
         // show menu
