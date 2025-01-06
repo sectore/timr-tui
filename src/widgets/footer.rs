@@ -133,6 +133,8 @@ impl StatefulWidget for Footer {
                             Span::from("[,]change style"),
                             Span::from(SPACE),
                             Span::from("[.]toggle deciseconds"),
+                            Span::from(SPACE),
+                            Span::from("[l]ocal time"),
                         ])),
                     ]),
                     // edit
