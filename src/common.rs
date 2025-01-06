@@ -109,7 +109,7 @@ impl AppTime {
         let parse_str = match app_format {
             AppTimeFormat::HhMmSs => Some("[hour]:[minute]:[second]"),
             AppTimeFormat::HhMm => Some("[hour]:[minute]"),
-            AppTimeFormat::Hh12Mm => Some("[hour]:[minute] [period]"),
+            AppTimeFormat::Hh12Mm => Some("[hour repr:12 padding:none]:[minute] [period]"),
             AppTimeFormat::Hidden => None,
         };
 
@@ -125,5 +125,61 @@ impl AppTime {
         } else {
             "".to_owned()
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+
+    use super::*;
+    use time::{Date, Month, PrimitiveDateTime, Time};
+
+    #[test]
+    fn test_format_app_time() {
+        let dt = PrimitiveDateTime::new(
+            Date::from_calendar_date(2025, Month::January, 6).unwrap(),
+            Time::from_hms(18, 6, 10).unwrap(),
+        )
+        .assume_utc();
+        // hh:mm:ss
+        assert_eq!(
+            AppTime::Utc(dt).format(&AppTimeFormat::HhMmSs),
+            "18:06:10",
+            "utc"
+        );
+        assert_eq!(
+            AppTime::Local(dt).format(&AppTimeFormat::HhMmSs),
+            "18:06:10",
+            "local"
+        );
+        // hh:mm
+        assert_eq!(
+            AppTime::Utc(dt).format(&AppTimeFormat::HhMm),
+            "18:06",
+            "utc"
+        );
+        assert_eq!(
+            AppTime::Local(dt).format(&AppTimeFormat::HhMm),
+            "18:06",
+            "local"
+        );
+        // hh:mm period
+        assert_eq!(
+            AppTime::Utc(dt).format(&AppTimeFormat::Hh12Mm),
+            "6:06 PM",
+            "utc"
+        );
+        assert_eq!(
+            AppTime::Local(dt).format(&AppTimeFormat::Hh12Mm),
+            "6:06 PM",
+            "local"
+        );
+        // hidden
+        assert_eq!(AppTime::Utc(dt).format(&AppTimeFormat::Hidden), "", "utc");
+        assert_eq!(
+            AppTime::Local(dt).format(&AppTimeFormat::Hidden),
+            "",
+            "local"
+        );
     }
 }
