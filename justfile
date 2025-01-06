@@ -63,3 +63,8 @@ alias dm := demo-menu
 
 demo-menu:
     vhs demo/menu.tape
+
+alias dlt := demo-local-time
+
+demo-local-time:
+    vhs demo/local-time.tape
