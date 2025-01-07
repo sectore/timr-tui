@@ -2,7 +2,7 @@ use crate::{
     common::Style,
     events::{Event, EventHandler},
     utils::center,
-    widgets::clock::{self, Clock, ClockWidget},
+    widgets::clock::{self, ClockState, ClockWidget},
 };
 use ratatui::{
     buffer::Buffer,
@@ -14,12 +14,12 @@ use ratatui::{
 use std::cmp::max;
 
 #[derive(Debug, Clone)]
-pub struct Timer {
-    clock: Clock<clock::Timer>,
+pub struct TimerState {
+    clock: ClockState<clock::Timer>,
 }
 
-impl Timer {
-    pub const fn new(clock: Clock<clock::Timer>) -> Self {
+impl TimerState {
+    pub const fn new(clock: ClockState<clock::Timer>) -> Self {
         Self { clock }
     }
 
@@ -27,12 +27,12 @@ impl Timer {
         self.clock.with_decis = with_decis;
     }
 
-    pub fn get_clock(&self) -> &Clock<clock::Timer> {
+    pub fn get_clock(&self) -> &ClockState<clock::Timer> {
         &self.clock
     }
 }
 
-impl EventHandler for Timer {
+impl EventHandler for TimerState {
     fn update(&mut self, event: Event) -> Option<Event> {
         let edit_mode = self.clock.is_edit_mode();
         match event {
@@ -69,12 +69,12 @@ impl EventHandler for Timer {
     }
 }
 
-pub struct TimerWidget {
+pub struct Timer {
     pub style: Style,
 }
 
-impl StatefulWidget for TimerWidget {
-    type State = Timer;
+impl StatefulWidget for Timer {
+    type State = TimerState;
     fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
         let clock = &mut state.clock;
         let clock_widget = ClockWidget::new(self.style);

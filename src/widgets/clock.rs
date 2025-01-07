@@ -73,7 +73,7 @@ pub enum Format {
 }
 
 #[derive(Debug, Clone)]
-pub struct Clock<T> {
+pub struct ClockState<T> {
     initial_value: DurationEx,
     current_value: DurationEx,
     tick_value: DurationEx,
@@ -83,14 +83,14 @@ pub struct Clock<T> {
     phantom: PhantomData<T>,
 }
 
-pub struct ClockArgs {
+pub struct ClockStateArgs {
     pub initial_value: Duration,
     pub current_value: Duration,
     pub tick_value: Duration,
     pub with_decis: bool,
 }
 
-impl<T> Clock<T> {
+impl<T> ClockState<T> {
     pub fn toggle_pause(&mut self) {
         self.mode = if self.mode == Mode::Tick {
             Mode::Pause
@@ -318,9 +318,9 @@ impl<T> Clock<T> {
 #[derive(Debug, Clone)]
 pub struct Countdown {}
 
-impl Clock<Countdown> {
-    pub fn new(args: ClockArgs) -> Self {
-        let ClockArgs {
+impl ClockState<Countdown> {
+    pub fn new(args: ClockStateArgs) -> Self {
+        let ClockStateArgs {
             initial_value,
             current_value,
             tick_value,
@@ -386,9 +386,9 @@ impl Clock<Countdown> {
 #[derive(Debug, Clone)]
 pub struct Timer {}
 
-impl Clock<Timer> {
-    pub fn new(args: ClockArgs) -> Self {
-        let ClockArgs {
+impl ClockState<Timer> {
+    pub fn new(args: ClockStateArgs) -> Self {
+        let ClockStateArgs {
             initial_value,
             current_value,
             tick_value,
@@ -560,7 +560,7 @@ impl<T> StatefulWidget for ClockWidget<T>
 where
     T: std::fmt::Debug,
 {
-    type State = Clock<T>;
+    type State = ClockState<T>;
 
     fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
         let with_decis = state.with_decis;

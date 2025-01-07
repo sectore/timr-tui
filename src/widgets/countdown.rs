@@ -11,16 +11,16 @@ use crate::{
     common::Style,
     events::{Event, EventHandler},
     utils::center,
-    widgets::clock::{self, Clock, ClockWidget},
+    widgets::clock::{self, ClockState, ClockWidget},
 };
 
 #[derive(Debug, Clone)]
-pub struct Countdown {
-    clock: Clock<clock::Countdown>,
+pub struct CountdownState {
+    clock: ClockState<clock::Countdown>,
 }
 
-impl Countdown {
-    pub const fn new(clock: Clock<clock::Countdown>) -> Self {
+impl CountdownState {
+    pub const fn new(clock: ClockState<clock::Countdown>) -> Self {
         Self { clock }
     }
 
@@ -28,12 +28,12 @@ impl Countdown {
         self.clock.with_decis = with_decis;
     }
 
-    pub fn get_clock(&self) -> &Clock<clock::Countdown> {
+    pub fn get_clock(&self) -> &ClockState<clock::Countdown> {
         &self.clock
     }
 }
 
-impl EventHandler for Countdown {
+impl EventHandler for CountdownState {
     fn update(&mut self, event: Event) -> Option<Event> {
         let edit_mode = self.clock.is_edit_mode();
         match event {
@@ -73,12 +73,12 @@ impl EventHandler for Countdown {
     }
 }
 
-pub struct CountdownWidget {
+pub struct Countdown {
     pub style: Style,
 }
 
-impl StatefulWidget for CountdownWidget {
-    type State = Countdown;
+impl StatefulWidget for Countdown {
+    type State = CountdownState;
     fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
         let clock = ClockWidget::new(self.style);
         let label = Line::raw((format!("Countdown {}", state.clock.get_mode())).to_uppercase());
