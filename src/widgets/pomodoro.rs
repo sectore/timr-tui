@@ -3,7 +3,7 @@ use crate::{
     constants::TICK_VALUE_MS,
     events::{Event, EventHandler},
     utils::center,
-    widgets::clock::{Clock, ClockWidget, Countdown},
+    widgets::clock::{ClockState, ClockWidget, Countdown},
 };
 use ratatui::{
     buffer::Buffer,
@@ -18,7 +18,7 @@ use strum::Display;
 
 use serde::{Deserialize, Serialize};
 
-use super::clock::ClockArgs;
+use super::clock::ClockStateArgs;
 
 #[derive(Debug, Clone, Display, Hash, Eq, PartialEq, Deserialize, Serialize)]
 pub enum Mode {
@@ -28,18 +28,18 @@ pub enum Mode {
 
 #[derive(Debug, Clone)]
 pub struct ClockMap {
-    work: Clock<Countdown>,
-    pause: Clock<Countdown>,
+    work: ClockState<Countdown>,
+    pause: ClockState<Countdown>,
 }
 
 impl ClockMap {
-    fn get_mut(&mut self, mode: &Mode) -> &mut Clock<Countdown> {
+    fn get_mut(&mut self, mode: &Mode) -> &mut ClockState<Countdown> {
         match mode {
             Mode::Work => &mut self.work,
             Mode::Pause => &mut self.pause,
         }
     }
-    fn get(&self, mode: &Mode) -> &Clock<Countdown> {
+    fn get(&self, mode: &Mode) -> &ClockState<Countdown> {
         match mode {
             Mode::Work => &self.work,
             Mode::Pause => &self.pause,
@@ -48,76 +48,67 @@ impl ClockMap {
 }
 
 #[derive(Debug, Clone)]
-pub struct Pomodoro {
+pub struct PomodoroState {
     mode: Mode,
     clock_map: ClockMap,
 }
 
-pub struct PomodoroArgs {
+pub struct PomodoroStateArgs {
     pub mode: Mode,
     pub initial_value_work: Duration,
     pub current_value_work: Duration,
     pub initial_value_pause: Duration,
     pub current_value_pause: Duration,
-    pub style: Style,
     pub with_decis: bool,
 }
 
-impl Pomodoro {
-    pub fn new(args: PomodoroArgs) -> Self {
-        let PomodoroArgs {
+impl PomodoroState {
+    pub fn new(args: PomodoroStateArgs) -> Self {
+        let PomodoroStateArgs {
             mode,
             initial_value_work,
             current_value_work,
             initial_value_pause,
             current_value_pause,
-            style,
             with_decis,
         } = args;
         Self {
             mode,
             clock_map: ClockMap {
-                work: Clock::<Countdown>::new(ClockArgs {
+                work: ClockState::<Countdown>::new(ClockStateArgs {
                     initial_value: initial_value_work,
                     current_value: current_value_work,
                     tick_value: Duration::from_millis(TICK_VALUE_MS),
-                    style,
                     with_decis,
                 }),
-                pause: Clock::<Countdown>::new(ClockArgs {
+                pause: ClockState::<Countdown>::new(ClockStateArgs {
                     initial_value: initial_value_pause,
                     current_value: current_value_pause,
                     tick_value: Duration::from_millis(TICK_VALUE_MS),
-                    style,
                     with_decis,
                 }),
             },
         }
     }
 
-    fn get_clock_mut(&mut self) -> &mut Clock<Countdown> {
+    fn get_clock_mut(&mut self) -> &mut ClockState<Countdown> {
         self.clock_map.get_mut(&self.mode)
     }
 
-    pub fn get_clock(&self) -> &Clock<Countdown> {
+    pub fn get_clock(&self) -> &ClockState<Countdown> {
         self.clock_map.get(&self.mode)
     }
 
-    pub fn get_clock_work(&self) -> &Clock<Countdown> {
+    pub fn get_clock_work(&self) -> &ClockState<Countdown> {
         &self.clock_map.work
     }
 
-    pub fn get_clock_pause(&self) -> &Clock<Countdown> {
+    pub fn get_clock_pause(&self) -> &ClockState<Countdown> {
         &self.clock_map.pause
     }
 
     pub fn get_mode(&self) -> &Mode {
         &self.mode
-    }
-
-    pub fn set_style(&mut self, style: Style) {
-        self.clock_map.work.style = style;
-        self.clock_map.pause.style = style;
     }
 
     pub fn set_with_decis(&mut self, with_decis: bool) {
@@ -133,7 +124,7 @@ impl Pomodoro {
     }
 }
 
-impl EventHandler for Pomodoro {
+impl EventHandler for PomodoroState {
     fn update(&mut self, event: Event) -> Option<Event> {
         let edit_mode = self.get_clock().is_edit_mode();
         match event {
@@ -177,12 +168,14 @@ impl EventHandler for Pomodoro {
     }
 }
 
-pub struct PomodoroWidget;
+pub struct PomodoroWidget {
+    pub style: Style,
+}
 
 impl StatefulWidget for PomodoroWidget {
-    type State = Pomodoro;
+    type State = PomodoroState;
     fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
-        let clock_widget = ClockWidget::new();
+        let clock_widget = ClockWidget::new(self.style);
         let label = Line::raw(
             (format!(
                 "Pomodoro {} {}",

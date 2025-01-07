@@ -1,5 +1,4 @@
 use crate::{
-    common::Style,
     duration::{ONE_DECI_SECOND, ONE_HOUR, ONE_MINUTE, ONE_SECOND},
     widgets::clock::*,
 };
@@ -7,11 +6,10 @@ use std::time::Duration;
 
 #[test]
 fn test_toggle_edit() {
-    let mut c = Clock::<Timer>::new(ClockArgs {
+    let mut c = ClockState::<Timer>::new(ClockStateArgs {
         initial_value: ONE_HOUR,
         current_value: ONE_HOUR,
         tick_value: ONE_DECI_SECOND,
-        style: Style::default(),
         with_decis: true,
     });
     // off by default
@@ -26,11 +24,10 @@ fn test_toggle_edit() {
 
 #[test]
 fn test_default_edit_mode_hhmmss() {
-    let mut c = Clock::<Timer>::new(ClockArgs {
+    let mut c = ClockState::<Timer>::new(ClockStateArgs {
         initial_value: ONE_HOUR,
         current_value: ONE_HOUR,
         tick_value: ONE_DECI_SECOND,
-        style: Style::default(),
         with_decis: true,
     });
 
@@ -41,11 +38,10 @@ fn test_default_edit_mode_hhmmss() {
 
 #[test]
 fn test_default_edit_mode_mmss() {
-    let mut c = Clock::<Timer>::new(ClockArgs {
+    let mut c = ClockState::<Timer>::new(ClockStateArgs {
         initial_value: ONE_MINUTE,
         current_value: ONE_MINUTE,
         tick_value: ONE_DECI_SECOND,
-        style: Style::default(),
         with_decis: true,
     });
     // toggle on
@@ -55,11 +51,10 @@ fn test_default_edit_mode_mmss() {
 
 #[test]
 fn test_default_edit_mode_ss() {
-    let mut c = Clock::<Timer>::new(ClockArgs {
+    let mut c = ClockState::<Timer>::new(ClockStateArgs {
         initial_value: ONE_SECOND,
         current_value: ONE_SECOND,
         tick_value: ONE_DECI_SECOND,
-        style: Style::default(),
         with_decis: true,
     });
     // toggle on
@@ -69,11 +64,10 @@ fn test_default_edit_mode_ss() {
 
 #[test]
 fn test_edit_next_hhmmssd() {
-    let mut c = Clock::<Timer>::new(ClockArgs {
+    let mut c = ClockState::<Timer>::new(ClockStateArgs {
         initial_value: ONE_HOUR,
         current_value: ONE_HOUR,
         tick_value: ONE_DECI_SECOND,
-        style: Style::default(),
         with_decis: true,
     });
 
@@ -91,11 +85,10 @@ fn test_edit_next_hhmmssd() {
 
 #[test]
 fn test_edit_next_hhmmss() {
-    let mut c = Clock::<Timer>::new(ClockArgs {
+    let mut c = ClockState::<Timer>::new(ClockStateArgs {
         initial_value: ONE_HOUR,
         current_value: ONE_HOUR,
         tick_value: ONE_DECI_SECOND,
-        style: Style::default(),
         with_decis: false,
     });
 
@@ -111,11 +104,10 @@ fn test_edit_next_hhmmss() {
 
 #[test]
 fn test_edit_next_mmssd() {
-    let mut c = Clock::<Timer>::new(ClockArgs {
+    let mut c = ClockState::<Timer>::new(ClockStateArgs {
         initial_value: ONE_MINUTE,
         current_value: ONE_MINUTE,
         tick_value: ONE_DECI_SECOND,
-        style: Style::default(),
         with_decis: true,
     });
 
@@ -131,11 +123,10 @@ fn test_edit_next_mmssd() {
 
 #[test]
 fn test_edit_next_mmss() {
-    let mut c = Clock::<Timer>::new(ClockArgs {
+    let mut c = ClockState::<Timer>::new(ClockStateArgs {
         initial_value: ONE_MINUTE,
         current_value: ONE_MINUTE,
         tick_value: ONE_DECI_SECOND,
-        style: Style::default(),
         with_decis: false,
     });
 
@@ -149,11 +140,10 @@ fn test_edit_next_mmss() {
 
 #[test]
 fn test_edit_next_ssd() {
-    let mut c = Clock::<Timer>::new(ClockArgs {
+    let mut c = ClockState::<Timer>::new(ClockStateArgs {
         initial_value: ONE_SECOND * 3,
         current_value: ONE_SECOND * 3,
         tick_value: ONE_DECI_SECOND,
-        style: Style::default(),
         with_decis: true,
     });
 
@@ -165,11 +155,10 @@ fn test_edit_next_ssd() {
 
 #[test]
 fn test_edit_next_ss() {
-    let mut c = Clock::<Timer>::new(ClockArgs {
+    let mut c = ClockState::<Timer>::new(ClockStateArgs {
         initial_value: ONE_SECOND * 3,
         current_value: ONE_SECOND * 3,
         tick_value: ONE_DECI_SECOND,
-        style: Style::default(),
         with_decis: false,
     });
 
@@ -182,11 +171,10 @@ fn test_edit_next_ss() {
 
 #[test]
 fn test_edit_prev_hhmmssd() {
-    let mut c = Clock::<Timer>::new(ClockArgs {
+    let mut c = ClockState::<Timer>::new(ClockStateArgs {
         initial_value: ONE_HOUR,
         current_value: ONE_HOUR,
         tick_value: ONE_DECI_SECOND,
-        style: Style::default(),
         with_decis: true,
     });
 
@@ -203,11 +191,10 @@ fn test_edit_prev_hhmmssd() {
 
 #[test]
 fn test_edit_prev_hhmmss() {
-    let mut c = Clock::<Timer>::new(ClockArgs {
+    let mut c = ClockState::<Timer>::new(ClockStateArgs {
         initial_value: ONE_HOUR,
         current_value: ONE_HOUR,
         tick_value: ONE_DECI_SECOND,
-        style: Style::default(),
         with_decis: false,
     });
 
@@ -222,11 +209,10 @@ fn test_edit_prev_hhmmss() {
 
 #[test]
 fn test_edit_prev_mmssd() {
-    let mut c = Clock::<Timer>::new(ClockArgs {
+    let mut c = ClockState::<Timer>::new(ClockStateArgs {
         initial_value: ONE_MINUTE,
         current_value: ONE_MINUTE,
         tick_value: ONE_DECI_SECOND,
-        style: Style::default(),
         with_decis: true,
     });
 
@@ -243,11 +229,10 @@ fn test_edit_prev_mmssd() {
 
 #[test]
 fn test_edit_prev_mmss() {
-    let mut c = Clock::<Timer>::new(ClockArgs {
+    let mut c = ClockState::<Timer>::new(ClockStateArgs {
         initial_value: ONE_MINUTE,
         current_value: ONE_MINUTE,
         tick_value: ONE_DECI_SECOND,
-        style: Style::default(),
         with_decis: false,
     });
 
@@ -262,11 +247,10 @@ fn test_edit_prev_mmss() {
 
 #[test]
 fn test_edit_prev_ssd() {
-    let mut c = Clock::<Timer>::new(ClockArgs {
+    let mut c = ClockState::<Timer>::new(ClockStateArgs {
         initial_value: ONE_SECOND,
         current_value: ONE_SECOND,
         tick_value: ONE_DECI_SECOND,
-        style: Style::default(),
         with_decis: true,
     });
 
@@ -281,11 +265,10 @@ fn test_edit_prev_ssd() {
 
 #[test]
 fn test_edit_prev_ss() {
-    let mut c = Clock::<Timer>::new(ClockArgs {
+    let mut c = ClockState::<Timer>::new(ClockStateArgs {
         initial_value: ONE_SECOND,
         current_value: ONE_SECOND,
         tick_value: ONE_DECI_SECOND,
-        style: Style::default(),
         with_decis: false,
     });
 
@@ -298,11 +281,10 @@ fn test_edit_prev_ss() {
 
 #[test]
 fn test_edit_up_ss() {
-    let mut c = Clock::<Timer>::new(ClockArgs {
+    let mut c = ClockState::<Timer>::new(ClockStateArgs {
         initial_value: Duration::ZERO,
         current_value: Duration::ZERO,
         tick_value: ONE_DECI_SECOND,
-        style: Style::default(),
         with_decis: false,
     });
 
@@ -315,11 +297,10 @@ fn test_edit_up_ss() {
 
 #[test]
 fn test_edit_up_mmss() {
-    let mut c = Clock::<Timer>::new(ClockArgs {
+    let mut c = ClockState::<Timer>::new(ClockStateArgs {
         initial_value: Duration::ZERO,
         current_value: Duration::from_secs(60),
         tick_value: ONE_DECI_SECOND,
-        style: Style::default(),
         with_decis: false,
     });
 
@@ -335,11 +316,10 @@ fn test_edit_up_mmss() {
 
 #[test]
 fn test_edit_up_hhmmss() {
-    let mut c = Clock::<Timer>::new(ClockArgs {
+    let mut c = ClockState::<Timer>::new(ClockStateArgs {
         initial_value: Duration::ZERO,
         current_value: Duration::from_secs(3600),
         tick_value: ONE_DECI_SECOND,
-        style: Style::default(),
         with_decis: false,
     });
 
@@ -357,11 +337,10 @@ fn test_edit_up_hhmmss() {
 
 #[test]
 fn test_edit_down_ss() {
-    let mut c = Clock::<Timer>::new(ClockArgs {
+    let mut c = ClockState::<Timer>::new(ClockStateArgs {
         initial_value: Duration::ZERO,
         current_value: ONE_SECOND,
         tick_value: ONE_DECI_SECOND,
-        style: Style::default(),
         with_decis: false,
     });
 
@@ -378,11 +357,10 @@ fn test_edit_down_ss() {
 
 #[test]
 fn test_edit_down_mmss() {
-    let mut c = Clock::<Timer>::new(ClockArgs {
+    let mut c = ClockState::<Timer>::new(ClockStateArgs {
         initial_value: Duration::ZERO,
         current_value: Duration::from_secs(120),
         tick_value: ONE_DECI_SECOND,
-        style: Style::default(),
         with_decis: false,
     });
 
@@ -401,11 +379,10 @@ fn test_edit_down_mmss() {
 
 #[test]
 fn test_edit_down_hhmmss() {
-    let mut c = Clock::<Timer>::new(ClockArgs {
+    let mut c = ClockState::<Timer>::new(ClockStateArgs {
         initial_value: Duration::ZERO,
         current_value: Duration::from_secs(3600),
         tick_value: ONE_DECI_SECOND,
-        style: Style::default(),
         with_decis: false,
     });
 

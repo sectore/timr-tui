@@ -6,12 +6,12 @@ use crate::{
     storage::AppStorage,
     terminal::Terminal,
     widgets::{
-        clock::{self, Clock, ClockArgs},
-        countdown::{Countdown, CountdownWidget},
+        clock::{self, ClockState, ClockStateArgs},
+        countdown::{Countdown, CountdownState},
         footer::{Footer, FooterState},
         header::Header,
-        pomodoro::{Mode as PomodoroMode, Pomodoro, PomodoroArgs, PomodoroWidget},
-        timer::{Timer, TimerWidget},
+        pomodoro::{Mode as PomodoroMode, PomodoroState, PomodoroStateArgs, PomodoroWidget},
+        timer::{Timer, TimerState},
     },
 };
 use color_eyre::Result;
@@ -36,12 +36,12 @@ pub struct App {
     content: Content,
     mode: Mode,
     app_time: AppTime,
-    countdown: Countdown,
-    timer: Timer,
-    pomodoro: Pomodoro,
+    countdown: CountdownState,
+    timer: TimerState,
+    pomodoro: PomodoroState,
     style: Style,
     with_decis: bool,
-    footer_state: FooterState,
+    footer: FooterState,
 }
 
 pub struct AppArgs {
@@ -115,30 +115,27 @@ impl App {
             app_time: get_app_time(),
             style,
             with_decis,
-            countdown: Countdown::new(Clock::<clock::Countdown>::new(ClockArgs {
+            countdown: CountdownState::new(ClockState::<clock::Countdown>::new(ClockStateArgs {
                 initial_value: initial_value_countdown,
                 current_value: current_value_countdown,
                 tick_value: Duration::from_millis(TICK_VALUE_MS),
-                style,
                 with_decis,
             })),
-            timer: Timer::new(Clock::<clock::Timer>::new(ClockArgs {
+            timer: TimerState::new(ClockState::<clock::Timer>::new(ClockStateArgs {
                 initial_value: Duration::ZERO,
                 current_value: current_value_timer,
                 tick_value: Duration::from_millis(TICK_VALUE_MS),
-                style,
                 with_decis,
             })),
-            pomodoro: Pomodoro::new(PomodoroArgs {
+            pomodoro: PomodoroState::new(PomodoroStateArgs {
                 mode: pomodoro_mode,
                 initial_value_work,
                 current_value_work,
                 initial_value_pause,
                 current_value_pause,
-                style,
                 with_decis,
             }),
-            footer_state: FooterState::new(show_menu, app_time_format),
+            footer: FooterState::new(show_menu, app_time_format),
         }
     }
 
@@ -204,17 +201,11 @@ impl App {
             KeyCode::Char('t') => self.content = Content::Timer,
             KeyCode::Char('p') => self.content = Content::Pomodoro,
             // toogle app time format
-            KeyCode::Char(':') => self.footer_state.toggle_app_time_format(),
+            KeyCode::Char(':') => self.footer.toggle_app_time_format(),
             // toogle menu
-            KeyCode::Char('m') => self
-                .footer_state
-                .set_show_menu(!self.footer_state.get_show_menu()),
+            KeyCode::Char('m') => self.footer.set_show_menu(!self.footer.get_show_menu()),
             KeyCode::Char(',') => {
                 self.style = self.style.next();
-                // update clocks
-                self.timer.set_style(self.style);
-                self.countdown.set_style(self.style);
-                self.pomodoro.set_style(self.style);
             }
             KeyCode::Char('.') => {
                 self.with_decis = !self.with_decis;
@@ -223,8 +214,8 @@ impl App {
                 self.countdown.set_with_decis(self.with_decis);
                 self.pomodoro.set_with_decis(self.with_decis);
             }
-            KeyCode::Up => self.footer_state.set_show_menu(true),
-            KeyCode::Down => self.footer_state.set_show_menu(false),
+            KeyCode::Up => self.footer.set_show_menu(true),
+            KeyCode::Down => self.footer.set_show_menu(false),
             _ => {}
         };
     }
@@ -239,8 +230,8 @@ impl App {
     pub fn to_storage(&self) -> AppStorage {
         AppStorage {
             content: self.content,
-            show_menu: self.footer_state.get_show_menu(),
-            app_time_format: *self.footer_state.app_time_format(),
+            show_menu: self.footer.get_show_menu(),
+            app_time_format: *self.footer.app_time_format(),
             style: self.style,
             with_decis: self.with_decis,
             pomodoro_mode: self.pomodoro.get_mode().clone(),
@@ -266,9 +257,15 @@ struct AppWidget;
 impl AppWidget {
     fn render_content(&self, area: Rect, buf: &mut Buffer, state: &mut App) {
         match state.content {
-            Content::Timer => TimerWidget.render(area, buf, &mut state.timer.clone()),
-            Content::Countdown => CountdownWidget.render(area, buf, &mut state.countdown.clone()),
-            Content::Pomodoro => PomodoroWidget.render(area, buf, &mut state.pomodoro.clone()),
+            Content::Timer => {
+                Timer { style: state.style }.render(area, buf, &mut state.timer);
+            }
+            Content::Countdown => {
+                Countdown { style: state.style }.render(area, buf, &mut state.countdown)
+            }
+            Content::Pomodoro => {
+                PomodoroWidget { style: state.style }.render(area, buf, &mut state.pomodoro)
+            }
         };
     }
 }
@@ -279,11 +276,7 @@ impl StatefulWidget for AppWidget {
         let [v0, v1, v2] = Layout::vertical([
             Constraint::Length(1),
             Constraint::Percentage(100),
-            Constraint::Length(if state.footer_state.get_show_menu() {
-                4
-            } else {
-                1
-            }),
+            Constraint::Length(if state.footer.get_show_menu() { 4 } else { 1 }),
         ])
         .areas(area);
 
@@ -295,12 +288,12 @@ impl StatefulWidget for AppWidget {
         // content
         self.render_content(v1, buf, state);
         // footer
-        let footer = Footer {
+        Footer {
             running_clock: state.clock_is_running(),
             selected_content: state.content,
             edit_mode: state.is_edit_mode(),
             app_time: state.app_time,
-        };
-        StatefulWidget::render(footer, v2, buf, &mut state.footer_state);
+        }
+        .render(v2, buf, &mut state.footer);
     }
 }
