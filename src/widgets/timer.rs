@@ -73,7 +73,7 @@ pub struct TimerWidget {
     pub style: Style,
 }
 
-impl StatefulWidget for &TimerWidget {
+impl StatefulWidget for TimerWidget {
     type State = Timer;
     fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
         let clock = &mut state.clock;

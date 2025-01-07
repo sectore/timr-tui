@@ -294,10 +294,6 @@ impl<T> Clock<T> {
         self.update_format();
     }
 
-    pub fn is_done(&self) -> bool {
-        self.mode == Mode::Done
-    }
-
     fn update_format(&mut self) {
         self.format = self.get_format();
     }

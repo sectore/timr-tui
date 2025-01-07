@@ -260,15 +260,13 @@ impl AppWidget {
     fn render_content(&self, area: Rect, buf: &mut Buffer, state: &mut App) {
         match state.content {
             Content::Timer => {
-                TimerWidget { style: state.style }.render(area, buf, &mut state.timer.clone())
+                TimerWidget { style: state.style }.render(area, buf, &mut state.timer);
             }
-            Content::Countdown => CountdownWidget { style: state.style }.render(
-                area,
-                buf,
-                &mut state.countdown.clone(),
-            ),
+            Content::Countdown => {
+                CountdownWidget { style: state.style }.render(area, buf, &mut state.countdown)
+            }
             Content::Pomodoro => {
-                PomodoroWidget { style: state.style }.render(area, buf, &mut state.pomodoro.clone())
+                PomodoroWidget { style: state.style }.render(area, buf, &mut state.pomodoro)
             }
         };
     }
