@@ -5,27 +5,38 @@ use ratatui::{
     text::Line,
     widgets::{StatefulWidget, Widget},
 };
-use std::cmp::max;
+use std::{cmp::max, time::Duration};
 
 use crate::{
     common::Style,
+    constants::TICK_VALUE_MS,
     events::{Event, EventHandler},
     utils::center,
-    widgets::clock::{self, ClockState, ClockWidget},
+    widgets::clock::{self, ClockState, ClockStateArgs, ClockWidget},
 };
 
 #[derive(Debug, Clone)]
 pub struct CountdownState {
     clock: ClockState<clock::Countdown>,
+    timer: ClockState<clock::Timer>,
 }
 
 impl CountdownState {
-    pub const fn new(clock: ClockState<clock::Countdown>) -> Self {
-        Self { clock }
+    pub fn new(clock: ClockState<clock::Countdown>) -> Self {
+        Self {
+            clock,
+            timer: ClockState::<clock::Timer>::new(ClockStateArgs {
+                initial_value: Duration::ZERO,
+                current_value: Duration::ZERO,
+                tick_value: Duration::from_millis(TICK_VALUE_MS),
+                with_decis: false,
+            }),
+        }
     }
 
     pub fn set_with_decis(&mut self, with_decis: bool) {
         self.clock.with_decis = with_decis;
+        self.timer.with_decis = with_decis;
     }
 
     pub fn get_clock(&self) -> &ClockState<clock::Countdown> {
@@ -38,17 +49,26 @@ impl EventHandler for CountdownState {
         let edit_mode = self.clock.is_edit_mode();
         match event {
             Event::Tick => {
-                self.clock.tick();
-            }
-            Event::Key(key) if key.code == KeyCode::Char('r') => {
-                self.clock.reset();
+                if !self.clock.is_done() {
+                    self.clock.tick();
+                } else {
+                    self.timer.tick();
+                    if self.timer.is_initial() {
+                        self.timer.run();
+                    }
+                }
             }
             Event::Key(key) => match key.code {
                 KeyCode::Char('r') => {
                     self.clock.reset();
+                    self.timer.reset();
                 }
                 KeyCode::Char('s') => {
-                    self.clock.toggle_pause();
+                    if !self.clock.is_done() {
+                        self.clock.toggle_pause();
+                    } else {
+                        self.timer.toggle_pause();
+                    }
                 }
                 KeyCode::Char('e') => {
                     self.clock.toggle_edit();
@@ -81,7 +101,27 @@ impl StatefulWidget for Countdown {
     type State = CountdownState;
     fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
         let clock = ClockWidget::new(self.style);
-        let label = Line::raw((format!("Countdown {}", state.clock.get_mode())).to_uppercase());
+
+        let label = Line::raw(
+            if state.clock.is_done() {
+                if state.clock.with_decis {
+                    format!(
+                        "Countdown {} +{}",
+                        state.clock.get_mode(),
+                        state.timer.get_current_value().to_string_with_decis()
+                    )
+                } else {
+                    format!(
+                        "Countdown {} +{}",
+                        state.clock.get_mode(),
+                        state.timer.get_current_value()
+                    )
+                }
+            } else {
+                format!("Countdown {}", state.clock.get_mode())
+            }
+            .to_uppercase(),
+        );
 
         let area = center(
             area,
