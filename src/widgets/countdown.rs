@@ -24,10 +24,6 @@ impl Countdown {
         Self { clock }
     }
 
-    pub fn set_style(&mut self, style: Style) {
-        self.clock.style = style;
-    }
-
     pub fn set_with_decis(&mut self, with_decis: bool) {
         self.clock.with_decis = with_decis;
     }
@@ -77,12 +73,14 @@ impl EventHandler for Countdown {
     }
 }
 
-pub struct CountdownWidget;
+pub struct CountdownWidget {
+    pub style: Style,
+}
 
 impl StatefulWidget for CountdownWidget {
     type State = Countdown;
     fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
-        let clock = ClockWidget::new();
+        let clock = ClockWidget::new(self.style);
         let label = Line::raw((format!("Countdown {}", state.clock.get_mode())).to_uppercase());
 
         let area = center(

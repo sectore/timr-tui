@@ -23,10 +23,6 @@ impl Timer {
         Self { clock }
     }
 
-    pub fn set_style(&mut self, style: Style) {
-        self.clock.style = style;
-    }
-
     pub fn set_with_decis(&mut self, with_decis: bool) {
         self.clock.with_decis = with_decis;
     }
@@ -73,13 +69,15 @@ impl EventHandler for Timer {
     }
 }
 
-pub struct TimerWidget;
+pub struct TimerWidget {
+    pub style: Style,
+}
 
 impl StatefulWidget for &TimerWidget {
     type State = Timer;
     fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
         let clock = &mut state.clock;
-        let clock_widget = ClockWidget::new();
+        let clock_widget = ClockWidget::new(self.style);
         let label = Line::raw((format!("Timer {}", clock.get_mode())).to_uppercase());
 
         let area = center(

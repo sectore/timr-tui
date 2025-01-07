@@ -119,14 +119,12 @@ impl App {
                 initial_value: initial_value_countdown,
                 current_value: current_value_countdown,
                 tick_value: Duration::from_millis(TICK_VALUE_MS),
-                style,
                 with_decis,
             })),
             timer: Timer::new(Clock::<clock::Timer>::new(ClockArgs {
                 initial_value: Duration::ZERO,
                 current_value: current_value_timer,
                 tick_value: Duration::from_millis(TICK_VALUE_MS),
-                style,
                 with_decis,
             })),
             pomodoro: Pomodoro::new(PomodoroArgs {
@@ -135,7 +133,6 @@ impl App {
                 current_value_work,
                 initial_value_pause,
                 current_value_pause,
-                style,
                 with_decis,
             }),
             footer_state: FooterState::new(show_menu, app_time_format),
@@ -211,10 +208,6 @@ impl App {
                 .set_show_menu(!self.footer_state.get_show_menu()),
             KeyCode::Char(',') => {
                 self.style = self.style.next();
-                // update clocks
-                self.timer.set_style(self.style);
-                self.countdown.set_style(self.style);
-                self.pomodoro.set_style(self.style);
             }
             KeyCode::Char('.') => {
                 self.with_decis = !self.with_decis;
@@ -266,9 +259,17 @@ struct AppWidget;
 impl AppWidget {
     fn render_content(&self, area: Rect, buf: &mut Buffer, state: &mut App) {
         match state.content {
-            Content::Timer => TimerWidget.render(area, buf, &mut state.timer.clone()),
-            Content::Countdown => CountdownWidget.render(area, buf, &mut state.countdown.clone()),
-            Content::Pomodoro => PomodoroWidget.render(area, buf, &mut state.pomodoro.clone()),
+            Content::Timer => {
+                TimerWidget { style: state.style }.render(area, buf, &mut state.timer.clone())
+            }
+            Content::Countdown => CountdownWidget { style: state.style }.render(
+                area,
+                buf,
+                &mut state.countdown.clone(),
+            ),
+            Content::Pomodoro => {
+                PomodoroWidget { style: state.style }.render(area, buf, &mut state.pomodoro.clone())
+            }
         };
     }
 }

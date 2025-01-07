@@ -59,7 +59,6 @@ pub struct PomodoroArgs {
     pub current_value_work: Duration,
     pub initial_value_pause: Duration,
     pub current_value_pause: Duration,
-    pub style: Style,
     pub with_decis: bool,
 }
 
@@ -71,7 +70,6 @@ impl Pomodoro {
             current_value_work,
             initial_value_pause,
             current_value_pause,
-            style,
             with_decis,
         } = args;
         Self {
@@ -81,14 +79,12 @@ impl Pomodoro {
                     initial_value: initial_value_work,
                     current_value: current_value_work,
                     tick_value: Duration::from_millis(TICK_VALUE_MS),
-                    style,
                     with_decis,
                 }),
                 pause: Clock::<Countdown>::new(ClockArgs {
                     initial_value: initial_value_pause,
                     current_value: current_value_pause,
                     tick_value: Duration::from_millis(TICK_VALUE_MS),
-                    style,
                     with_decis,
                 }),
             },
@@ -113,11 +109,6 @@ impl Pomodoro {
 
     pub fn get_mode(&self) -> &Mode {
         &self.mode
-    }
-
-    pub fn set_style(&mut self, style: Style) {
-        self.clock_map.work.style = style;
-        self.clock_map.pause.style = style;
     }
 
     pub fn set_with_decis(&mut self, with_decis: bool) {
@@ -177,12 +168,14 @@ impl EventHandler for Pomodoro {
     }
 }
 
-pub struct PomodoroWidget;
+pub struct PomodoroWidget {
+    pub style: Style,
+}
 
 impl StatefulWidget for PomodoroWidget {
     type State = Pomodoro;
     fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
-        let clock_widget = ClockWidget::new();
+        let clock_widget = ClockWidget::new(self.style);
         let label = Line::raw(
             (format!(
                 "Pomodoro {} {}",

@@ -79,7 +79,6 @@ pub struct Clock<T> {
     tick_value: DurationEx,
     mode: Mode,
     format: Format,
-    pub style: Style,
     pub with_decis: bool,
     phantom: PhantomData<T>,
 }
@@ -88,7 +87,6 @@ pub struct ClockArgs {
     pub initial_value: Duration,
     pub current_value: Duration,
     pub tick_value: Duration,
-    pub style: Style,
     pub with_decis: bool,
 }
 
@@ -330,7 +328,6 @@ impl Clock<Countdown> {
             initial_value,
             current_value,
             tick_value,
-            style,
             with_decis,
         } = args;
         let mut instance = Self {
@@ -345,7 +342,6 @@ impl Clock<Countdown> {
                 Mode::Pause
             },
             format: Format::S,
-            style,
             with_decis,
             phantom: PhantomData,
         };
@@ -400,7 +396,6 @@ impl Clock<Timer> {
             initial_value,
             current_value,
             tick_value,
-            style,
             with_decis,
         } = args;
         let mut instance = Self {
@@ -416,7 +411,6 @@ impl Clock<Timer> {
             },
             format: Format::S,
             phantom: PhantomData,
-            style,
             with_decis,
         };
         // update format once
@@ -461,6 +455,7 @@ pub struct ClockWidget<T>
 where
     T: std::fmt::Debug,
 {
+    style: Style,
     phantom: PhantomData<T>,
 }
 
@@ -468,8 +463,9 @@ impl<T> ClockWidget<T>
 where
     T: std::fmt::Debug,
 {
-    pub fn new() -> Self {
+    pub fn new(style: Style) -> Self {
         Self {
+            style,
             phantom: PhantomData,
         }
     }
@@ -573,7 +569,7 @@ where
     fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
         let with_decis = state.with_decis;
         let format = state.format;
-        let symbol = state.style.get_digit_symbol();
+        let symbol = self.style.get_digit_symbol();
         let widths = self.get_horizontal_lengths(&format, with_decis);
         let area = center_horizontal(
             area,
