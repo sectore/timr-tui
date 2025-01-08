@@ -15,9 +15,12 @@ use crate::{
     widgets::clock::{self, ClockState, ClockStateArgs, ClockWidget},
 };
 
+/// State for Countdown Widget
 #[derive(Debug, Clone)]
 pub struct CountdownState {
+    /// clock to count down
     clock: ClockState<clock::Countdown>,
+    /// clock to count up afterwards
     timer: ClockState<clock::Timer>,
 }
 
@@ -42,6 +45,10 @@ impl CountdownState {
     pub fn get_clock(&self) -> &ClockState<clock::Countdown> {
         &self.clock
     }
+
+    pub fn is_running(&self) -> bool {
+        self.clock.is_running() || self.timer.is_running()
+    }
 }
 
 impl EventHandler for CountdownState {
@@ -60,10 +67,12 @@ impl EventHandler for CountdownState {
             }
             Event::Key(key) => match key.code {
                 KeyCode::Char('r') => {
+                    // reset both clocks
                     self.clock.reset();
                     self.timer.reset();
                 }
                 KeyCode::Char('s') => {
+                    // toggle pause status depending on who is running
                     if !self.clock.is_done() {
                         self.clock.toggle_pause();
                     } else {
@@ -72,6 +81,10 @@ impl EventHandler for CountdownState {
                 }
                 KeyCode::Char('e') => {
                     self.clock.toggle_edit();
+                    // stop + reset timer entering `edit` mode
+                    if self.timer.is_running() {
+                        self.timer.toggle_pause();
+                    }
                 }
                 KeyCode::Left if edit_mode => {
                     self.clock.edit_next();
@@ -81,9 +94,13 @@ impl EventHandler for CountdownState {
                 }
                 KeyCode::Up if edit_mode => {
                     self.clock.edit_up();
+                    // whenever clock value is changed, reset timer
+                    self.timer.reset();
                 }
                 KeyCode::Down if edit_mode => {
                     self.clock.edit_down();
+                    // whenever clock value is changed, reset timer
+                    self.timer.reset();
                 }
                 _ => return Some(event),
             },
