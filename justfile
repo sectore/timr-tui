@@ -68,3 +68,8 @@ alias dlt := demo-local-time
 
 demo-local-time:
     vhs demo/local-time.tape
+
+alias drc := demo-rocket-countdown
+
+demo-rocket-countdown:
+    vhs demo/rocket-countdown.tape
