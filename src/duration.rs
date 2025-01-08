@@ -86,6 +86,10 @@ impl DurationEx {
         let inner = self.inner.saturating_sub(ex.inner);
         Self { inner }
     }
+
+    pub fn to_string_with_decis(self) -> String {
+        format!("{}.{}", self, self.decis())
+    }
 }
 
 impl fmt::Display for DurationEx {

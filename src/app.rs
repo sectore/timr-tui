@@ -179,7 +179,7 @@ impl App {
 
     fn clock_is_running(&self) -> bool {
         match self.content {
-            Content::Countdown => self.countdown.get_clock().is_running(),
+            Content::Countdown => self.countdown.is_running(),
             Content::Timer => self.timer.get_clock().is_running(),
             Content::Pomodoro => self.pomodoro.get_clock().is_running(),
         }

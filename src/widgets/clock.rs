@@ -207,8 +207,16 @@ impl<T> ClockState<T> {
         &self.mode
     }
 
+    pub fn run(&mut self) {
+        self.mode = Mode::Tick
+    }
+
     pub fn is_running(&self) -> bool {
         self.mode == Mode::Tick
+    }
+
+    pub fn is_initial(&self) -> bool {
+        self.mode == Mode::Initial
     }
 
     pub fn is_edit_mode(&self) -> bool {
@@ -292,6 +300,10 @@ impl<T> ClockState<T> {
         self.mode = Mode::Initial;
         self.current_value = self.initial_value;
         self.update_format();
+    }
+
+    pub fn is_done(&self) -> bool {
+        self.mode == Mode::Done
     }
 
     fn update_format(&mut self) {
