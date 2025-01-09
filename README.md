@@ -8,7 +8,7 @@ TUI to organize your time: Pomodoro, Countdown, Timer.
 
 It's built with [`Ratatui`](https://ratatui.rs/) written in [Rust 🦀](https://www.rust-lang.org/).
 
-# Preview
+# Features
 
 _Side note:_ Theme colors depend on your terminal preferences.
 
@@ -30,6 +30,11 @@ _Side note:_ Theme colors depend on your terminal preferences.
   <img alt="countdown" src="demo/countdown.gif" />
 </a>
 
+# More features
+
+<details>
+    <summary>Click to see more features</summary>
+
 ## Change style
 
 <a href="demo/style.gif">
@@ -47,6 +52,20 @@ _Side note:_ Theme colors depend on your terminal preferences.
 <a href="demo/menu.gif">
   <img alt="menu" src="demo/menu.gif" />
 </a>
+
+## Local time
+
+<a href="demo/local-time.gif">
+  <img alt="menu" src="demo/local-time.gif" />
+</a>
+
+## Rocket countdown
+
+<a href="demo/rocket-countdown.gif">
+  <img alt="menu" src="demo/rocket-countdown.gif" />
+</a>
+
+</details>
 
 # CLI
 
@@ -70,25 +89,35 @@ Options:
 
 # Installation
 
-From [crates.io](https://crates.io/crates/timr-tui) run:
+## Cargo
+
+### From [crates.io](https://crates.io/crates/timr-tui)
 
 ```sh
 cargo install timr-tui
 ```
 
-Latest version from git repository:
+### From GitHub repository
 
 ```sh
 cargo install --git https://github.com/sectore/timr-tui
 ```
 
-Arch Linux users can install [from the AUR](https://aur.archlinux.org/packages/timr/):
+## Arch Linux
+
+Install [from the AUR](https://aur.archlinux.org/packages/timr/):
 
 ```sh
 paru -S timr
 ```
 
-# Build from source 🔧
+
+## Release binaries
+
+Pre-built artifacts are available to download from [latest GitHub release](https://github.com/sectore/timr-tui/releases).
+
+
+# Development
 
 ## Requirements
 
