@@ -96,6 +96,22 @@ impl<T> ClockState<T> {
         self
     }
 
+    pub fn get_mode(&self) -> &Mode {
+        &self.mode
+    }
+
+    pub fn is_initial(&self) -> bool {
+        self.mode == Mode::Initial
+    }
+
+    pub fn run(&mut self) {
+        self.mode = Mode::Tick
+    }
+
+    pub fn is_running(&self) -> bool {
+        self.mode == Mode::Tick
+    }
+
     pub fn toggle_pause(&mut self) {
         self.mode = if self.mode == Mode::Tick {
             Mode::Pause
@@ -190,6 +206,7 @@ impl<T> ClockState<T> {
         };
         self.update_format();
     }
+
     pub fn edit_current_down(&mut self) {
         self.current_value = match self.mode {
             Mode::Editable(Time::Decis, _) => {
@@ -206,22 +223,6 @@ impl<T> ClockState<T> {
         };
         self.update_format();
         self.update_mode();
-    }
-
-    pub fn get_mode(&self) -> &Mode {
-        &self.mode
-    }
-
-    pub fn run(&mut self) {
-        self.mode = Mode::Tick
-    }
-
-    pub fn is_running(&self) -> bool {
-        self.mode == Mode::Tick
-    }
-
-    pub fn is_initial(&self) -> bool {
-        self.mode == Mode::Initial
     }
 
     pub fn is_edit_mode(&self) -> bool {

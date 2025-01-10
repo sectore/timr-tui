@@ -85,7 +85,7 @@ impl EventHandler for CountdownState {
                     self.elapsed_clock.reset();
                 }
                 KeyCode::Char('s') => {
-                    // toggle pause status depending on who is running
+                    // toggle pause status depending on which clock is running
                     if !self.clock.is_done() {
                         self.clock.toggle_pause();
                     } else {
@@ -107,7 +107,7 @@ impl EventHandler for CountdownState {
                 }
                 KeyCode::Up if edit_mode => {
                     self.clock.edit_up();
-                    // whenever clock value is changed, reset timer
+                    // whenever `clock`'s value is changed, reset `elapsed_clock`
                     self.elapsed_clock.reset();
                 }
                 KeyCode::Down if edit_mode => {
