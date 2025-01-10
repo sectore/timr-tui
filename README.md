@@ -6,7 +6,7 @@ TUI to organize your time: Pomodoro, Countdown, Timer.
 - `[c]ountdown` Use it for your workout, yoga session, meditation, handstand or whatever.
 - `[p]omodoro` Organize your working time to be focused all the time by following the [Pomodoro Technique](https://en.wikipedia.org/wiki/Pomodoro_Technique).
 
-It's built with [`Ratatui`](https://ratatui.rs/) written in [Rust 🦀](https://www.rust-lang.org/).
+Built with [Ratatui](https://ratatui.rs/) / [Rust 🦀](https://www.rust-lang.org/).
 
 # Features
 
@@ -29,11 +29,6 @@ _Side note:_ Theme colors depend on your terminal preferences.
 <a href="demo/countdown.gif">
   <img alt="countdown" src="demo/countdown.gif" />
 </a>
-
-# More features
-
-<details>
-    <summary>Click to see more features</summary>
 
 ## Change style
 
@@ -59,13 +54,11 @@ _Side note:_ Theme colors depend on your terminal preferences.
   <img alt="menu" src="demo/local-time.gif" />
 </a>
 
-## Rocket countdown
+## Mission Elapsed Time ([MET](https://en.wikipedia.org/wiki/Mission_Elapsed_Time))
 
-<a href="demo/rocket-countdown.gif">
-  <img alt="menu" src="demo/rocket-countdown.gif" />
+<a href="demo/countdown-met.gif">
+  <img alt="menu" src="demo/countdown-met.gif" />
 </a>
-
-</details>
 
 # CLI
 
@@ -187,7 +180,7 @@ In `debug` mode only. Locations:
 
 ```sh
 # Linux
-~/.local/state/timr/logs/app.log
+~/.local/state/timr-tui/logs/app.log
 # macOS
 /Users/{user}/Library/Application Support/timr-tui/logs/app.log
 # `Windows`
