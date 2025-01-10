@@ -1,7 +1,7 @@
-Output demo/rocket-countdown.gif
+Output demo/countdown-met.gif
 
 # https://github.com/charmbracelet/vhs/blob/main/THEMES.md
-Set Theme "AtomOneLight"
+Set Theme "iceberg-light"
 
 Set FontSize 14
 Set Width 800

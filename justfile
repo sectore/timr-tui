@@ -49,6 +49,11 @@ alias dc := demo-countdown
 demo-countdown:
     vhs demo/countdown.tape
 
+alias dcm := demo-countdown-met
+
+demo-countdown-met:
+    vhs demo/countdown-met.tape
+
 alias ds := demo-style
 
 demo-style:
@@ -72,4 +77,4 @@ demo-local-time:
 alias drc := demo-rocket-countdown
 
 demo-rocket-countdown:
-    vhs demo/rocket-countdown.tape
+    vhs demo/met.tape

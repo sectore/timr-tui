@@ -6,9 +6,9 @@ TUI to organize your time: Pomodoro, Countdown, Timer.
 - `[c]ountdown` Use it for your workout, yoga session, meditation, handstand or whatever.
 - `[p]omodoro` Organize your working time to be focused all the time by following the [Pomodoro Technique](https://en.wikipedia.org/wiki/Pomodoro_Technique).
 
-It's built with [`Ratatui`](https://ratatui.rs/) written in [Rust 🦀](https://www.rust-lang.org/).
+Built with [Ratatui](https://ratatui.rs/) / [Rust 🦀](https://www.rust-lang.org/).
 
-# Preview
+# Features
 
 _Side note:_ Theme colors depend on your terminal preferences.
 
@@ -48,6 +48,18 @@ _Side note:_ Theme colors depend on your terminal preferences.
   <img alt="menu" src="demo/menu.gif" />
 </a>
 
+## Local time
+
+<a href="demo/local-time.gif">
+  <img alt="menu" src="demo/local-time.gif" />
+</a>
+
+## Mission Elapsed Time ([MET](https://en.wikipedia.org/wiki/Mission_Elapsed_Time))
+
+<a href="demo/countdown-met.gif">
+  <img alt="menu" src="demo/countdown-met.gif" />
+</a>
+
 # CLI
 
 ```sh
@@ -70,25 +82,35 @@ Options:
 
 # Installation
 
-From [crates.io](https://crates.io/crates/timr-tui) run:
+## Cargo
+
+### From [crates.io](https://crates.io/crates/timr-tui)
 
 ```sh
 cargo install timr-tui
 ```
 
-Latest version from git repository:
+### From GitHub repository
 
 ```sh
 cargo install --git https://github.com/sectore/timr-tui
 ```
 
-Arch Linux users can install [from the AUR](https://aur.archlinux.org/packages/timr/):
+## Arch Linux
+
+Install [from the AUR](https://aur.archlinux.org/packages/timr/):
 
 ```sh
 paru -S timr
 ```
 
-# Build from source 🔧
+
+## Release binaries
+
+Pre-built artifacts are available to download from [latest GitHub release](https://github.com/sectore/timr-tui/releases).
+
+
+# Development
 
 ## Requirements
 
@@ -158,7 +180,7 @@ In `debug` mode only. Locations:
 
 ```sh
 # Linux
-~/.local/state/timr/logs/app.log
+~/.local/state/timr-tui/logs/app.log
 # macOS
 /Users/{user}/Library/Application Support/timr-tui/logs/app.log
 # `Windows`
