@@ -10,9 +10,10 @@ use std::{cmp::max, time::Duration};
 use crate::{
     common::Style,
     constants::TICK_VALUE_MS,
+    duration::DurationEx,
     events::{Event, EventHandler},
     utils::center,
-    widgets::clock::{self, ClockState, ClockStateArgs, ClockWidget},
+    widgets::clock::{self, ClockState, ClockStateArgs, ClockWidget, Mode as ClockMode},
 };
 
 /// State for Countdown Widget
@@ -20,26 +21,34 @@ use crate::{
 pub struct CountdownState {
     /// clock to count down
     clock: ClockState<clock::Countdown>,
-    /// clock to count up afterwards
-    timer: ClockState<clock::Timer>,
+    /// clock to count time after `DONE` - similar to Mission Elapsed Time (MET)
+    elapsed_clock: ClockState<clock::Timer>,
 }
 
 impl CountdownState {
-    pub fn new(clock: ClockState<clock::Countdown>) -> Self {
+    pub fn new(clock: ClockState<clock::Countdown>, elapsed_value: Duration) -> Self {
         Self {
             clock,
-            timer: ClockState::<clock::Timer>::new(ClockStateArgs {
+            elapsed_clock: ClockState::<clock::Timer>::new(ClockStateArgs {
                 initial_value: Duration::ZERO,
-                current_value: Duration::ZERO,
+                current_value: elapsed_value,
                 tick_value: Duration::from_millis(TICK_VALUE_MS),
                 with_decis: false,
+            })
+            // A previous `elapsed_value > 0` means the `Clock` was running before,
+            // but not in `Initial` state anymore. Updating `Mode` here
+            // is needed to handle `Event::Tick` in `EventHandler::update` properly
+            .with_mode(if elapsed_value.gt(&Duration::ZERO) {
+                ClockMode::Pause
+            } else {
+                ClockMode::Initial
             }),
         }
     }
 
     pub fn set_with_decis(&mut self, with_decis: bool) {
         self.clock.with_decis = with_decis;
-        self.timer.with_decis = with_decis;
+        self.elapsed_clock.with_decis = with_decis;
     }
 
     pub fn get_clock(&self) -> &ClockState<clock::Countdown> {
@@ -47,7 +56,11 @@ impl CountdownState {
     }
 
     pub fn is_running(&self) -> bool {
-        self.clock.is_running() || self.timer.is_running()
+        self.clock.is_running() || self.elapsed_clock.is_running()
+    }
+
+    pub fn get_elapsed_value(&self) -> &DurationEx {
+        self.elapsed_clock.get_current_value()
     }
 }
 
@@ -59,9 +72,9 @@ impl EventHandler for CountdownState {
                 if !self.clock.is_done() {
                     self.clock.tick();
                 } else {
-                    self.timer.tick();
-                    if self.timer.is_initial() {
-                        self.timer.run();
+                    self.elapsed_clock.tick();
+                    if self.elapsed_clock.is_initial() {
+                        self.elapsed_clock.run();
                     }
                 }
             }
@@ -69,21 +82,21 @@ impl EventHandler for CountdownState {
                 KeyCode::Char('r') => {
                     // reset both clocks
                     self.clock.reset();
-                    self.timer.reset();
+                    self.elapsed_clock.reset();
                 }
                 KeyCode::Char('s') => {
-                    // toggle pause status depending on who is running
+                    // toggle pause status depending on which clock is running
                     if !self.clock.is_done() {
                         self.clock.toggle_pause();
                     } else {
-                        self.timer.toggle_pause();
+                        self.elapsed_clock.toggle_pause();
                     }
                 }
                 KeyCode::Char('e') => {
                     self.clock.toggle_edit();
                     // stop + reset timer entering `edit` mode
-                    if self.timer.is_running() {
-                        self.timer.toggle_pause();
+                    if self.elapsed_clock.is_running() {
+                        self.elapsed_clock.toggle_pause();
                     }
                 }
                 KeyCode::Left if edit_mode => {
@@ -94,13 +107,13 @@ impl EventHandler for CountdownState {
                 }
                 KeyCode::Up if edit_mode => {
                     self.clock.edit_up();
-                    // whenever clock value is changed, reset timer
-                    self.timer.reset();
+                    // whenever `clock`'s value is changed, reset `elapsed_clock`
+                    self.elapsed_clock.reset();
                 }
                 KeyCode::Down if edit_mode => {
                     self.clock.edit_down();
                     // whenever clock value is changed, reset timer
-                    self.timer.reset();
+                    self.elapsed_clock.reset();
                 }
                 _ => return Some(event),
             },
@@ -125,13 +138,16 @@ impl StatefulWidget for Countdown {
                     format!(
                         "Countdown {} +{}",
                         state.clock.get_mode(),
-                        state.timer.get_current_value().to_string_with_decis()
+                        state
+                            .elapsed_clock
+                            .get_current_value()
+                            .to_string_with_decis()
                     )
                 } else {
                     format!(
                         "Countdown {} +{}",
                         state.clock.get_mode(),
-                        state.timer.get_current_value()
+                        state.elapsed_clock.get_current_value()
                     )
                 }
             } else {
