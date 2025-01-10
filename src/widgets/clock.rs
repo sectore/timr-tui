@@ -91,6 +91,11 @@ pub struct ClockStateArgs {
 }
 
 impl<T> ClockState<T> {
+    pub fn with_mode(mut self, mode: Mode) -> Self {
+        self.mode = mode;
+        self
+    }
+
     pub fn toggle_pause(&mut self) {
         self.mode = if self.mode == Mode::Tick {
             Mode::Pause

@@ -57,6 +57,7 @@ pub struct AppArgs {
     pub current_value_pause: Duration,
     pub initial_value_countdown: Duration,
     pub current_value_countdown: Duration,
+    pub elapsed_value_countdown: Duration,
     pub current_value_timer: Duration,
 }
 
@@ -80,6 +81,7 @@ impl From<(Args, AppStorage)> for AppArgs {
             initial_value_countdown: args.countdown.unwrap_or(stg.inital_value_countdown),
             // invalidate `current_value_countdown` if an initial value is set via args
             current_value_countdown: args.countdown.unwrap_or(stg.current_value_countdown),
+            elapsed_value_countdown: stg.elapsed_value_countdown,
             current_value_timer: stg.current_value_timer,
         }
     }
@@ -104,6 +106,7 @@ impl App {
             current_value_work,
             current_value_pause,
             current_value_countdown,
+            elapsed_value_countdown,
             current_value_timer,
             content,
             with_decis,
@@ -115,12 +118,15 @@ impl App {
             app_time: get_app_time(),
             style,
             with_decis,
-            countdown: CountdownState::new(ClockState::<clock::Countdown>::new(ClockStateArgs {
-                initial_value: initial_value_countdown,
-                current_value: current_value_countdown,
-                tick_value: Duration::from_millis(TICK_VALUE_MS),
-                with_decis,
-            })),
+            countdown: CountdownState::new(
+                ClockState::<clock::Countdown>::new(ClockStateArgs {
+                    initial_value: initial_value_countdown,
+                    current_value: current_value_countdown,
+                    tick_value: Duration::from_millis(TICK_VALUE_MS),
+                    with_decis,
+                }),
+                elapsed_value_countdown,
+            ),
             timer: TimerState::new(ClockState::<clock::Timer>::new(ClockStateArgs {
                 initial_value: Duration::ZERO,
                 current_value: current_value_timer,
@@ -247,6 +253,7 @@ impl App {
             current_value_countdown: Duration::from(
                 *self.countdown.get_clock().get_current_value(),
             ),
+            elapsed_value_countdown: Duration::from(*self.countdown.get_elapsed_value()),
             current_value_timer: Duration::from(*self.timer.get_clock().get_current_value()),
         }
     }
