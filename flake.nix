@@ -1,7 +1,5 @@
 {
   inputs = {
-    # Disable `nixos-unstable` for now, it introduced some `VScode` related errors:
-    # error: function 'buildVscodeExtension' called without required argument 'pname'
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
     crane.url = "github:ipetkov/crane";
@@ -20,7 +18,6 @@
   }:
     flake-utils.lib.eachDefaultSystem (system: let
       pkgs = nixpkgs.legacyPackages.${system};
-      # Using stable toolchain as base
       toolchain = with fenix.packages.${system};
         combine [
           minimal.rustc
