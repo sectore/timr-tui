@@ -5,6 +5,7 @@ pub mod clock_elements_test;
 #[cfg(test)]
 pub mod clock_test;
 pub mod countdown;
+pub mod edit_time;
 pub mod footer;
 pub mod header;
 pub mod pomodoro;

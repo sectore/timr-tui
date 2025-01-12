@@ -112,10 +112,11 @@ impl App {
             with_decis,
             pomodoro_mode,
         } = args;
+        let app_time = get_app_time();
         Self {
             mode: Mode::Running,
             content,
-            app_time: get_app_time(),
+            app_time,
             style,
             with_decis,
             countdown: CountdownState::new(
@@ -126,6 +127,7 @@ impl App {
                     with_decis,
                 }),
                 elapsed_value_countdown,
+                app_time,
             ),
             timer: TimerState::new(ClockState::<clock::Timer>::new(ClockStateArgs {
                 initial_value: Duration::ZERO,
@@ -150,6 +152,7 @@ impl App {
             if let Some(event) = events.next().await {
                 if matches!(event, Event::Tick) {
                     self.app_time = get_app_time();
+                    self.countdown.set_app_time(self.app_time);
                 }
 
                 // Pipe events into subviews and handle only 'unhandled' events afterwards

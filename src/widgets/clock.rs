@@ -17,7 +17,7 @@ use crate::{
     },
     utils::center_horizontal,
     widgets::clock_elements::{
-        Colon, Digit, Dot, COLON_WIDTH, DIGIT_HEIGHT, DIGIT_WIDTH, DOT_WIDTH,
+        Colon, Digit, Dot, COLON_WIDTH, DIGIT_HEIGHT, DIGIT_SPACE_WIDTH, DIGIT_WIDTH, DOT_WIDTH,
     },
 };
 
@@ -463,8 +463,6 @@ impl ClockState<Timer> {
     }
 }
 
-const SPACE_WIDTH: u16 = 1;
-
 pub struct ClockWidget<T>
 where
     T: std::fmt::Debug,
@@ -498,61 +496,61 @@ where
         match format {
             Format::HhMmSs => add_decis(
                 vec![
-                    DIGIT_WIDTH, // h
-                    SPACE_WIDTH, // (space)
-                    DIGIT_WIDTH, // h
-                    COLON_WIDTH, // :
-                    DIGIT_WIDTH, // m
-                    SPACE_WIDTH, // (space)
-                    DIGIT_WIDTH, // m
-                    COLON_WIDTH, // :
-                    DIGIT_WIDTH, // s
-                    SPACE_WIDTH, // (space)
-                    DIGIT_WIDTH, // s
+                    DIGIT_WIDTH,       // h
+                    DIGIT_SPACE_WIDTH, // (space)
+                    DIGIT_WIDTH,       // h
+                    COLON_WIDTH,       // :
+                    DIGIT_WIDTH,       // m
+                    DIGIT_SPACE_WIDTH, // (space)
+                    DIGIT_WIDTH,       // m
+                    COLON_WIDTH,       // :
+                    DIGIT_WIDTH,       // s
+                    DIGIT_SPACE_WIDTH, // (space)
+                    DIGIT_WIDTH,       // s
                 ],
                 with_decis,
             ),
             Format::HMmSs => add_decis(
                 vec![
-                    DIGIT_WIDTH, // h
-                    COLON_WIDTH, // :
-                    DIGIT_WIDTH, // m
-                    SPACE_WIDTH, // (space)
-                    DIGIT_WIDTH, // m
-                    COLON_WIDTH, // :
-                    DIGIT_WIDTH, // s
-                    SPACE_WIDTH, // (space)
-                    DIGIT_WIDTH, // s
+                    DIGIT_WIDTH,       // h
+                    COLON_WIDTH,       // :
+                    DIGIT_WIDTH,       // m
+                    DIGIT_SPACE_WIDTH, // (space)
+                    DIGIT_WIDTH,       // m
+                    COLON_WIDTH,       // :
+                    DIGIT_WIDTH,       // s
+                    DIGIT_SPACE_WIDTH, // (space)
+                    DIGIT_WIDTH,       // s
                 ],
                 with_decis,
             ),
             Format::MmSs => add_decis(
                 vec![
-                    DIGIT_WIDTH, // m
-                    SPACE_WIDTH, // (space)
-                    DIGIT_WIDTH, // m
-                    COLON_WIDTH, // :
-                    DIGIT_WIDTH, // s
-                    SPACE_WIDTH, // (space)
-                    DIGIT_WIDTH, // s
+                    DIGIT_WIDTH,       // m
+                    DIGIT_SPACE_WIDTH, // (space)
+                    DIGIT_WIDTH,       // m
+                    COLON_WIDTH,       // :
+                    DIGIT_WIDTH,       // s
+                    DIGIT_SPACE_WIDTH, // (space)
+                    DIGIT_WIDTH,       // s
                 ],
                 with_decis,
             ),
             Format::MSs => add_decis(
                 vec![
-                    DIGIT_WIDTH, // m
-                    COLON_WIDTH, // :
-                    DIGIT_WIDTH, // s
-                    SPACE_WIDTH, // (space)
-                    DIGIT_WIDTH, // s
+                    DIGIT_WIDTH,       // m
+                    COLON_WIDTH,       // :
+                    DIGIT_WIDTH,       // s
+                    DIGIT_SPACE_WIDTH, // (space)
+                    DIGIT_WIDTH,       // s
                 ],
                 with_decis,
             ),
             Format::Ss => add_decis(
                 vec![
-                    DIGIT_WIDTH, // s
-                    SPACE_WIDTH, // (space)
-                    DIGIT_WIDTH, // s
+                    DIGIT_WIDTH,       // s
+                    DIGIT_SPACE_WIDTH, // (space)
+                    DIGIT_WIDTH,       // s
                 ],
                 with_decis,
             ),

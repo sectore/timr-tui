@@ -1,3 +1,15 @@
+use crate::{
+    common::{AppTime, Style},
+    constants::TICK_VALUE_MS,
+    duration::DurationEx,
+    events::{Event, EventHandler},
+    utils::center,
+    widgets::{
+        clock::{self, ClockState, ClockStateArgs, ClockWidget, Mode as ClockMode},
+        edit_time::EditTimeState,
+    },
+};
+use crossterm::event::KeyModifiers;
 use ratatui::{
     buffer::Buffer,
     crossterm::event::KeyCode,
@@ -5,16 +17,11 @@ use ratatui::{
     text::Line,
     widgets::{StatefulWidget, Widget},
 };
+use std::ops::Add;
 use std::{cmp::max, time::Duration};
+use time::OffsetDateTime;
 
-use crate::{
-    common::Style,
-    constants::TICK_VALUE_MS,
-    duration::DurationEx,
-    events::{Event, EventHandler},
-    utils::center,
-    widgets::clock::{self, ClockState, ClockStateArgs, ClockWidget, Mode as ClockMode},
-};
+use super::edit_time::EditTimeWidget;
 
 /// State for Countdown Widget
 #[derive(Debug, Clone)]
@@ -23,10 +30,17 @@ pub struct CountdownState {
     clock: ClockState<clock::Countdown>,
     /// clock to count time after `DONE` - similar to Mission Elapsed Time (MET)
     elapsed_clock: ClockState<clock::Timer>,
+    app_time: AppTime,
+    /// Edit by local time
+    edit_time: Option<EditTimeState>,
 }
 
 impl CountdownState {
-    pub fn new(clock: ClockState<clock::Countdown>, elapsed_value: Duration) -> Self {
+    pub fn new(
+        clock: ClockState<clock::Countdown>,
+        elapsed_value: Duration,
+        app_time: AppTime,
+    ) -> Self {
         Self {
             clock,
             elapsed_clock: ClockState::<clock::Timer>::new(ClockStateArgs {
@@ -43,6 +57,8 @@ impl CountdownState {
             } else {
                 ClockMode::Initial
             }),
+            app_time,
+            edit_time: None,
         }
     }
 
@@ -62,11 +78,14 @@ impl CountdownState {
     pub fn get_elapsed_value(&self) -> &DurationEx {
         self.elapsed_clock.get_current_value()
     }
+
+    pub fn set_app_time(&mut self, app_time: AppTime) {
+        self.app_time = app_time;
+    }
 }
 
 impl EventHandler for CountdownState {
     fn update(&mut self, event: Event) -> Option<Event> {
-        let edit_mode = self.clock.is_edit_mode();
         match event {
             Event::Tick => {
                 if !self.clock.is_done() {
@@ -93,24 +112,54 @@ impl EventHandler for CountdownState {
                     }
                 }
                 KeyCode::Char('e') => {
-                    self.clock.toggle_edit();
-                    // stop + reset timer entering `edit` mode
+                    // Countdown values can by edited in 2 ways:
+                    // (1) by local time
+                    // (2) by countdown value
+                    //
+                    // Keys `STRG + e` => (1)
+                    if key.modifiers.contains(KeyModifiers::CONTROL) {
+                        // toggle edit mode
+                        if self.edit_time.is_some() {
+                            self.edit_time = None;
+                        } else {
+                            let d: Duration = (*self.clock.get_current_value()).into();
+                            let time: OffsetDateTime = OffsetDateTime::from(self.app_time).add(d);
+                            self.edit_time = Some(EditTimeState::new(time));
+                        }
+                        // stop `clock`
+                        if self.clock.is_running() {
+                            self.clock.toggle_pause();
+                        }
+                    }
+                    // Key `e` => (2)
+                    else {
+                        // toggle edit mode
+                        self.clock.toggle_edit();
+                    }
+
+                    // stop `elapsed_clock` in both cases (1) + (2)
                     if self.elapsed_clock.is_running() {
                         self.elapsed_clock.toggle_pause();
                     }
                 }
-                KeyCode::Left if edit_mode => {
+                KeyCode::Left if self.clock.is_edit_mode() => {
                     self.clock.edit_next();
                 }
-                KeyCode::Right if edit_mode => {
+                KeyCode::Left if self.edit_time.is_some() => {
+                    self.edit_time.as_mut().unwrap().next();
+                }
+                KeyCode::Right if self.clock.is_edit_mode() => {
                     self.clock.edit_prev();
                 }
-                KeyCode::Up if edit_mode => {
+                KeyCode::Right if self.edit_time.is_some() => {
+                    self.edit_time.as_mut().unwrap().prev();
+                }
+                KeyCode::Up if self.clock.is_edit_mode() => {
                     self.clock.edit_up();
                     // whenever `clock`'s value is changed, reset `elapsed_clock`
                     self.elapsed_clock.reset();
                 }
-                KeyCode::Down if edit_mode => {
+                KeyCode::Down if self.clock.is_edit_mode() => {
                     self.clock.edit_down();
                     // whenever clock value is changed, reset timer
                     self.elapsed_clock.reset();
@@ -130,8 +179,6 @@ pub struct Countdown {
 impl StatefulWidget for Countdown {
     type State = CountdownState;
     fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
-        let clock = ClockWidget::new(self.style);
-
         let label = Line::raw(
             if state.clock.is_done() {
                 if state.clock.with_decis {
@@ -156,18 +203,34 @@ impl StatefulWidget for Countdown {
             .to_uppercase(),
         );
 
-        let area = center(
-            area,
-            Constraint::Length(max(
-                clock.get_width(&state.clock.get_format(), state.clock.with_decis),
-                label.width() as u16,
-            )),
-            Constraint::Length(clock.get_height() + 1 /* height of label */),
-        );
-        let [v1, v2] =
-            Layout::vertical(Constraint::from_lengths([clock.get_height(), 1])).areas(area);
+        // render `edit_time` OR `clock`
+        if let Some(edit_time) = &mut state.edit_time {
+            let widget = EditTimeWidget::new(self.style);
+            let area = center(
+                area,
+                Constraint::Length(max(widget.get_width(), label.width() as u16)),
+                Constraint::Length(widget.get_height() + 1 /* height of label */),
+            );
+            let [v1, v2] =
+                Layout::vertical(Constraint::from_lengths([widget.get_height(), 1])).areas(area);
 
-        clock.render(v1, buf, &mut state.clock);
-        label.centered().render(v2, buf);
+            widget.render(v1, buf, edit_time);
+            label.centered().render(v2, buf);
+        } else {
+            let widget = ClockWidget::new(self.style);
+            let area = center(
+                area,
+                Constraint::Length(max(
+                    widget.get_width(&state.clock.get_format(), state.clock.with_decis),
+                    label.width() as u16,
+                )),
+                Constraint::Length(widget.get_height() + 1 /* height of label */),
+            );
+            let [v1, v2] =
+                Layout::vertical(Constraint::from_lengths([widget.get_height(), 1])).areas(area);
+
+            widget.render(v1, buf, &mut state.clock);
+            label.centered().render(v2, buf);
+        }
     }
 }
