@@ -1,6 +1,6 @@
 use crate::{
     args::Args,
-    common::{AppTime, AppTimeFormat, Content, Style},
+    common::{AppEditMode, AppTime, AppTimeFormat, Content, Style},
     constants::TICK_VALUE_MS,
     events::{Event, EventHandler, Events},
     storage::AppStorage,
@@ -112,10 +112,11 @@ impl App {
             with_decis,
             pomodoro_mode,
         } = args;
+        let app_time = get_app_time();
         Self {
             mode: Mode::Running,
             content,
-            app_time: get_app_time(),
+            app_time,
             style,
             with_decis,
             countdown: CountdownState::new(
@@ -126,6 +127,7 @@ impl App {
                     with_decis,
                 }),
                 elapsed_value_countdown,
+                app_time,
             ),
             timer: TimerState::new(ClockState::<clock::Timer>::new(ClockStateArgs {
                 initial_value: Duration::ZERO,
@@ -150,6 +152,7 @@ impl App {
             if let Some(event) = events.next().await {
                 if matches!(event, Event::Tick) {
                     self.app_time = get_app_time();
+                    self.countdown.set_app_time(self.app_time);
                 }
 
                 // Pipe events into subviews and handle only 'unhandled' events afterwards
@@ -175,11 +178,32 @@ impl App {
         self.mode != Mode::Quit
     }
 
-    fn is_edit_mode(&self) -> bool {
+    fn get_edit_mode(&self) -> AppEditMode {
         match self.content {
-            Content::Countdown => self.countdown.get_clock().is_edit_mode(),
-            Content::Timer => self.timer.get_clock().is_edit_mode(),
-            Content::Pomodoro => self.pomodoro.get_clock().is_edit_mode(),
+            Content::Countdown => {
+                if self.countdown.is_clock_edit_mode() {
+                    AppEditMode::Clock
+                } else if self.countdown.is_time_edit_mode() {
+                    AppEditMode::Time
+                } else {
+                    AppEditMode::None
+                }
+            }
+
+            Content::Timer => {
+                if self.timer.get_clock().is_edit_mode() {
+                    AppEditMode::Clock
+                } else {
+                    AppEditMode::None
+                }
+            }
+            Content::Pomodoro => {
+                if self.pomodoro.get_clock().is_edit_mode() {
+                    AppEditMode::Clock
+                } else {
+                    AppEditMode::None
+                }
+            }
         }
     }
 
@@ -298,7 +322,7 @@ impl StatefulWidget for AppWidget {
         Footer {
             running_clock: state.clock_is_running(),
             selected_content: state.content,
-            edit_mode: state.is_edit_mode(),
+            app_edit_mode: state.get_edit_mode(),
             app_time: state.app_time,
         }
         .render(v2, buf, &mut state.footer);

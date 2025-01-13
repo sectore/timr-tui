@@ -9,6 +9,7 @@ pub const DIGIT_WIDTH: u16 = DIGIT_SIZE as u16;
 pub const DIGIT_HEIGHT: u16 = DIGIT_SIZE as u16 + 1 /* border height */;
 pub const COLON_WIDTH: u16 = 4; // incl. padding left + padding right
 pub const DOT_WIDTH: u16 = 4; // incl. padding left + padding right
+pub const DIGIT_SPACE_WIDTH: u16 = 1; // space between digits
 
 #[rustfmt::skip]
 const DIGIT_0: [u8; DIGIT_SIZE * DIGIT_SIZE] = [

@@ -20,6 +20,10 @@ pub const MINS_PER_HOUR: u64 = 60;
 // https://doc.rust-lang.org/src/core/time.rs.html#36
 const HOURS_PER_DAY: u64 = 24;
 
+// max. 99:59:59
+pub const MAX_DURATION: Duration =
+    Duration::from_secs(100 * MINS_PER_HOUR * SECS_PER_MINUTE).saturating_sub(ONE_SECOND);
+
 #[derive(Debug, Clone, Copy, PartialOrd)]
 pub struct DurationEx {
     inner: Duration,
