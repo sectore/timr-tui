@@ -218,14 +218,14 @@ impl EventHandler for CountdownState {
                     self.clock.edit_next();
                 }
                 KeyCode::Left if is_edit_time => {
-                    // safe unwrap because of previous check in `edit_time`
+                    // safe unwrap because of previous check in `is_edit_time`
                     self.edit_time.as_mut().unwrap().next();
                 }
                 KeyCode::Right if is_edit_clock => {
                     self.clock.edit_prev();
                 }
                 KeyCode::Right if is_edit_time => {
-                    // safe unwrap because of previous check in `edit_time`
+                    // safe unwrap because of previous check in `is_edit_time`
                     self.edit_time.as_mut().unwrap().prev();
                 }
                 KeyCode::Up if is_edit_clock => {
@@ -234,7 +234,7 @@ impl EventHandler for CountdownState {
                     self.elapsed_clock.reset();
                 }
                 KeyCode::Up if is_edit_time => {
-                    // safe unwrap because of previous check in `edit_time`
+                    // safe unwrap because of previous check in `is_edit_time`
                     self.edit_time.as_mut().unwrap().up();
                     // whenever `clock`'s value is changed, reset `elapsed_clock`
                     self.elapsed_clock.reset();
@@ -245,7 +245,7 @@ impl EventHandler for CountdownState {
                     self.elapsed_clock.reset();
                 }
                 KeyCode::Down if is_edit_time => {
-                    // safe unwrap because of previous check in `edit_time`
+                    // safe unwrap because of previous check in `is_edit_time`
                     self.edit_time.as_mut().unwrap().down();
                     // whenever clock value is changed, reset timer
                     self.elapsed_clock.reset();
