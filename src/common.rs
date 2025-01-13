@@ -128,6 +128,13 @@ impl AppTime {
     }
 }
 
+#[derive(Debug)]
+pub enum AppEditMode {
+    None,
+    Clock,
+    Time,
+}
+
 #[cfg(test)]
 mod tests {
 

@@ -11,19 +11,12 @@ use ratatui::{
 
 use crate::{
     common::Style,
-    duration::{
-        DurationEx, MINS_PER_HOUR, ONE_DECI_SECOND, ONE_HOUR, ONE_MINUTE, ONE_SECOND,
-        SECS_PER_MINUTE,
-    },
+    duration::{DurationEx, MAX_DURATION, ONE_DECI_SECOND, ONE_HOUR, ONE_MINUTE, ONE_SECOND},
     utils::center_horizontal,
     widgets::clock_elements::{
         Colon, Digit, Dot, COLON_WIDTH, DIGIT_HEIGHT, DIGIT_SPACE_WIDTH, DIGIT_WIDTH, DOT_WIDTH,
     },
 };
-
-// max. 99:59:59
-const MAX_DURATION: Duration =
-    Duration::from_secs(100 * MINS_PER_HOUR * SECS_PER_MINUTE).saturating_sub(ONE_SECOND);
 
 #[derive(Debug, Copy, Clone, Display, PartialEq, Eq)]
 pub enum Time {
@@ -126,6 +119,11 @@ impl<T> ClockState<T> {
 
     pub fn get_current_value(&self) -> &DurationEx {
         &self.current_value
+    }
+
+    pub fn set_current_value(&mut self, duration: DurationEx) {
+        self.current_value = duration;
+        self.update_format();
     }
 
     pub fn toggle_edit(&mut self) {

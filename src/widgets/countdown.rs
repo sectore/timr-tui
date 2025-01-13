@@ -1,7 +1,7 @@
 use crate::{
     common::{AppTime, Style},
     constants::TICK_VALUE_MS,
-    duration::DurationEx,
+    duration::{DurationEx, MAX_DURATION},
     events::{Event, EventHandler},
     utils::center,
     widgets::{
@@ -17,11 +17,12 @@ use ratatui::{
     text::Line,
     widgets::{StatefulWidget, Widget},
 };
-use std::ops::Add;
+
+use std::ops::Sub;
 use std::{cmp::max, time::Duration};
 use time::OffsetDateTime;
 
-use super::edit_time::EditTimeWidget;
+use super::edit_time::{EditTimeStateArgs, EditTimeWidget};
 
 /// State for Countdown Widget
 #[derive(Debug, Clone)]
@@ -82,10 +83,51 @@ impl CountdownState {
     pub fn set_app_time(&mut self, app_time: AppTime) {
         self.app_time = app_time;
     }
+
+    fn time_to_edit(&self) -> OffsetDateTime {
+        // get current value
+        let d: Duration = (*self.clock.get_current_value()).into();
+        // transform
+        let dd = time::Duration::try_from(d).unwrap_or(time::Duration::ZERO);
+        // substract from `app_time`
+        OffsetDateTime::from(self.app_time).saturating_add(dd)
+    }
+
+    pub fn min_time_to_edit(&self) -> OffsetDateTime {
+        OffsetDateTime::from(self.app_time)
+    }
+
+    fn max_time_to_edit(&self) -> OffsetDateTime {
+        OffsetDateTime::from(self.app_time)
+            .saturating_add(time::Duration::try_from(MAX_DURATION).unwrap_or(time::Duration::ZERO))
+    }
+
+    fn edit_time_done(&mut self, edit_time: &mut EditTimeState) {
+        // get diff
+        let d: time::Duration = edit_time
+            .get_time()
+            .sub(OffsetDateTime::from(self.app_time));
+        // transfrom
+        let dx: DurationEx = Duration::try_from(d).unwrap_or(Duration::ZERO).into();
+        // update clock
+        self.clock.set_current_value(dx);
+        // remove `edit_time`
+        self.edit_time = None;
+    }
+
+    pub fn is_clock_edit_mode(&self) -> bool {
+        self.clock.is_edit_mode()
+    }
+
+    pub fn is_time_edit_mode(&self) -> bool {
+        self.edit_time.is_some()
+    }
 }
 
 impl EventHandler for CountdownState {
     fn update(&mut self, event: Event) -> Option<Event> {
+        let is_edit_clock = self.clock.is_edit_mode();
+        let is_edit_time = self.edit_time.is_some();
         match event {
             Event::Tick => {
                 if !self.clock.is_done() {
@@ -96,12 +138,24 @@ impl EventHandler for CountdownState {
                         self.elapsed_clock.run();
                     }
                 }
+                let min_time = self.min_time_to_edit();
+                let max_time = self.max_time_to_edit();
+                if let Some(edit_time) = &mut self.edit_time {
+                    edit_time.set_min_time(min_time);
+                    edit_time.set_max_time(max_time);
+                }
             }
             Event::Key(key) => match key.code {
                 KeyCode::Char('r') => {
-                    // reset both clocks
+                    // reset both clocks to use intial values
                     self.clock.reset();
                     self.elapsed_clock.reset();
+
+                    // reset `edit_time` back initial value
+                    let time = self.time_to_edit();
+                    if let Some(edit_time) = &mut self.edit_time {
+                        edit_time.set_time(time);
+                    }
                 }
                 KeyCode::Char('s') => {
                     // toggle pause status depending on which clock is running
@@ -110,57 +164,89 @@ impl EventHandler for CountdownState {
                     } else {
                         self.elapsed_clock.toggle_pause();
                     }
-                }
-                KeyCode::Char('e') => {
-                    // Countdown values can by edited in 2 ways:
-                    // (1) by local time
-                    // (2) by countdown value
-                    //
-                    // Keys `STRG + e` => (1)
-                    if key.modifiers.contains(KeyModifiers::CONTROL) {
-                        // toggle edit mode
-                        if self.edit_time.is_some() {
-                            self.edit_time = None;
-                        } else {
-                            let d: Duration = (*self.clock.get_current_value()).into();
-                            let time: OffsetDateTime = OffsetDateTime::from(self.app_time).add(d);
-                            self.edit_time = Some(EditTimeState::new(time));
-                        }
-                        // stop `clock`
-                        if self.clock.is_running() {
-                            self.clock.toggle_pause();
-                        }
+
+                    // finish `edit_time` and continue for using `clock`
+                    if let Some(edit_time) = &mut self.edit_time.clone() {
+                        self.edit_time_done(edit_time);
                     }
-                    // Key `e` => (2)
-                    else {
+                }
+                // STRG + e => toggle edit time
+                KeyCode::Char('e') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                    // stop editing clock
+                    if self.clock.is_edit_mode() {
                         // toggle edit mode
                         self.clock.toggle_edit();
                     }
 
-                    // stop `elapsed_clock` in both cases (1) + (2)
+                    if let Some(edit_time) = &mut self.edit_time.clone() {
+                        self.edit_time_done(edit_time)
+                    } else {
+                        // update `edit_time`
+                        self.edit_time = Some(EditTimeState::new(EditTimeStateArgs {
+                            time: self.time_to_edit(),
+                            min: self.min_time_to_edit(),
+                            max: self.max_time_to_edit(),
+                        }));
+                    }
+
+                    // stop `clock`
+                    if self.clock.is_running() {
+                        self.clock.toggle_pause();
+                    }
+
+                    // stop `elapsed_clock`
                     if self.elapsed_clock.is_running() {
                         self.elapsed_clock.toggle_pause();
                     }
                 }
-                KeyCode::Left if self.clock.is_edit_mode() => {
+                // STRG + e => toggle edit clock
+                KeyCode::Char('e') => {
+                    // toggle edit mode
+                    self.clock.toggle_edit();
+
+                    // stop `elapsed_clock`
+                    if self.elapsed_clock.is_running() {
+                        self.elapsed_clock.toggle_pause();
+                    }
+
+                    // finish `edit_time` and continue for using `clock`
+                    if let Some(edit_time) = &mut self.edit_time.clone() {
+                        self.edit_time_done(edit_time);
+                    }
+                }
+                KeyCode::Left if is_edit_clock => {
                     self.clock.edit_next();
                 }
-                KeyCode::Left if self.edit_time.is_some() => {
+                KeyCode::Left if is_edit_time => {
+                    // safe unwrap because of previous check in `edit_time`
                     self.edit_time.as_mut().unwrap().next();
                 }
-                KeyCode::Right if self.clock.is_edit_mode() => {
+                KeyCode::Right if is_edit_clock => {
                     self.clock.edit_prev();
                 }
-                KeyCode::Right if self.edit_time.is_some() => {
+                KeyCode::Right if is_edit_time => {
+                    // safe unwrap because of previous check in `edit_time`
                     self.edit_time.as_mut().unwrap().prev();
                 }
-                KeyCode::Up if self.clock.is_edit_mode() => {
+                KeyCode::Up if is_edit_clock => {
                     self.clock.edit_up();
                     // whenever `clock`'s value is changed, reset `elapsed_clock`
                     self.elapsed_clock.reset();
                 }
-                KeyCode::Down if self.clock.is_edit_mode() => {
+                KeyCode::Up if is_edit_time => {
+                    // safe unwrap because of previous check in `edit_time`
+                    self.edit_time.as_mut().unwrap().up();
+                    // whenever `clock`'s value is changed, reset `elapsed_clock`
+                    self.elapsed_clock.reset();
+                }
+                KeyCode::Down if is_edit_clock => {
                     self.clock.edit_down();
+                    // whenever clock value is changed, reset timer
+                    self.elapsed_clock.reset();
+                }
+                KeyCode::Down if is_edit_time => {
+                    // safe unwrap because of previous check in `edit_time`
+                    self.edit_time.as_mut().unwrap().down();
                     // whenever clock value is changed, reset timer
                     self.elapsed_clock.reset();
                 }
@@ -176,35 +262,28 @@ pub struct Countdown {
     pub style: Style,
 }
 
+fn human_days_diff(a: &OffsetDateTime, b: &OffsetDateTime) -> String {
+    let days_diff = (a.date() - b.date()).whole_days();
+    match days_diff {
+        0 => "today".to_owned(),
+        1 => "tomorrow".to_owned(),
+        n => format!("+{}days", n),
+    }
+}
+
 impl StatefulWidget for Countdown {
     type State = CountdownState;
     fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
-        let label = Line::raw(
-            if state.clock.is_done() {
-                if state.clock.with_decis {
-                    format!(
-                        "Countdown {} +{}",
-                        state.clock.get_mode(),
-                        state
-                            .elapsed_clock
-                            .get_current_value()
-                            .to_string_with_decis()
-                    )
-                } else {
-                    format!(
-                        "Countdown {} +{}",
-                        state.clock.get_mode(),
-                        state.elapsed_clock.get_current_value()
-                    )
-                }
-            } else {
-                format!("Countdown {}", state.clock.get_mode())
-            }
-            .to_uppercase(),
-        );
-
         // render `edit_time` OR `clock`
         if let Some(edit_time) = &mut state.edit_time {
+            let label = Line::raw(
+                format!(
+                    "Countdown {} {}",
+                    edit_time.get_selected().clone(),
+                    human_days_diff(edit_time.get_time(), &state.app_time.into())
+                )
+                .to_uppercase(),
+            );
             let widget = EditTimeWidget::new(self.style);
             let area = center(
                 area,
@@ -217,6 +296,29 @@ impl StatefulWidget for Countdown {
             widget.render(v1, buf, edit_time);
             label.centered().render(v2, buf);
         } else {
+            let label = Line::raw(
+                if state.clock.is_done() {
+                    if state.clock.with_decis {
+                        format!(
+                            "Countdown {} +{}",
+                            state.clock.get_mode(),
+                            state
+                                .elapsed_clock
+                                .get_current_value()
+                                .to_string_with_decis()
+                        )
+                    } else {
+                        format!(
+                            "Countdown {} +{}",
+                            state.clock.get_mode(),
+                            state.elapsed_clock.get_current_value()
+                        )
+                    }
+                } else {
+                    format!("Countdown {}", state.clock.get_mode())
+                }
+                .to_uppercase(),
+            );
             let widget = ClockWidget::new(self.style);
             let area = center(
                 area,

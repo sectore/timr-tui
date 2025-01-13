@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use crate::common::{AppTime, AppTimeFormat, Content};
+use crate::common::{AppEditMode, AppTime, AppTimeFormat, Content};
 use ratatui::{
     buffer::Buffer,
     layout::{Constraint, Layout, Rect},
@@ -45,7 +45,7 @@ impl FooterState {
 pub struct Footer {
     pub running_clock: bool,
     pub selected_content: Content,
-    pub edit_mode: bool,
+    pub app_edit_mode: AppEditMode,
     pub app_time: AppTime,
 }
 
@@ -139,9 +139,39 @@ impl StatefulWidget for Footer {
                             Style::default().add_modifier(Modifier::BOLD),
                         )),
                         Cell::from(Line::from({
-                            if self.edit_mode {
-                                vec![
-                                    Span::from("[e]dit done"),
+                            match self.app_edit_mode {
+                                AppEditMode::None => {
+                                    let mut spans = vec![
+                                        Span::from(if self.running_clock {
+                                            "[s]top"
+                                        } else {
+                                            "[s]tart"
+                                        }),
+                                        Span::from(SPACE),
+                                        Span::from("[r]eset"),
+                                        Span::from(SPACE),
+                                        Span::from("[e]dit"),
+                                    ];
+                                    if self.selected_content == Content::Countdown {
+                                        spans.extend_from_slice(&[
+                                            Span::from(SPACE),
+                                            Span::from("[ctrl+e]dit by local time"),
+                                        ]);
+                                    }
+                                    if self.selected_content == Content::Pomodoro {
+                                        spans.extend_from_slice(&[
+                                            Span::from(SPACE),
+                                            Span::from("[← →]switch work/pause"),
+                                        ]);
+                                    }
+                                    spans
+                                }
+                                others => vec![
+                                    Span::from(match others {
+                                        AppEditMode::Clock => "[e]dit done",
+                                        AppEditMode::Time => "[ctrl+e]dit done",
+                                        _ => "",
+                                    }),
                                     Span::from(SPACE),
                                     Span::from(format!(
                                         "[{} {}]edit selection",
@@ -152,26 +182,7 @@ impl StatefulWidget for Footer {
                                     Span::from(format!("[{}]edit up", scrollbar::VERTICAL.begin)), // ↑
                                     Span::from(SPACE),
                                     Span::from(format!("[{}]edit up", scrollbar::VERTICAL.end)), // ↓,
-                                ]
-                            } else {
-                                let mut spans = vec![
-                                    Span::from(if self.running_clock {
-                                        "[s]top"
-                                    } else {
-                                        "[s]tart"
-                                    }),
-                                    Span::from(SPACE),
-                                    Span::from("[r]eset"),
-                                    Span::from(SPACE),
-                                    Span::from("[e]dit"),
-                                ];
-                                if self.selected_content == Content::Pomodoro {
-                                    spans.extend_from_slice(&[
-                                        Span::from(SPACE),
-                                        Span::from("[← →]switch work/pause"),
-                                    ]);
-                                }
-                                spans
+                                ],
                             }
                         })),
                     ]),

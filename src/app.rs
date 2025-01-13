@@ -1,6 +1,6 @@
 use crate::{
     args::Args,
-    common::{AppTime, AppTimeFormat, Content, Style},
+    common::{AppEditMode, AppTime, AppTimeFormat, Content, Style},
     constants::TICK_VALUE_MS,
     events::{Event, EventHandler, Events},
     storage::AppStorage,
@@ -178,11 +178,32 @@ impl App {
         self.mode != Mode::Quit
     }
 
-    fn is_edit_mode(&self) -> bool {
+    fn get_edit_mode(&self) -> AppEditMode {
         match self.content {
-            Content::Countdown => self.countdown.get_clock().is_edit_mode(),
-            Content::Timer => self.timer.get_clock().is_edit_mode(),
-            Content::Pomodoro => self.pomodoro.get_clock().is_edit_mode(),
+            Content::Countdown => {
+                if self.countdown.is_clock_edit_mode() {
+                    AppEditMode::Clock
+                } else if self.countdown.is_time_edit_mode() {
+                    AppEditMode::Time
+                } else {
+                    AppEditMode::None
+                }
+            }
+
+            Content::Timer => {
+                if self.timer.get_clock().is_edit_mode() {
+                    AppEditMode::Clock
+                } else {
+                    AppEditMode::None
+                }
+            }
+            Content::Pomodoro => {
+                if self.pomodoro.get_clock().is_edit_mode() {
+                    AppEditMode::Clock
+                } else {
+                    AppEditMode::None
+                }
+            }
         }
     }
 
@@ -301,7 +322,7 @@ impl StatefulWidget for AppWidget {
         Footer {
             running_clock: state.clock_is_running(),
             selected_content: state.content,
-            edit_mode: state.is_edit_mode(),
+            app_edit_mode: state.get_edit_mode(),
             app_time: state.app_time,
         }
         .render(v2, buf, &mut state.footer);

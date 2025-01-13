@@ -1,3 +1,4 @@
+use std::fmt;
 use time::OffsetDateTime;
 
 use ratatui::{
@@ -14,7 +15,7 @@ use crate::{
 use super::clock_elements::DIGIT_HEIGHT;
 
 #[derive(Debug, Clone)]
-enum Selected {
+pub enum Selected {
     Seconds,
     Minutes,
     Hours,
@@ -38,18 +39,59 @@ impl Selected {
     }
 }
 
+impl fmt::Display for Selected {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Selected::Seconds => write!(f, "[edit seconds]"),
+            Selected::Minutes => write!(f, "[edit minutes]"),
+            Selected::Hours => write!(f, "[edit hours]"),
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct EditTimeState {
     selected: Selected,
     time: OffsetDateTime,
+    min: OffsetDateTime,
+    max: OffsetDateTime,
+}
+
+#[derive(Debug, Clone)]
+pub struct EditTimeStateArgs {
+    pub time: OffsetDateTime,
+    pub min: OffsetDateTime,
+    pub max: OffsetDateTime,
 }
 
 impl EditTimeState {
-    pub fn new(time: OffsetDateTime) -> Self {
+    pub fn new(args: EditTimeStateArgs) -> Self {
         EditTimeState {
-            time,
+            time: args.time,
+            min: args.min,
+            max: args.max,
             selected: Selected::Minutes,
         }
+    }
+
+    pub fn set_time(&mut self, time: OffsetDateTime) {
+        self.time = time;
+    }
+
+    pub fn set_min_time(&mut self, min: OffsetDateTime) {
+        self.min = min;
+    }
+
+    pub fn set_max_time(&mut self, min: OffsetDateTime) {
+        self.max = min;
+    }
+
+    pub fn get_time(&mut self) -> &OffsetDateTime {
+        &self.time
+    }
+
+    pub fn get_selected(&mut self) -> &Selected {
+        &self.selected
     }
 
     pub fn next(&mut self) {
@@ -58,6 +100,76 @@ impl EditTimeState {
 
     pub fn prev(&mut self) {
         self.selected = self.selected.prev();
+    }
+
+    pub fn up(&mut self) {
+        self.time = match self.selected {
+            Selected::Seconds => {
+                if self
+                    .time
+                    .lt(&self.max.saturating_sub(time::Duration::new(1, 0)))
+                {
+                    self.time.saturating_add(time::Duration::new(1, 0))
+                } else {
+                    self.time
+                }
+            }
+            Selected::Minutes => {
+                if self
+                    .time
+                    .lt(&self.max.saturating_sub(time::Duration::new(60, 0)))
+                {
+                    self.time.saturating_add(time::Duration::new(60, 0))
+                } else {
+                    self.time
+                }
+            }
+            Selected::Hours => {
+                if self
+                    .time
+                    .lt(&self.max.saturating_sub(time::Duration::new(60 * 60, 0)))
+                {
+                    self.time.saturating_add(time::Duration::new(60 * 60, 0))
+                } else {
+                    self.time
+                }
+            }
+        }
+    }
+
+    pub fn down(&mut self) {
+        self.time = match self.selected {
+            Selected::Seconds => {
+                if self
+                    .time
+                    .ge(&self.min.saturating_add(time::Duration::new(1, 0)))
+                {
+                    self.time.saturating_sub(time::Duration::new(1, 0))
+                } else {
+                    self.time
+                }
+            }
+            Selected::Minutes => {
+                if self
+                    .time
+                    .ge(&self.min.saturating_add(time::Duration::new(60, 0)))
+                {
+                    self.time.saturating_sub(time::Duration::new(60, 0))
+                } else {
+                    self.time
+                }
+            }
+            Selected::Hours => {
+                if self
+                    .time
+                    .ge(&self.min.saturating_add(time::Duration::new(60 * 60, 0)))
+                {
+                    self.time.saturating_sub(time::Duration::new(60 * 60, 0))
+                } else {
+                    self.time
+                }
+            }
+        }
     }
 }
 
