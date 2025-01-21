@@ -23,6 +23,7 @@
           minimal.rustc
           minimal.cargo
           targets.x86_64-pc-windows-gnu.latest.rust-std
+          targets.x86_64-unknown-linux-musl.latest.rust-std
         ];
       craneLib = (crane.mkLib pkgs).overrideToolchain toolchain;
 
@@ -32,19 +33,24 @@
         cargoArtifacts = craneLib.buildDepsOnly {
           src = craneLib.cleanCargoSource ./.;
         };
+        strictDeps = true;
         doCheck = false; # skip tests during nix build
       };
 
       # Native build
       timr = craneLib.buildPackage commonArgs;
 
+      # Linux build w/ statically linked binaries
+      staticLinuxBuild = craneLib.buildPackage (commonArgs
+        // {
+          CARGO_BUILD_TARGET = "x86_64-unknown-linux-musl";
+          CARGO_BUILD_RUSTFLAGS = "-C target-feature=+crt-static";
+        });
+
       # Windows cross-compilation build
       # @see https://crane.dev/examples/cross-windows.html
-      crossBuild = craneLib.buildPackage {
-        src = craneLib.cleanCargoSource ./.;
-
-        strictDeps = true;
-        doCheck = false;
+      windowsBuild = craneLib.buildPackage {
+        inherit (commonArgs) src strictDeps doCheck;
 
         CARGO_BUILD_TARGET = "x86_64-pc-windows-gnu";
 
@@ -65,7 +71,8 @@
       packages = {
         inherit timr;
         default = timr;
-        windows = crossBuild;
+        linuxStatic = staticLinuxBuild;
+        windows = windowsBuild;
       };
 
       # Development shell with all necessary tools

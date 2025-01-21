@@ -31,7 +31,7 @@ jobs:
           - os: ubuntu-latest
             os_target: linux
             binary_name: timr-tui
-            arch: x86_64 # `x86_64` by default
+            arch: x86_64 # based on target 'x86_64-unknown-linux-musl' defined by `CARGO_BUILD_TARGET` in flake.nix
           - os: ubuntu-latest
             os_target: windows
             binary_name: timr-tui.exe
@@ -49,8 +49,12 @@ jobs:
         if: matrix.os_target == 'windows'
         run: nix build .#windows
 
-      - name: Build (linux/macos)
-        if: matrix.os_target != 'windows'
+      - name: Build (linux)
+        if: matrix.os_target == 'linux'
+        run: nix build .#linuxStatic
+
+      - name: Build (macos)
+        if: matrix.os_target == 'macos'
         run: nix build
 
       - name: Copy artifact
