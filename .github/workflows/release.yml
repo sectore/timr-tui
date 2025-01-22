@@ -43,7 +43,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: DeterminateSystems/nix-installer-action@main
-      - uses: DeterminateSystems/magic-nix-cache-action@main
 
       - name: Build (windows)
         if: matrix.os_target == 'windows'

@@ -12,7 +12,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: DeterminateSystems/nix-installer-action@main
-      - uses: DeterminateSystems/magic-nix-cache-action@main
       - name: Check formatting
         run: nix develop --command cargo fmt --all -- --check
       - name: Run clippy
@@ -25,7 +24,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: DeterminateSystems/nix-installer-action@main
-      - uses: DeterminateSystems/magic-nix-cache-action@main
       - name: Run tests
         run: nix develop --command cargo test
 
@@ -34,6 +32,5 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: DeterminateSystems/nix-installer-action@main
-      - uses: DeterminateSystems/magic-nix-cache-action@main
       - name: Build project
         run: nix build .#timr
