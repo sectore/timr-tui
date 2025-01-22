@@ -4,7 +4,7 @@
 
 ### Features
 
-- (countdown) Edit countdown by local time [#45](https://github.com/sectore/timr-tui/pull/45)
+- (countdown) Edit countdown by local time [#49](https://github.com/sectore/timr-tui/pull/49)
 
 ### Fixes
 
