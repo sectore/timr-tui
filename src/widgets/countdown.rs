@@ -9,7 +9,9 @@ use crate::{
         edit_time::EditTimeState,
     },
 };
+
 use crossterm::event::KeyModifiers;
+use notify_rust::Notification;
 use ratatui::{
     buffer::Buffer,
     crossterm::event::KeyCode,
@@ -17,6 +19,7 @@ use ratatui::{
     text::Line,
     widgets::{StatefulWidget, Widget},
 };
+use tracing::debug;
 
 use std::ops::Sub;
 use std::{cmp::max, time::Duration};
@@ -24,8 +27,16 @@ use time::OffsetDateTime;
 
 use super::edit_time::{EditTimeStateArgs, EditTimeWidget};
 
+pub struct CountdownStateArgs {
+    pub initial_value: Duration,
+    pub current_value: Duration,
+    pub elapsed_value: Duration,
+    pub app_time: AppTime,
+    pub with_decis: bool,
+    pub with_notification: bool,
+}
+
 /// State for Countdown Widget
-#[derive(Debug, Clone)]
 pub struct CountdownState {
     /// clock to count down
     clock: ClockState<clock::Countdown>,
@@ -37,13 +48,26 @@ pub struct CountdownState {
 }
 
 impl CountdownState {
-    pub fn new(
-        clock: ClockState<clock::Countdown>,
-        elapsed_value: Duration,
-        app_time: AppTime,
-    ) -> Self {
+    pub fn new(args: CountdownStateArgs) -> Self {
+        let CountdownStateArgs {
+            initial_value,
+            current_value,
+            elapsed_value,
+            with_notification,
+            with_decis,
+            app_time,
+        } = args;
         Self {
-            clock,
+            clock: ClockState::<clock::Countdown>::new(ClockStateArgs {
+                initial_value,
+                current_value,
+                tick_value: Duration::from_millis(TICK_VALUE_MS),
+                with_decis,
+            })
+            .with_on_done_by_condition(with_notification, || {
+                debug!("on_done COUNTDOWN");
+                _ = Notification::new().summary("Countdown done!").show();
+            }),
             elapsed_clock: ClockState::<clock::Timer>::new(ClockStateArgs {
                 initial_value: Duration::ZERO,
                 current_value: elapsed_value,

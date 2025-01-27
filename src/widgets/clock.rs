@@ -65,7 +65,6 @@ pub enum Format {
     HhMmSs,
 }
 
-#[derive(Debug, Clone)]
 pub struct ClockState<T> {
     initial_value: DurationEx,
     current_value: DurationEx,
@@ -73,6 +72,8 @@ pub struct ClockState<T> {
     mode: Mode,
     format: Format,
     pub with_decis: bool,
+    on_done: Option<Box<dyn Fn() + 'static>>,
+    on_done_called: bool,
     phantom: PhantomData<T>,
 }
 
@@ -310,6 +311,23 @@ impl<T> ClockState<T> {
         self.mode == Mode::Done
     }
 
+    fn set_done(&mut self) {
+        self.mode = Mode::Done;
+        // make sure `on_done` handler is called only once
+        if let Some(handler) = &mut self.on_done {
+            if !self.on_done_called {
+                handler();
+            }
+        };
+    }
+
+    fn reset_on_done(&mut self) {
+        // mark `on_done` handler to be ready for another call
+        if self.on_done.is_some() && self.on_done_called {
+            self.on_done_called = false;
+        };
+    }
+
     fn update_format(&mut self) {
         self.format = self.get_format();
     }
@@ -355,6 +373,8 @@ impl ClockState<Countdown> {
             },
             format: Format::S,
             with_decis,
+            on_done: None,
+            on_done_called: false,
             phantom: PhantomData,
         };
         // update format once
@@ -365,14 +385,29 @@ impl ClockState<Countdown> {
     pub fn tick(&mut self) {
         if self.mode == Mode::Tick {
             self.current_value = self.current_value.saturating_sub(self.tick_value);
-            self.set_done();
+            self.check_done();
             self.update_format();
         }
     }
 
-    fn set_done(&mut self) {
+    fn check_done(&mut self) {
         if self.current_value.eq(&Duration::ZERO.into()) {
-            self.mode = Mode::Done;
+            self.set_done();
+        } else {
+            self.reset_on_done();
+        }
+    }
+
+    pub fn with_on_done(mut self, handler: impl Fn() + 'static) -> Self {
+        self.on_done = Some(Box::new(handler));
+        self
+    }
+
+    pub fn with_on_done_by_condition(self, condition: bool, handler: impl Fn() + 'static) -> Self {
+        if condition {
+            self.with_on_done(handler)
+        } else {
+            self
         }
     }
 
@@ -422,8 +457,10 @@ impl ClockState<Timer> {
                 Mode::Pause
             },
             format: Format::S,
-            phantom: PhantomData,
             with_decis,
+            on_done: None,
+            on_done_called: false,
+            phantom: PhantomData,
         };
         // update format once
         instance.update_format();
@@ -433,14 +470,16 @@ impl ClockState<Timer> {
     pub fn tick(&mut self) {
         if self.mode == Mode::Tick {
             self.current_value = self.current_value.saturating_add(self.tick_value);
-            self.set_done();
+            self.check_done();
             self.update_format();
         }
     }
 
-    fn set_done(&mut self) {
+    fn check_done(&mut self) {
         if self.current_value.ge(&MAX_DURATION.into()) {
-            self.mode = Mode::Done;
+            self.set_done();
+        } else {
+            self.reset_on_done();
         }
     }
 

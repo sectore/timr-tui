@@ -7,7 +7,7 @@ use crate::{
     terminal::Terminal,
     widgets::{
         clock::{self, ClockState, ClockStateArgs},
-        countdown::{Countdown, CountdownState},
+        countdown::{Countdown, CountdownState, CountdownStateArgs},
         footer::{Footer, FooterState},
         header::Header,
         pomodoro::{Mode as PomodoroMode, PomodoroState, PomodoroStateArgs, PomodoroWidget},
@@ -31,7 +31,6 @@ enum Mode {
     Quit,
 }
 
-#[derive(Debug)]
 pub struct App {
     content: Content,
     mode: Mode,
@@ -47,6 +46,7 @@ pub struct App {
 pub struct AppArgs {
     pub style: Style,
     pub with_decis: bool,
+    pub with_notification: bool,
     pub show_menu: bool,
     pub app_time_format: AppTimeFormat,
     pub content: Content,
@@ -83,6 +83,8 @@ impl From<(Args, AppStorage)> for AppArgs {
             current_value_countdown: args.countdown.unwrap_or(stg.current_value_countdown),
             elapsed_value_countdown: stg.elapsed_value_countdown,
             current_value_timer: stg.current_value_timer,
+            // TODO: get value from CLI
+            with_notification: true,
         }
     }
 }
@@ -111,6 +113,7 @@ impl App {
             content,
             with_decis,
             pomodoro_mode,
+            with_notification,
         } = args;
         let app_time = get_app_time();
         Self {
@@ -119,16 +122,14 @@ impl App {
             app_time,
             style,
             with_decis,
-            countdown: CountdownState::new(
-                ClockState::<clock::Countdown>::new(ClockStateArgs {
-                    initial_value: initial_value_countdown,
-                    current_value: current_value_countdown,
-                    tick_value: Duration::from_millis(TICK_VALUE_MS),
-                    with_decis,
-                }),
-                elapsed_value_countdown,
+            countdown: CountdownState::new(CountdownStateArgs {
+                initial_value: initial_value_countdown,
+                current_value: current_value_countdown,
+                elapsed_value: elapsed_value_countdown,
                 app_time,
-            ),
+                with_decis,
+                with_notification,
+            }),
             timer: TimerState::new(ClockState::<clock::Timer>::new(ClockStateArgs {
                 initial_value: Duration::ZERO,
                 current_value: current_value_timer,
@@ -142,6 +143,7 @@ impl App {
                 initial_value_pause,
                 current_value_pause,
                 with_decis,
+                with_notification,
             }),
             footer: FooterState::new(show_menu, app_time_format),
         }

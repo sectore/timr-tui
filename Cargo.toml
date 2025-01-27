@@ -13,7 +13,7 @@ categories = ["command-line-utilities"]
 
 [dependencies]
 ratatui = "0.29.0"
-crossterm = {version = "0.28.1", features = ["event-stream", "serde"] }
+crossterm = { version = "0.28.1", features = ["event-stream", "serde"] }
 color-eyre = "0.6.2"
 futures = "0.3"
 serde = { version = "1", features = ["derive"] }
@@ -27,3 +27,4 @@ tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
 directories = "5.0.1"
 clap = { version = "4.5.23", features = ["derive"] }
 time = { version = "0.3.37", features = ["formatting", "local-offset"] }
+notify-rust = "4.11.4"
