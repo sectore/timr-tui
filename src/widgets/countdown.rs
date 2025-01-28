@@ -19,7 +19,7 @@ use ratatui::{
     text::Line,
     widgets::{StatefulWidget, Widget},
 };
-use tracing::debug;
+use tracing::{debug, error};
 
 use std::ops::Sub;
 use std::{cmp::max, time::Duration};
@@ -66,7 +66,10 @@ impl CountdownState {
             })
             .with_on_done_by_condition(with_notification, || {
                 debug!("on_done COUNTDOWN");
-                _ = Notification::new().summary("Countdown done!").show();
+                let result = Notification::new().summary("Countdown done!").show();
+                if let Err(err) = result {
+                    error!("on_done COUNTDOWN error: {err}");
+                }
             }),
             elapsed_clock: ClockState::<clock::Timer>::new(ClockStateArgs {
                 initial_value: Duration::ZERO,

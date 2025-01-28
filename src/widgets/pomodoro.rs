@@ -16,7 +16,7 @@ use ratatui::{
 use serde::{Deserialize, Serialize};
 use std::{cmp::max, time::Duration};
 use strum::Display;
-use tracing::debug;
+use tracing::{debug, error};
 
 #[derive(Debug, Clone, Display, Hash, Eq, PartialEq, Deserialize, Serialize)]
 pub enum Mode {
@@ -81,7 +81,10 @@ impl PomodoroState {
                 })
                 .with_on_done_by_condition(with_notification, || {
                     debug!("on_done WORK");
-                    _ = Notification::new().summary("Work done!").show();
+                    let result = Notification::new().summary("Work done!").show();
+                    if let Err(err) = result {
+                        error!("on_done WORK error: {err}");
+                    }
                 }),
                 pause: ClockState::<Countdown>::new(ClockStateArgs {
                     initial_value: initial_value_pause,
@@ -91,7 +94,10 @@ impl PomodoroState {
                 })
                 .with_on_done_by_condition(with_notification, || {
                     debug!("on_done PAUSE");
-                    _ = Notification::new().summary("Pause done!").show();
+                    let result = Notification::new().summary("Pause done!").show();
+                    if let Err(err) = result {
+                        error!("on_done PAUSE error: {err}");
+                    }
                 }),
             },
         }
