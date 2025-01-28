@@ -13,7 +13,6 @@ use ratatui::{
 };
 use std::cmp::max;
 
-#[derive(Debug, Clone)]
 pub struct TimerState {
     clock: ClockState<clock::Timer>,
 }

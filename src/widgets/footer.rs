@@ -155,7 +155,7 @@ impl StatefulWidget for Footer {
                                     if self.selected_content == Content::Countdown {
                                         spans.extend_from_slice(&[
                                             Span::from(SPACE),
-                                            Span::from("[ctrl+e]dit by local time"),
+                                            Span::from("[^e]dit by local time"),
                                         ]);
                                     }
                                     if self.selected_content == Content::Pomodoro {
@@ -169,7 +169,7 @@ impl StatefulWidget for Footer {
                                 others => vec![
                                     Span::from(match others {
                                         AppEditMode::Clock => "[e]dit done",
-                                        AppEditMode::Time => "[ctrl+e]dit done",
+                                        AppEditMode::Time => "[^e]dit done",
                                         _ => "",
                                     }),
                                     Span::from(SPACE),

@@ -65,7 +65,6 @@ pub enum Format {
     HhMmSs,
 }
 
-#[derive(Debug, Clone)]
 pub struct ClockState<T> {
     initial_value: DurationEx,
     current_value: DurationEx,
@@ -73,6 +72,7 @@ pub struct ClockState<T> {
     mode: Mode,
     format: Format,
     pub with_decis: bool,
+    on_done: Option<Box<dyn Fn() + 'static>>,
     phantom: PhantomData<T>,
 }
 
@@ -310,6 +310,28 @@ impl<T> ClockState<T> {
         self.mode == Mode::Done
     }
 
+    pub fn with_on_done_by_condition(
+        mut self,
+        condition: bool,
+        handler: impl Fn() + 'static,
+    ) -> Self {
+        if condition {
+            self.on_done = Some(Box::new(handler));
+            self
+        } else {
+            self
+        }
+    }
+
+    fn done(&mut self) {
+        if !self.is_done() {
+            self.mode = Mode::Done;
+            if let Some(handler) = &mut self.on_done {
+                handler();
+            };
+        }
+    }
+
     fn update_format(&mut self) {
         self.format = self.get_format();
     }
@@ -355,6 +377,7 @@ impl ClockState<Countdown> {
             },
             format: Format::S,
             with_decis,
+            on_done: None,
             phantom: PhantomData,
         };
         // update format once
@@ -365,14 +388,14 @@ impl ClockState<Countdown> {
     pub fn tick(&mut self) {
         if self.mode == Mode::Tick {
             self.current_value = self.current_value.saturating_sub(self.tick_value);
-            self.set_done();
+            self.check_done();
             self.update_format();
         }
     }
 
-    fn set_done(&mut self) {
+    fn check_done(&mut self) {
         if self.current_value.eq(&Duration::ZERO.into()) {
-            self.mode = Mode::Done;
+            self.done();
         }
     }
 
@@ -422,8 +445,9 @@ impl ClockState<Timer> {
                 Mode::Pause
             },
             format: Format::S,
-            phantom: PhantomData,
             with_decis,
+            on_done: None,
+            phantom: PhantomData,
         };
         // update format once
         instance.update_format();
@@ -433,14 +457,14 @@ impl ClockState<Timer> {
     pub fn tick(&mut self) {
         if self.mode == Mode::Tick {
             self.current_value = self.current_value.saturating_add(self.tick_value);
-            self.set_done();
+            self.check_done();
             self.update_format();
         }
     }
 
-    fn set_done(&mut self) {
+    fn check_done(&mut self) {
         if self.current_value.ge(&MAX_DURATION.into()) {
-            self.mode = Mode::Done;
+            self.done();
         }
     }
 

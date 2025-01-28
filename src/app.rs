@@ -1,13 +1,13 @@
 use crate::{
     args::Args,
-    common::{AppEditMode, AppTime, AppTimeFormat, Content, Style},
+    common::{AppEditMode, AppTime, AppTimeFormat, Content, Notification, Style},
     constants::TICK_VALUE_MS,
     events::{Event, EventHandler, Events},
     storage::AppStorage,
     terminal::Terminal,
     widgets::{
         clock::{self, ClockState, ClockStateArgs},
-        countdown::{Countdown, CountdownState},
+        countdown::{Countdown, CountdownState, CountdownStateArgs},
         footer::{Footer, FooterState},
         header::Header,
         pomodoro::{Mode as PomodoroMode, PomodoroState, PomodoroStateArgs, PomodoroWidget},
@@ -23,7 +23,7 @@ use ratatui::{
 };
 use std::time::Duration;
 use time::OffsetDateTime;
-use tracing::debug;
+use tracing::{debug, error};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Mode {
@@ -31,10 +31,10 @@ enum Mode {
     Quit,
 }
 
-#[derive(Debug)]
 pub struct App {
     content: Content,
     mode: Mode,
+    notification: Notification,
     app_time: AppTime,
     countdown: CountdownState,
     timer: TimerState,
@@ -47,6 +47,7 @@ pub struct App {
 pub struct AppArgs {
     pub style: Style,
     pub with_decis: bool,
+    pub notification: Notification,
     pub show_menu: bool,
     pub app_time_format: AppTimeFormat,
     pub content: Content,
@@ -68,6 +69,7 @@ impl From<(Args, AppStorage)> for AppArgs {
         AppArgs {
             with_decis: args.decis || stg.with_decis,
             show_menu: args.menu || stg.show_menu,
+            notification: args.notification.unwrap_or(stg.notification),
             app_time_format: stg.app_time_format,
             content: args.mode.unwrap_or(stg.content),
             style: args.style.unwrap_or(stg.style),
@@ -111,30 +113,44 @@ impl App {
             content,
             with_decis,
             pomodoro_mode,
+            notification,
         } = args;
         let app_time = get_app_time();
         Self {
             mode: Mode::Running,
+            notification,
             content,
             app_time,
             style,
             with_decis,
-            countdown: CountdownState::new(
-                ClockState::<clock::Countdown>::new(ClockStateArgs {
-                    initial_value: initial_value_countdown,
-                    current_value: current_value_countdown,
+            countdown: CountdownState::new(CountdownStateArgs {
+                initial_value: initial_value_countdown,
+                current_value: current_value_countdown,
+                elapsed_value: elapsed_value_countdown,
+                app_time,
+                with_decis,
+                with_notification: notification == Notification::On,
+            }),
+            timer: TimerState::new(
+                ClockState::<clock::Timer>::new(ClockStateArgs {
+                    initial_value: Duration::ZERO,
+                    current_value: current_value_timer,
                     tick_value: Duration::from_millis(TICK_VALUE_MS),
                     with_decis,
-                }),
-                elapsed_value_countdown,
-                app_time,
+                })
+                .with_on_done_by_condition(
+                    notification == Notification::On,
+                    || {
+                        debug!("on_done TIMER");
+                        let result = notify_rust::Notification::new()
+                            .summary(&"Timer stopped by reaching its maximum value".to_uppercase())
+                            .show();
+                        if let Err(err) = result {
+                            error!("on_done TIMER error: {err}");
+                        }
+                    },
+                ),
             ),
-            timer: TimerState::new(ClockState::<clock::Timer>::new(ClockStateArgs {
-                initial_value: Duration::ZERO,
-                current_value: current_value_timer,
-                tick_value: Duration::from_millis(TICK_VALUE_MS),
-                with_decis,
-            })),
             pomodoro: PomodoroState::new(PomodoroStateArgs {
                 mode: pomodoro_mode,
                 initial_value_work,
@@ -142,6 +158,7 @@ impl App {
                 initial_value_pause,
                 current_value_pause,
                 with_decis,
+                with_notification: notification == Notification::On,
             }),
             footer: FooterState::new(show_menu, app_time_format),
         }
@@ -261,6 +278,7 @@ impl App {
         AppStorage {
             content: self.content,
             show_menu: self.footer.get_show_menu(),
+            notification: self.notification,
             app_time_format: *self.footer.app_time_format(),
             style: self.style,
             with_decis: self.with_decis,

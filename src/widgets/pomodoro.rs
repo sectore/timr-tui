@@ -3,8 +3,9 @@ use crate::{
     constants::TICK_VALUE_MS,
     events::{Event, EventHandler},
     utils::center,
-    widgets::clock::{ClockState, ClockWidget, Countdown},
+    widgets::clock::{ClockState, ClockStateArgs, ClockWidget, Countdown},
 };
+use notify_rust::Notification;
 use ratatui::{
     buffer::Buffer,
     crossterm::event::KeyCode,
@@ -12,13 +13,10 @@ use ratatui::{
     text::Line,
     widgets::{StatefulWidget, Widget},
 };
-use std::{cmp::max, time::Duration};
-
-use strum::Display;
-
 use serde::{Deserialize, Serialize};
-
-use super::clock::ClockStateArgs;
+use std::{cmp::max, time::Duration};
+use strum::Display;
+use tracing::{debug, error};
 
 #[derive(Debug, Clone, Display, Hash, Eq, PartialEq, Deserialize, Serialize)]
 pub enum Mode {
@@ -26,7 +24,6 @@ pub enum Mode {
     Pause,
 }
 
-#[derive(Debug, Clone)]
 pub struct ClockMap {
     work: ClockState<Countdown>,
     pause: ClockState<Countdown>,
@@ -47,7 +44,6 @@ impl ClockMap {
     }
 }
 
-#[derive(Debug, Clone)]
 pub struct PomodoroState {
     mode: Mode,
     clock_map: ClockMap,
@@ -60,6 +56,7 @@ pub struct PomodoroStateArgs {
     pub initial_value_pause: Duration,
     pub current_value_pause: Duration,
     pub with_decis: bool,
+    pub with_notification: bool,
 }
 
 impl PomodoroState {
@@ -71,6 +68,7 @@ impl PomodoroState {
             initial_value_pause,
             current_value_pause,
             with_decis,
+            with_notification,
         } = args;
         Self {
             mode,
@@ -80,12 +78,30 @@ impl PomodoroState {
                     current_value: current_value_work,
                     tick_value: Duration::from_millis(TICK_VALUE_MS),
                     with_decis,
+                })
+                .with_on_done_by_condition(with_notification, || {
+                    debug!("on_done WORK");
+                    let result = Notification::new()
+                        .summary(&"Work done!".to_uppercase())
+                        .show();
+                    if let Err(err) = result {
+                        error!("on_done WORK error: {err}");
+                    }
                 }),
                 pause: ClockState::<Countdown>::new(ClockStateArgs {
                     initial_value: initial_value_pause,
                     current_value: current_value_pause,
                     tick_value: Duration::from_millis(TICK_VALUE_MS),
                     with_decis,
+                })
+                .with_on_done_by_condition(with_notification, || {
+                    debug!("on_done PAUSE");
+                    let result = Notification::new()
+                        .summary(&"Pause done!".to_uppercase())
+                        .show();
+                    if let Err(err) = result {
+                        error!("on_done PAUSE error: {err}");
+                    }
                 }),
             },
         }

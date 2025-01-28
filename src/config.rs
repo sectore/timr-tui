@@ -3,7 +3,10 @@ use color_eyre::eyre::{eyre, Result};
 use directories::ProjectDirs;
 use std::fs;
 use std::path::PathBuf;
+
 pub struct Config {
+    // silence `field `log_dir` is never read` the easy way
+    #[cfg_attr(not(debug_assertions), allow(dead_code))]
     pub log_dir: PathBuf,
     pub data_dir: PathBuf,
 }
