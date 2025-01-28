@@ -73,7 +73,6 @@ pub struct ClockState<T> {
     format: Format,
     pub with_decis: bool,
     on_done: Option<Box<dyn Fn() + 'static>>,
-    on_done_called: bool,
     phantom: PhantomData<T>,
 }
 
@@ -311,21 +310,13 @@ impl<T> ClockState<T> {
         self.mode == Mode::Done
     }
 
-    fn set_done(&mut self) {
-        self.mode = Mode::Done;
-        // make sure `on_done` handler is called only once
-        if let Some(handler) = &mut self.on_done {
-            if !self.on_done_called {
+    fn done(&mut self) {
+        if !self.is_done() {
+            self.mode = Mode::Done;
+            if let Some(handler) = &mut self.on_done {
                 handler();
-            }
-        };
-    }
-
-    fn reset_on_done(&mut self) {
-        // mark `on_done` handler to be ready for another call
-        if self.on_done.is_some() && self.on_done_called {
-            self.on_done_called = false;
-        };
+            };
+        }
     }
 
     fn update_format(&mut self) {
@@ -374,7 +365,6 @@ impl ClockState<Countdown> {
             format: Format::S,
             with_decis,
             on_done: None,
-            on_done_called: false,
             phantom: PhantomData,
         };
         // update format once
@@ -392,9 +382,7 @@ impl ClockState<Countdown> {
 
     fn check_done(&mut self) {
         if self.current_value.eq(&Duration::ZERO.into()) {
-            self.set_done();
-        } else {
-            self.reset_on_done();
+            self.done();
         }
     }
 
@@ -459,7 +447,6 @@ impl ClockState<Timer> {
             format: Format::S,
             with_decis,
             on_done: None,
-            on_done_called: false,
             phantom: PhantomData,
         };
         // update format once
@@ -477,9 +464,7 @@ impl ClockState<Timer> {
 
     fn check_done(&mut self) {
         if self.current_value.ge(&MAX_DURATION.into()) {
-            self.set_done();
-        } else {
-            self.reset_on_done();
+            self.done();
         }
     }
 
