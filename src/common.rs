@@ -135,6 +135,15 @@ pub enum AppEditMode {
     Time,
 }
 
+#[derive(Debug, Clone, Copy, ValueEnum, PartialEq, Eq, Default, Serialize, Deserialize)]
+pub enum Notification {
+    #[value(name = "on")]
+    On,
+    #[default]
+    #[value(name = "off")]
+    Off,
+}
+
 #[cfg(test)]
 mod tests {
 

@@ -57,6 +57,7 @@ impl CountdownState {
             with_decis,
             app_time,
         } = args;
+
         Self {
             clock: ClockState::<clock::Countdown>::new(ClockStateArgs {
                 initial_value,
@@ -66,7 +67,9 @@ impl CountdownState {
             })
             .with_on_done_by_condition(with_notification, || {
                 debug!("on_done COUNTDOWN");
-                let result = Notification::new().summary("Countdown done!").show();
+                let result = Notification::new()
+                    .summary(&"Countdown done!".to_uppercase())
+                    .show();
                 if let Err(err) = result {
                     error!("on_done COUNTDOWN error: {err}");
                 }

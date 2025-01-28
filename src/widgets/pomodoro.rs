@@ -81,7 +81,9 @@ impl PomodoroState {
                 })
                 .with_on_done_by_condition(with_notification, || {
                     debug!("on_done WORK");
-                    let result = Notification::new().summary("Work done!").show();
+                    let result = Notification::new()
+                        .summary(&"Work done!".to_uppercase())
+                        .show();
                     if let Err(err) = result {
                         error!("on_done WORK error: {err}");
                     }
@@ -94,7 +96,9 @@ impl PomodoroState {
                 })
                 .with_on_done_by_condition(with_notification, || {
                     debug!("on_done PAUSE");
-                    let result = Notification::new().summary("Pause done!").show();
+                    let result = Notification::new()
+                        .summary(&"Pause done!".to_uppercase())
+                        .show();
                     if let Err(err) = result {
                         error!("on_done PAUSE error: {err}");
                     }

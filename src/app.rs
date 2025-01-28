@@ -1,6 +1,6 @@
 use crate::{
     args::Args,
-    common::{AppEditMode, AppTime, AppTimeFormat, Content, Style},
+    common::{AppEditMode, AppTime, AppTimeFormat, Content, Notification, Style},
     constants::TICK_VALUE_MS,
     events::{Event, EventHandler, Events},
     storage::AppStorage,
@@ -46,7 +46,7 @@ pub struct App {
 pub struct AppArgs {
     pub style: Style,
     pub with_decis: bool,
-    pub with_notification: bool,
+    pub notification: Notification,
     pub show_menu: bool,
     pub app_time_format: AppTimeFormat,
     pub content: Content,
@@ -68,6 +68,7 @@ impl From<(Args, AppStorage)> for AppArgs {
         AppArgs {
             with_decis: args.decis || stg.with_decis,
             show_menu: args.menu || stg.show_menu,
+            notification: args.notification,
             app_time_format: stg.app_time_format,
             content: args.mode.unwrap_or(stg.content),
             style: args.style.unwrap_or(stg.style),
@@ -83,8 +84,6 @@ impl From<(Args, AppStorage)> for AppArgs {
             current_value_countdown: args.countdown.unwrap_or(stg.current_value_countdown),
             elapsed_value_countdown: stg.elapsed_value_countdown,
             current_value_timer: stg.current_value_timer,
-            // TODO: get value from CLI
-            with_notification: true,
         }
     }
 }
@@ -113,7 +112,7 @@ impl App {
             content,
             with_decis,
             pomodoro_mode,
-            with_notification,
+            notification,
         } = args;
         let app_time = get_app_time();
         Self {
@@ -128,7 +127,7 @@ impl App {
                 elapsed_value: elapsed_value_countdown,
                 app_time,
                 with_decis,
-                with_notification,
+                with_notification: notification == Notification::On,
             }),
             timer: TimerState::new(ClockState::<clock::Timer>::new(ClockStateArgs {
                 initial_value: Duration::ZERO,
@@ -143,7 +142,7 @@ impl App {
                 initial_value_pause,
                 current_value_pause,
                 with_decis,
-                with_notification,
+                with_notification: notification == Notification::On,
             }),
             footer: FooterState::new(show_menu, app_time_format),
         }
