@@ -23,7 +23,7 @@ use ratatui::{
 };
 use std::time::Duration;
 use time::OffsetDateTime;
-use tracing::debug;
+use tracing::{debug, error};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Mode {
@@ -131,12 +131,26 @@ impl App {
                 with_decis,
                 with_notification: notification == Notification::On,
             }),
-            timer: TimerState::new(ClockState::<clock::Timer>::new(ClockStateArgs {
-                initial_value: Duration::ZERO,
-                current_value: current_value_timer,
-                tick_value: Duration::from_millis(TICK_VALUE_MS),
-                with_decis,
-            })),
+            timer: TimerState::new(
+                ClockState::<clock::Timer>::new(ClockStateArgs {
+                    initial_value: Duration::ZERO,
+                    current_value: current_value_timer,
+                    tick_value: Duration::from_millis(TICK_VALUE_MS),
+                    with_decis,
+                })
+                .with_on_done_by_condition(
+                    notification == Notification::On,
+                    || {
+                        debug!("on_done TIMER");
+                        let result = notify_rust::Notification::new()
+                            .summary(&"Timer stopped by reaching its maximum value".to_uppercase())
+                            .show();
+                        if let Err(err) = result {
+                            error!("on_done TIMER error: {err}");
+                        }
+                    },
+                ),
+            ),
             pomodoro: PomodoroState::new(PomodoroStateArgs {
                 mode: pomodoro_mode,
                 initial_value_work,

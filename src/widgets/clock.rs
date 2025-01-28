@@ -310,6 +310,19 @@ impl<T> ClockState<T> {
         self.mode == Mode::Done
     }
 
+    pub fn with_on_done_by_condition(
+        mut self,
+        condition: bool,
+        handler: impl Fn() + 'static,
+    ) -> Self {
+        if condition {
+            self.on_done = Some(Box::new(handler));
+            self
+        } else {
+            self
+        }
+    }
+
     fn done(&mut self) {
         if !self.is_done() {
             self.mode = Mode::Done;
@@ -383,19 +396,6 @@ impl ClockState<Countdown> {
     fn check_done(&mut self) {
         if self.current_value.eq(&Duration::ZERO.into()) {
             self.done();
-        }
-    }
-
-    pub fn with_on_done(mut self, handler: impl Fn() + 'static) -> Self {
-        self.on_done = Some(Box::new(handler));
-        self
-    }
-
-    pub fn with_on_done_by_condition(self, condition: bool, handler: impl Fn() + 'static) -> Self {
-        if condition {
-            self.with_on_done(handler)
-        } else {
-            self
         }
     }
 
