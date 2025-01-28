@@ -42,8 +42,7 @@ pub struct Args {
         long,
         short,
         value_enum,
-        default_value_t,
-        help = "Whether to enable desktop notifications. Experimental."
+        help = "Toggle desktop notifications on or off. Experimental."
     )]
-    pub notification: Notification,
+    pub notification: Option<Notification>,
 }

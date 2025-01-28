@@ -34,6 +34,7 @@ enum Mode {
 pub struct App {
     content: Content,
     mode: Mode,
+    notification: Notification,
     app_time: AppTime,
     countdown: CountdownState,
     timer: TimerState,
@@ -68,7 +69,7 @@ impl From<(Args, AppStorage)> for AppArgs {
         AppArgs {
             with_decis: args.decis || stg.with_decis,
             show_menu: args.menu || stg.show_menu,
-            notification: args.notification,
+            notification: args.notification.unwrap_or(stg.notification),
             app_time_format: stg.app_time_format,
             content: args.mode.unwrap_or(stg.content),
             style: args.style.unwrap_or(stg.style),
@@ -117,6 +118,7 @@ impl App {
         let app_time = get_app_time();
         Self {
             mode: Mode::Running,
+            notification,
             content,
             app_time,
             style,
@@ -262,6 +264,7 @@ impl App {
         AppStorage {
             content: self.content,
             show_menu: self.footer.get_show_menu(),
+            notification: self.notification,
             app_time_format: *self.footer.app_time_format(),
             style: self.style,
             with_decis: self.with_decis,

@@ -76,7 +76,7 @@ Options:
   -s, --style <STYLE>                Style to display time with. [possible values: full, light, medium, dark, thick, cross, braille]
       --menu                         Open the menu.
   -r, --reset                        Reset stored values to default values.
-  -n, --notification <NOTIFICATION>  Whether to enable desktop notifications. Experimental. [default: off] [possible values: on, off]
+  -n, --notification <NOTIFICATION>  Toggle desktop notifications on or off. Experimental. [possible values: on, off]
   -h, --help                         Print help
   -V, --version                      Print version
 ```
