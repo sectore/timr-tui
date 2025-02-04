@@ -1,8 +1,10 @@
 use crate::{
     common::{Content, Notification, Style},
-    duration,
+    duration, sound,
+    sound::SoundError,
 };
 use clap::Parser;
+use std::path::PathBuf;
 use std::time::Duration;
 
 #[derive(Parser)]
@@ -45,4 +47,20 @@ pub struct Args {
         help = "Toggle desktop notifications on or off. Experimental."
     )]
     pub notification: Option<Notification>,
+
+    #[arg(
+        long,
+        value_enum,
+        help = "Path to sound file (.mp3 or .wav) to play as notification. Experimental.",
+        value_hint = clap::ValueHint::FilePath,
+        value_parser = sound_file_parser,
+    )]
+    pub sound: Option<PathBuf>,
+}
+
+/// Custom parser for sound file
+fn sound_file_parser(s: &str) -> Result<PathBuf, SoundError> {
+    let path = PathBuf::from(s);
+    sound::validate_sound_file(&path)?;
+    Ok(path)
 }

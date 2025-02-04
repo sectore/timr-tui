@@ -28,3 +28,8 @@ directories = "5.0.1"
 clap = { version = "4.5.23", features = ["derive"] }
 time = { version = "0.3.37", features = ["formatting", "local-offset"] }
 notify-rust = "4.11.4"
+rodio = { version = "0.20.1", features = [
+    "symphonia-mp3",
+    "symphonia-wav",
+], default-features = false }
+thiserror = "2.0.11"

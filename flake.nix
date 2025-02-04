@@ -78,18 +78,29 @@
       # Development shell with all necessary tools
       devShell = with nixpkgs.legacyPackages.${system};
         mkShell {
-          buildInputs = with fenix.packages.${system}.stable; [
-            rust-analyzer
-            clippy
-            rustfmt
-            toolchain
-            pkgs.just
-            pkgs.nixd
-            pkgs.alejandra
-          ];
+          buildInputs = with fenix.packages.${system}.stable;
+            [
+              rust-analyzer
+              clippy
+              rustfmt
+              toolchain
+              pkgs.just
+              pkgs.nixd
+              pkgs.alejandra
+            ]
+            # some extra pkgs needed to play sound on Linux
+            ++ lib.optionals stdenv.isLinux [
+              pkgs.pkg-config
+              pkgs.alsa-lib.dev
+              pkgs.pipewire
+            ];
 
           inherit (commonArgs) src;
           RUST_SRC_PATH = "${toolchain}/lib/rustlib/src/rust/library";
+          ALSA_PLUGIN_DIR =
+            if stdenv.isLinux
+            then "${pkgs.pipewire}/lib/alsa-lib/"
+            else "";
         };
     });
 }

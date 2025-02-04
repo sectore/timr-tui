@@ -1,10 +1,11 @@
 # Changelog
 
-## v1.1.0 - 2025-__-__
+## [Unreleased]
 
 ### Features
 
-- (notification) Native desktop notifications (experimental) [#49](https://github.com/sectore/timr-tui/pull/59)
+- (notification) Native desktop notification (experimental) [#49](https://github.com/sectore/timr-tui/pull/59)
+- (notification) Sound notification (experimental) [#62](https://github.com/sectore/timr-tui/pull/62)
 
 ## v1.1.0 - 2025-01-22
 
