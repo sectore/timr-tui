@@ -22,6 +22,7 @@ use ratatui::{
     layout::{Constraint, Layout, Rect},
     widgets::{StatefulWidget, Widget},
 };
+use std::path::PathBuf;
 use std::time::Duration;
 use time::OffsetDateTime;
 use tracing::{debug, error};
@@ -36,6 +37,7 @@ pub struct App {
     content: Content,
     mode: Mode,
     notification: Notification,
+    sound_path: Option<PathBuf>,
     app_time: AppTime,
     countdown: CountdownState,
     timer: TimerState,
@@ -49,6 +51,7 @@ pub struct AppArgs {
     pub style: Style,
     pub with_decis: bool,
     pub notification: Notification,
+    pub sound_path: Option<PathBuf>,
     pub show_menu: bool,
     pub app_time_format: AppTimeFormat,
     pub content: Content,
@@ -75,10 +78,12 @@ pub struct FromAppArgs {
 impl From<FromAppArgs> for App {
     fn from(args: FromAppArgs) -> Self {
         let FromAppArgs { args, stg, app_tx } = args;
+
         App::new(AppArgs {
             with_decis: args.decis || stg.with_decis,
             show_menu: args.menu || stg.show_menu,
             notification: args.notification.unwrap_or(stg.notification),
+            sound_path: args.sound,
             app_time_format: stg.app_time_format,
             content: args.mode.unwrap_or(stg.content),
             style: args.style.unwrap_or(stg.style),
@@ -124,6 +129,7 @@ impl App {
             with_decis,
             pomodoro_mode,
             notification,
+            sound_path,
             app_tx,
         } = args;
         let app_time = get_app_time();
@@ -131,6 +137,7 @@ impl App {
         Self {
             mode: Mode::Running,
             notification,
+            sound_path,
             content,
             app_time,
             style,
@@ -236,17 +243,18 @@ impl App {
         };
 
         // Closure to handle `AppEvent`'s
-        let handle_app_events = |_: &mut Self, event: events::AppEvent| -> Result<()> {
+        let handle_app_events = |app: &mut Self, event: events::AppEvent| -> Result<()> {
             match event {
                 events::AppEvent::ClockDone => {
                     debug!("AppEvent::ClockDone");
-                    // TODO: Get path by CLI
-                    _ = Sound::new("./sound.mp3")
-                        .and_then(|sound| sound.play())
-                        .or_else(|err| -> Result<()> {
-                            error!("Sound error {:?}", err);
-                            Ok(())
-                        });
+                    if let Some(path) = app.sound_path.clone() {
+                        _ = Sound::new(path).and_then(|sound| sound.play()).or_else(
+                            |err| -> Result<()> {
+                                error!("Sound error: {:?}", err);
+                                Ok(())
+                            },
+                        );
+                    }
                 }
             }
             Ok(())
