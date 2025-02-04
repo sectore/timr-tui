@@ -31,5 +31,8 @@ notify-rust = "4.11.4"
 rodio = { version = "0.20.1", features = [
     "symphonia-mp3",
     "symphonia-wav",
-], default-features = false }
-thiserror = "2.0.11"
+], default-features = false, optional = true }
+thiserror = { version = "2.0.11", optional = true }
+
+[features]
+sound = ["dep:rodio", "dep:thiserror"]

@@ -1,9 +1,11 @@
 use crate::{
     common::{Content, Notification, Style},
-    duration, sound,
-    sound::SoundError,
+    duration,
 };
+#[cfg(feature = "sound")]
+use crate::{sound, sound::SoundError};
 use clap::Parser;
+#[cfg(feature = "sound")]
 use std::path::PathBuf;
 use std::time::Duration;
 
@@ -48,6 +50,7 @@ pub struct Args {
     )]
     pub notification: Option<Notification>,
 
+    #[cfg(feature = "sound")]
     #[arg(
         long,
         value_enum,
@@ -58,6 +61,7 @@ pub struct Args {
     pub sound: Option<PathBuf>,
 }
 
+#[cfg(feature = "sound")]
 /// Custom parser for sound file
 fn sound_file_parser(s: &str) -> Result<PathBuf, SoundError> {
     let path = PathBuf::from(s);
