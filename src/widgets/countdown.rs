@@ -2,11 +2,11 @@ use crate::{
     common::{AppTime, Style},
     constants::TICK_VALUE_MS,
     duration::{DurationEx, MAX_DURATION},
-    events::{Event, EventHandler},
+    events::{AppEventTx, TuiEvent, TuiEventHandler},
     utils::center,
     widgets::{
         clock::{self, ClockState, ClockStateArgs, ClockWidget, Mode as ClockMode},
-        edit_time::EditTimeState,
+        edit_time::{EditTimeState, EditTimeStateArgs, EditTimeWidget},
     },
 };
 
@@ -25,8 +25,6 @@ use std::ops::Sub;
 use std::{cmp::max, time::Duration};
 use time::OffsetDateTime;
 
-use super::edit_time::{EditTimeStateArgs, EditTimeWidget};
-
 pub struct CountdownStateArgs {
     pub initial_value: Duration,
     pub current_value: Duration,
@@ -34,6 +32,7 @@ pub struct CountdownStateArgs {
     pub app_time: AppTime,
     pub with_decis: bool,
     pub with_notification: bool,
+    pub app_tx: AppEventTx,
 }
 
 /// State for Countdown Widget
@@ -56,6 +55,7 @@ impl CountdownState {
             with_notification,
             with_decis,
             app_time,
+            app_tx,
         } = args;
 
         Self {
@@ -64,6 +64,7 @@ impl CountdownState {
                 current_value,
                 tick_value: Duration::from_millis(TICK_VALUE_MS),
                 with_decis,
+                app_tx: Some(app_tx.clone()),
             })
             .with_on_done_by_condition(with_notification, || {
                 debug!("on_done COUNTDOWN");
@@ -79,6 +80,7 @@ impl CountdownState {
                 current_value: elapsed_value,
                 tick_value: Duration::from_millis(TICK_VALUE_MS),
                 with_decis: false,
+                app_tx: None,
             })
             // A previous `elapsed_value > 0` means the `Clock` was running before,
             // but not in `Initial` state anymore. Updating `Mode` here
@@ -154,12 +156,12 @@ impl CountdownState {
     }
 }
 
-impl EventHandler for CountdownState {
-    fn update(&mut self, event: Event) -> Option<Event> {
+impl TuiEventHandler for CountdownState {
+    fn update(&mut self, event: TuiEvent) -> Option<TuiEvent> {
         let is_edit_clock = self.clock.is_edit_mode();
         let is_edit_time = self.edit_time.is_some();
         match event {
-            Event::Tick => {
+            TuiEvent::Tick => {
                 if !self.clock.is_done() {
                     self.clock.tick();
                 } else {
@@ -175,7 +177,7 @@ impl EventHandler for CountdownState {
                     edit_time.set_max_time(max_time);
                 }
             }
-            Event::Key(key) => match key.code {
+            TuiEvent::Key(key) => match key.code {
                 KeyCode::Char('r') => {
                     // reset both clocks to use intial values
                     self.clock.reset();

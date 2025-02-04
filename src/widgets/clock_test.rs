@@ -11,6 +11,7 @@ fn test_toggle_edit() {
         current_value: ONE_HOUR,
         tick_value: ONE_DECI_SECOND,
         with_decis: true,
+        app_tx: None,
     });
     // off by default
     assert!(!c.is_edit_mode());
@@ -29,6 +30,7 @@ fn test_default_edit_mode_hhmmss() {
         current_value: ONE_HOUR,
         tick_value: ONE_DECI_SECOND,
         with_decis: true,
+        app_tx: None,
     });
 
     // toggle on
@@ -43,6 +45,7 @@ fn test_default_edit_mode_mmss() {
         current_value: ONE_MINUTE,
         tick_value: ONE_DECI_SECOND,
         with_decis: true,
+        app_tx: None,
     });
     // toggle on
     c.toggle_edit();
@@ -56,6 +59,7 @@ fn test_default_edit_mode_ss() {
         current_value: ONE_SECOND,
         tick_value: ONE_DECI_SECOND,
         with_decis: true,
+        app_tx: None,
     });
     // toggle on
     c.toggle_edit();
@@ -69,6 +73,7 @@ fn test_edit_next_hhmmssd() {
         current_value: ONE_HOUR,
         tick_value: ONE_DECI_SECOND,
         with_decis: true,
+        app_tx: None,
     });
 
     // toggle on
@@ -89,7 +94,8 @@ fn test_edit_next_hhmmss() {
         initial_value: ONE_HOUR,
         current_value: ONE_HOUR,
         tick_value: ONE_DECI_SECOND,
-        with_decis: false,
+        with_decis: true,
+        app_tx: None,
     });
 
     // toggle on
@@ -109,6 +115,7 @@ fn test_edit_next_mmssd() {
         current_value: ONE_MINUTE,
         tick_value: ONE_DECI_SECOND,
         with_decis: true,
+        app_tx: None,
     });
 
     // toggle on
@@ -127,7 +134,8 @@ fn test_edit_next_mmss() {
         initial_value: ONE_MINUTE,
         current_value: ONE_MINUTE,
         tick_value: ONE_DECI_SECOND,
-        with_decis: false,
+        with_decis: true,
+        app_tx: None,
     });
 
     // toggle on
@@ -145,6 +153,7 @@ fn test_edit_next_ssd() {
         current_value: ONE_SECOND * 3,
         tick_value: ONE_DECI_SECOND,
         with_decis: true,
+        app_tx: None,
     });
 
     // toggle on
@@ -159,7 +168,8 @@ fn test_edit_next_ss() {
         initial_value: ONE_SECOND * 3,
         current_value: ONE_SECOND * 3,
         tick_value: ONE_DECI_SECOND,
-        with_decis: false,
+        with_decis: true,
+        app_tx: None,
     });
 
     // toggle on
@@ -176,6 +186,7 @@ fn test_edit_prev_hhmmssd() {
         current_value: ONE_HOUR,
         tick_value: ONE_DECI_SECOND,
         with_decis: true,
+        app_tx: None,
     });
 
     // toggle on
@@ -195,7 +206,8 @@ fn test_edit_prev_hhmmss() {
         initial_value: ONE_HOUR,
         current_value: ONE_HOUR,
         tick_value: ONE_DECI_SECOND,
-        with_decis: false,
+        with_decis: true,
+        app_tx: None,
     });
 
     // toggle on
@@ -214,6 +226,7 @@ fn test_edit_prev_mmssd() {
         current_value: ONE_MINUTE,
         tick_value: ONE_DECI_SECOND,
         with_decis: true,
+        app_tx: None,
     });
 
     // toggle on
@@ -233,7 +246,8 @@ fn test_edit_prev_mmss() {
         initial_value: ONE_MINUTE,
         current_value: ONE_MINUTE,
         tick_value: ONE_DECI_SECOND,
-        with_decis: false,
+        with_decis: true,
+        app_tx: None,
     });
 
     // toggle on
@@ -252,6 +266,7 @@ fn test_edit_prev_ssd() {
         current_value: ONE_SECOND,
         tick_value: ONE_DECI_SECOND,
         with_decis: true,
+        app_tx: None,
     });
 
     // toggle on
@@ -269,7 +284,8 @@ fn test_edit_prev_ss() {
         initial_value: ONE_SECOND,
         current_value: ONE_SECOND,
         tick_value: ONE_DECI_SECOND,
-        with_decis: false,
+        with_decis: true,
+        app_tx: None,
     });
 
     // toggle on
@@ -285,7 +301,8 @@ fn test_edit_up_ss() {
         initial_value: Duration::ZERO,
         current_value: Duration::ZERO,
         tick_value: ONE_DECI_SECOND,
-        with_decis: false,
+        with_decis: true,
+        app_tx: None,
     });
 
     // toggle on
@@ -301,7 +318,8 @@ fn test_edit_up_mmss() {
         initial_value: Duration::ZERO,
         current_value: Duration::from_secs(60),
         tick_value: ONE_DECI_SECOND,
-        with_decis: false,
+        with_decis: true,
+        app_tx: None,
     });
 
     // toggle on
@@ -320,7 +338,8 @@ fn test_edit_up_hhmmss() {
         initial_value: Duration::ZERO,
         current_value: Duration::from_secs(3600),
         tick_value: ONE_DECI_SECOND,
-        with_decis: false,
+        with_decis: true,
+        app_tx: None,
     });
 
     // toggle on
@@ -341,7 +360,8 @@ fn test_edit_down_ss() {
         initial_value: Duration::ZERO,
         current_value: ONE_SECOND,
         tick_value: ONE_DECI_SECOND,
-        with_decis: false,
+        with_decis: true,
+        app_tx: None,
     });
 
     // toggle on
@@ -361,7 +381,8 @@ fn test_edit_down_mmss() {
         initial_value: Duration::ZERO,
         current_value: Duration::from_secs(120),
         tick_value: ONE_DECI_SECOND,
-        with_decis: false,
+        with_decis: true,
+        app_tx: None,
     });
 
     // toggle on
@@ -383,7 +404,8 @@ fn test_edit_down_hhmmss() {
         initial_value: Duration::ZERO,
         current_value: Duration::from_secs(3600),
         tick_value: ONE_DECI_SECOND,
-        with_decis: false,
+        with_decis: true,
+        app_tx: None,
     });
 
     // toggle on

@@ -1,6 +1,7 @@
 use crossterm::event::{Event as CrosstermEvent, EventStream, KeyEvent, KeyEventKind};
 use futures::{Stream, StreamExt};
 use std::{pin::Pin, time::Duration};
+use tokio::sync::mpsc;
 use tokio::time::interval;
 use tokio_stream::{wrappers::IntervalStream, StreamMap};
 
@@ -12,8 +13,9 @@ enum StreamKey {
     Render,
     Crossterm,
 }
+
 #[derive(Clone, Debug)]
-pub enum Event {
+pub enum TuiEvent {
     Error,
     Tick,
     Render,
@@ -21,8 +23,17 @@ pub enum Event {
     Resize,
 }
 
+#[derive(Clone, Debug)]
+pub enum AppEvent {
+    ClockDone,
+}
+
+pub type AppEventTx = mpsc::UnboundedSender<AppEvent>;
+pub type AppEventRx = mpsc::UnboundedReceiver<AppEvent>;
+
 pub struct Events {
-    streams: StreamMap<StreamKey, Pin<Box<dyn Stream<Item = Event>>>>,
+    streams: StreamMap<StreamKey, Pin<Box<dyn Stream<Item = TuiEvent>>>>,
+    app_channel: (AppEventTx, AppEventRx),
 }
 
 impl Default for Events {
@@ -33,8 +44,14 @@ impl Default for Events {
                 (StreamKey::Render, render_stream()),
                 (StreamKey::Crossterm, crossterm_stream()),
             ]),
+            app_channel: mpsc::unbounded_channel(),
         }
     }
+}
+
+pub enum Event {
+    Terminal(TuiEvent),
+    App(AppEvent),
 }
 
 impl Events {
@@ -43,21 +60,30 @@ impl Events {
     }
 
     pub async fn next(&mut self) -> Option<Event> {
-        self.streams.next().await.map(|(_, event)| event)
+        let streams = &mut self.streams;
+        let app_rx = &mut self.app_channel.1;
+        tokio::select! {
+            Some((_, event)) = streams.next() => Some(Event::Terminal(event)),
+            Some(app_event) = app_rx.recv() => Some(Event::App(app_event)),
+        }
+    }
+
+    pub fn get_app_event_tx(&self) -> AppEventTx {
+        self.app_channel.0.clone()
     }
 }
 
-fn tick_stream() -> Pin<Box<dyn Stream<Item = Event>>> {
+fn tick_stream() -> Pin<Box<dyn Stream<Item = TuiEvent>>> {
     let tick_interval = interval(Duration::from_millis(TICK_VALUE_MS));
-    Box::pin(IntervalStream::new(tick_interval).map(|_| Event::Tick))
+    Box::pin(IntervalStream::new(tick_interval).map(|_| TuiEvent::Tick))
 }
 
-fn render_stream() -> Pin<Box<dyn Stream<Item = Event>>> {
+fn render_stream() -> Pin<Box<dyn Stream<Item = TuiEvent>>> {
     let render_interval = interval(Duration::from_millis(FPS_VALUE_MS));
-    Box::pin(IntervalStream::new(render_interval).map(|_| Event::Render))
+    Box::pin(IntervalStream::new(render_interval).map(|_| TuiEvent::Render))
 }
 
-fn crossterm_stream() -> Pin<Box<dyn Stream<Item = Event>>> {
+fn crossterm_stream() -> Pin<Box<dyn Stream<Item = TuiEvent>>> {
     Box::pin(
         EventStream::new()
             .fuse()
@@ -65,16 +91,16 @@ fn crossterm_stream() -> Pin<Box<dyn Stream<Item = Event>>> {
             .filter_map(|event| async move {
                 match event {
                     Ok(CrosstermEvent::Key(key)) if key.kind == KeyEventKind::Press => {
-                        Some(Event::Key(key))
+                        Some(TuiEvent::Key(key))
                     }
-                    Ok(CrosstermEvent::Resize(_, _)) => Some(Event::Resize),
-                    Err(_) => Some(Event::Error),
+                    Ok(CrosstermEvent::Resize(_, _)) => Some(TuiEvent::Resize),
+                    Err(_) => Some(TuiEvent::Error),
                     _ => None,
                 }
             }),
     )
 }
 
-pub trait EventHandler {
-    fn update(&mut self, _: Event) -> Option<Event>;
+pub trait TuiEventHandler {
+    fn update(&mut self, _: TuiEvent) -> Option<TuiEvent>;
 }
