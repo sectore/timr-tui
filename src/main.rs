@@ -8,11 +8,13 @@ mod logging;
 
 mod args;
 mod duration;
-mod sound;
 mod storage;
 mod terminal;
 mod utils;
 mod widgets;
+
+#[cfg(feature = "sound")]
+mod sound;
 
 use app::{App, FromAppArgs};
 use args::Args;

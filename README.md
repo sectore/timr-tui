@@ -77,10 +77,16 @@ Options:
       --menu                         Open the menu.
   -r, --reset                        Reset stored values to default values.
   -n, --notification <NOTIFICATION>  Toggle desktop notifications on or off. Experimental. [possible values: on, off]
-      --sound <SOUND>                Path to sound file (.mp3 or .wav) to play as notification. Experimental.
   -h, --help                         Print help
   -V, --version                      Print version
 ```
+
+Extra option (if `--features sound` is enabled by local build only):
+
+```sh
+      --sound <SOUND>                Path to sound file (.mp3 or .wav) to play as notification. Experimental.
+```
+
 
 # Installation
 

@@ -3,7 +3,6 @@ use crate::{
     common::{AppEditMode, AppTime, AppTimeFormat, Content, Notification, Style},
     constants::TICK_VALUE_MS,
     events::{self, TuiEventHandler},
-    sound::Sound,
     storage::AppStorage,
     terminal::Terminal,
     widgets::{
@@ -15,6 +14,10 @@ use crate::{
         timer::{Timer, TimerState},
     },
 };
+
+#[cfg(feature = "sound")]
+use crate::sound::Sound;
+
 use color_eyre::Result;
 use ratatui::{
     buffer::Buffer,
@@ -37,6 +40,7 @@ pub struct App {
     content: Content,
     mode: Mode,
     notification: Notification,
+    #[allow(dead_code)] // w/ `--features sound` available only
     sound_path: Option<PathBuf>,
     app_time: AppTime,
     countdown: CountdownState,
@@ -51,7 +55,6 @@ pub struct AppArgs {
     pub style: Style,
     pub with_decis: bool,
     pub notification: Notification,
-    pub sound_path: Option<PathBuf>,
     pub show_menu: bool,
     pub app_time_format: AppTimeFormat,
     pub content: Content,
@@ -65,6 +68,7 @@ pub struct AppArgs {
     pub elapsed_value_countdown: Duration,
     pub current_value_timer: Duration,
     pub app_tx: events::AppEventTx,
+    pub sound_path: Option<PathBuf>,
 }
 
 pub struct FromAppArgs {
@@ -83,7 +87,6 @@ impl From<FromAppArgs> for App {
             with_decis: args.decis || stg.with_decis,
             show_menu: args.menu || stg.show_menu,
             notification: args.notification.unwrap_or(stg.notification),
-            sound_path: args.sound,
             app_time_format: stg.app_time_format,
             content: args.mode.unwrap_or(stg.content),
             style: args.style.unwrap_or(stg.style),
@@ -100,6 +103,10 @@ impl From<FromAppArgs> for App {
             elapsed_value_countdown: stg.elapsed_value_countdown,
             current_value_timer: stg.current_value_timer,
             app_tx,
+            #[cfg(feature = "sound")]
+            sound_path: args.sound,
+            #[cfg(not(feature = "sound"))]
+            sound_path: None,
         })
     }
 }
@@ -242,11 +249,13 @@ impl App {
             Ok(())
         };
 
+        #[allow(unused_variables)] // `app` is used by `--features sound` only
         // Closure to handle `AppEvent`'s
         let handle_app_events = |app: &mut Self, event: events::AppEvent| -> Result<()> {
             match event {
                 events::AppEvent::ClockDone => {
                     debug!("AppEvent::ClockDone");
+                    #[cfg(feature = "sound")]
                     if let Some(path) = app.sound_path.clone() {
                         _ = Sound::new(path).and_then(|sound| sound.play()).or_else(
                             |err| -> Result<()> {
