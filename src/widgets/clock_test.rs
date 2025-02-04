@@ -94,7 +94,7 @@ fn test_edit_next_hhmmss() {
         initial_value: ONE_HOUR,
         current_value: ONE_HOUR,
         tick_value: ONE_DECI_SECOND,
-        with_decis: true,
+        with_decis: false,
         app_tx: None,
     });
 
@@ -134,7 +134,7 @@ fn test_edit_next_mmss() {
         initial_value: ONE_MINUTE,
         current_value: ONE_MINUTE,
         tick_value: ONE_DECI_SECOND,
-        with_decis: true,
+        with_decis: false,
         app_tx: None,
     });
 
@@ -168,7 +168,7 @@ fn test_edit_next_ss() {
         initial_value: ONE_SECOND * 3,
         current_value: ONE_SECOND * 3,
         tick_value: ONE_DECI_SECOND,
-        with_decis: true,
+        with_decis: false,
         app_tx: None,
     });
 
@@ -206,7 +206,7 @@ fn test_edit_prev_hhmmss() {
         initial_value: ONE_HOUR,
         current_value: ONE_HOUR,
         tick_value: ONE_DECI_SECOND,
-        with_decis: true,
+        with_decis: false,
         app_tx: None,
     });
 
@@ -246,7 +246,7 @@ fn test_edit_prev_mmss() {
         initial_value: ONE_MINUTE,
         current_value: ONE_MINUTE,
         tick_value: ONE_DECI_SECOND,
-        with_decis: true,
+        with_decis: false,
         app_tx: None,
     });
 
@@ -284,7 +284,7 @@ fn test_edit_prev_ss() {
         initial_value: ONE_SECOND,
         current_value: ONE_SECOND,
         tick_value: ONE_DECI_SECOND,
-        with_decis: true,
+        with_decis: false,
         app_tx: None,
     });
 
