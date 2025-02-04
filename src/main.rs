@@ -13,7 +13,7 @@ mod terminal;
 mod utils;
 mod widgets;
 
-use app::{App, AppArgs};
+use app::{App, FromAppArgs};
 use args::Args;
 use clap::Parser;
 use color_eyre::Result;
@@ -30,7 +30,7 @@ async fn main() -> Result<()> {
     // get args given by CLI
     let args = Args::parse();
 
-    let terminal = terminal::setup()?;
+    let mut terminal = terminal::setup()?;
     let events = events::Events::new();
 
     // check persistant storage
@@ -42,9 +42,14 @@ async fn main() -> Result<()> {
         storage.load().unwrap_or_default()
     };
 
-    // merge `Args` and `AppStorage`.
-    let app_args = AppArgs::from((args, stg));
-    let app_storage = App::new(app_args).run(terminal, events).await?.to_storage();
+    let app_storage = App::from(FromAppArgs {
+        args,
+        stg,
+        app_tx: events.get_app_event_tx(),
+    })
+    .run(&mut terminal, events)
+    .await?
+    .to_storage();
     // store app state persistantly
     storage.save(app_storage)?;
 

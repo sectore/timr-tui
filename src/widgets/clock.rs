@@ -12,6 +12,7 @@ use ratatui::{
 use crate::{
     common::Style,
     duration::{DurationEx, MAX_DURATION, ONE_DECI_SECOND, ONE_HOUR, ONE_MINUTE, ONE_SECOND},
+    events::{AppEvent, AppEventTx},
     utils::center_horizontal,
     widgets::clock_elements::{
         Colon, Digit, Dot, COLON_WIDTH, DIGIT_HEIGHT, DIGIT_SPACE_WIDTH, DIGIT_WIDTH, DOT_WIDTH,
@@ -73,6 +74,7 @@ pub struct ClockState<T> {
     format: Format,
     pub with_decis: bool,
     on_done: Option<Box<dyn Fn() + 'static>>,
+    app_tx: Option<AppEventTx>,
     phantom: PhantomData<T>,
 }
 
@@ -81,6 +83,7 @@ pub struct ClockStateArgs {
     pub current_value: Duration,
     pub tick_value: Duration,
     pub with_decis: bool,
+    pub app_tx: Option<AppEventTx>,
 }
 
 impl<T> ClockState<T> {
@@ -329,6 +332,9 @@ impl<T> ClockState<T> {
             if let Some(handler) = &mut self.on_done {
                 handler();
             };
+            if let Some(tx) = &mut self.app_tx {
+                _ = tx.send(AppEvent::ClockDone);
+            };
         }
     }
 
@@ -363,6 +369,7 @@ impl ClockState<Countdown> {
             current_value,
             tick_value,
             with_decis,
+            app_tx,
         } = args;
         let mut instance = Self {
             initial_value: initial_value.into(),
@@ -378,6 +385,7 @@ impl ClockState<Countdown> {
             format: Format::S,
             with_decis,
             on_done: None,
+            app_tx,
             phantom: PhantomData,
         };
         // update format once
@@ -432,6 +440,7 @@ impl ClockState<Timer> {
             current_value,
             tick_value,
             with_decis,
+            app_tx,
         } = args;
         let mut instance = Self {
             initial_value: initial_value.into(),
@@ -447,6 +456,7 @@ impl ClockState<Timer> {
             format: Format::S,
             with_decis,
             on_done: None,
+            app_tx,
             phantom: PhantomData,
         };
         // update format once

@@ -1,7 +1,7 @@
 use crate::{
     common::Style,
     constants::TICK_VALUE_MS,
-    events::{Event, EventHandler},
+    events::{AppEventTx, TuiEvent, TuiEventHandler},
     utils::center,
     widgets::clock::{ClockState, ClockStateArgs, ClockWidget, Countdown},
 };
@@ -57,6 +57,7 @@ pub struct PomodoroStateArgs {
     pub current_value_pause: Duration,
     pub with_decis: bool,
     pub with_notification: bool,
+    pub app_tx: AppEventTx,
 }
 
 impl PomodoroState {
@@ -69,6 +70,7 @@ impl PomodoroState {
             current_value_pause,
             with_decis,
             with_notification,
+            app_tx,
         } = args;
         Self {
             mode,
@@ -78,6 +80,7 @@ impl PomodoroState {
                     current_value: current_value_work,
                     tick_value: Duration::from_millis(TICK_VALUE_MS),
                     with_decis,
+                    app_tx: Some(app_tx.clone()),
                 })
                 .with_on_done_by_condition(with_notification, || {
                     debug!("on_done WORK");
@@ -93,6 +96,7 @@ impl PomodoroState {
                     current_value: current_value_pause,
                     tick_value: Duration::from_millis(TICK_VALUE_MS),
                     with_decis,
+                    app_tx: Some(app_tx),
                 })
                 .with_on_done_by_condition(with_notification, || {
                     debug!("on_done PAUSE");
@@ -140,14 +144,14 @@ impl PomodoroState {
     }
 }
 
-impl EventHandler for PomodoroState {
-    fn update(&mut self, event: Event) -> Option<Event> {
+impl TuiEventHandler for PomodoroState {
+    fn update(&mut self, event: TuiEvent) -> Option<TuiEvent> {
         let edit_mode = self.get_clock().is_edit_mode();
         match event {
-            Event::Tick => {
+            TuiEvent::Tick => {
                 self.get_clock_mut().tick();
             }
-            Event::Key(key) => match key.code {
+            TuiEvent::Key(key) => match key.code {
                 KeyCode::Char('s') => {
                     self.get_clock_mut().toggle_pause();
                 }

@@ -2,7 +2,8 @@ use crate::{
     args::Args,
     common::{AppEditMode, AppTime, AppTimeFormat, Content, Notification, Style},
     constants::TICK_VALUE_MS,
-    events::{Event, EventHandler, Events},
+    events,
+    events::TuiEventHandler,
     storage::AppStorage,
     terminal::Terminal,
     widgets::{
@@ -60,13 +61,21 @@ pub struct AppArgs {
     pub current_value_countdown: Duration,
     pub elapsed_value_countdown: Duration,
     pub current_value_timer: Duration,
+    pub app_tx: events::AppEventTx,
 }
 
-/// Getting `AppArgs` by merging `Args` and `AppStorage`.
-/// `Args` wins btw.
-impl From<(Args, AppStorage)> for AppArgs {
-    fn from((args, stg): (Args, AppStorage)) -> Self {
-        AppArgs {
+pub struct FromAppArgs {
+    pub args: Args,
+    pub stg: AppStorage,
+    pub app_tx: events::AppEventTx,
+}
+
+/// Creates an `App` by merging `Args` and `AppStorage` (`Args` wins)
+/// and adding `AppEventTx`
+impl From<FromAppArgs> for App {
+    fn from(args: FromAppArgs) -> Self {
+        let FromAppArgs { args, stg, app_tx } = args;
+        App::new(AppArgs {
             with_decis: args.decis || stg.with_decis,
             show_menu: args.menu || stg.show_menu,
             notification: args.notification.unwrap_or(stg.notification),
@@ -85,7 +94,8 @@ impl From<(Args, AppStorage)> for AppArgs {
             current_value_countdown: args.countdown.unwrap_or(stg.current_value_countdown),
             elapsed_value_countdown: stg.elapsed_value_countdown,
             current_value_timer: stg.current_value_timer,
-        }
+            app_tx,
+        })
     }
 }
 
@@ -114,8 +124,10 @@ impl App {
             with_decis,
             pomodoro_mode,
             notification,
+            app_tx,
         } = args;
         let app_time = get_app_time();
+
         Self {
             mode: Mode::Running,
             notification,
@@ -130,6 +142,7 @@ impl App {
                 app_time,
                 with_decis,
                 with_notification: notification == Notification::On,
+                app_tx: app_tx.clone(),
             }),
             timer: TimerState::new(
                 ClockState::<clock::Timer>::new(ClockStateArgs {
@@ -137,6 +150,7 @@ impl App {
                     current_value: current_value_timer,
                     tick_value: Duration::from_millis(TICK_VALUE_MS),
                     with_decis,
+                    app_tx: None,
                 })
                 .with_on_done_by_condition(
                     notification == Notification::On,
@@ -159,33 +173,84 @@ impl App {
                 current_value_pause,
                 with_decis,
                 with_notification: notification == Notification::On,
+                app_tx: app_tx.clone(),
             }),
             footer: FooterState::new(show_menu, app_time_format),
         }
     }
 
-    pub async fn run(mut self, mut terminal: Terminal, mut events: Events) -> Result<Self> {
+    pub async fn run(
+        mut self,
+        terminal: &mut Terminal,
+        mut events: events::Events,
+    ) -> Result<Self> {
+        // Closure to handle `KeyEvent`'s
+        let handle_key_event = |app: &mut Self, key: KeyEvent| {
+            debug!("Received key {:?}", key.code);
+            match key.code {
+                KeyCode::Char('q') | KeyCode::Esc => app.mode = Mode::Quit,
+                KeyCode::Char('c') => app.content = Content::Countdown,
+                KeyCode::Char('t') => app.content = Content::Timer,
+                KeyCode::Char('p') => app.content = Content::Pomodoro,
+                // toogle app time format
+                KeyCode::Char(':') => app.footer.toggle_app_time_format(),
+                // toogle menu
+                KeyCode::Char('m') => app.footer.set_show_menu(!app.footer.get_show_menu()),
+                KeyCode::Char(',') => {
+                    app.style = app.style.next();
+                }
+                KeyCode::Char('.') => {
+                    app.with_decis = !app.with_decis;
+                    // update clocks
+                    app.timer.set_with_decis(app.with_decis);
+                    app.countdown.set_with_decis(app.with_decis);
+                    app.pomodoro.set_with_decis(app.with_decis);
+                }
+                KeyCode::Up => app.footer.set_show_menu(true),
+                KeyCode::Down => app.footer.set_show_menu(false),
+                _ => {}
+            };
+        };
+        // Closure to handle `TuiEvent`'s
+        let mut handle_tui_events = |app: &mut Self, event: events::TuiEvent| -> Result<()> {
+            if matches!(event, events::TuiEvent::Tick) {
+                app.app_time = get_app_time();
+                app.countdown.set_app_time(app.app_time);
+            }
+
+            // Pipe events into subviews and handle only 'unhandled' events afterwards
+            if let Some(unhandled) = match app.content {
+                Content::Countdown => app.countdown.update(event.clone()),
+                Content::Timer => app.timer.update(event.clone()),
+                Content::Pomodoro => app.pomodoro.update(event.clone()),
+            } {
+                match unhandled {
+                    events::TuiEvent::Render | events::TuiEvent::Resize => {
+                        app.draw(terminal)?;
+                    }
+                    events::TuiEvent::Key(key) => handle_key_event(app, key),
+                    _ => {}
+                }
+            }
+            Ok(())
+        };
+
+        // Closure to handle `AppEvent`'s
+        let handle_app_events = |_: &mut Self, event: events::AppEvent| -> Result<()> {
+            match event {
+                events::AppEvent::ClockDone => {
+                    debug!("AppEvent::ClockDone");
+                }
+            }
+            Ok(())
+        };
+
         while self.is_running() {
             if let Some(event) = events.next().await {
-                if matches!(event, Event::Tick) {
-                    self.app_time = get_app_time();
-                    self.countdown.set_app_time(self.app_time);
-                }
-
-                // Pipe events into subviews and handle only 'unhandled' events afterwards
-                if let Some(unhandled) = match self.content {
-                    Content::Countdown => self.countdown.update(event.clone()),
-                    Content::Timer => self.timer.update(event.clone()),
-                    Content::Pomodoro => self.pomodoro.update(event.clone()),
-                } {
-                    match unhandled {
-                        Event::Render | Event::Resize => {
-                            self.draw(&mut terminal)?;
-                        }
-                        Event::Key(key) => self.handle_key_event(key),
-                        _ => {}
-                    }
-                }
+                let _ = match event {
+                    events::Event::Terminal(e) => handle_tui_events(&mut self, e),
+                    events::Event::App(e) => handle_app_events(&mut self, e),
+                };
             }
         }
         Ok(self)
@@ -238,33 +303,6 @@ impl App {
             Content::Timer => None,
             Content::Pomodoro => Some(self.pomodoro.get_clock().get_percentage_done()),
         }
-    }
-
-    fn handle_key_event(&mut self, key: KeyEvent) {
-        debug!("Received key {:?}", key.code);
-        match key.code {
-            KeyCode::Char('q') | KeyCode::Esc => self.mode = Mode::Quit,
-            KeyCode::Char('c') => self.content = Content::Countdown,
-            KeyCode::Char('t') => self.content = Content::Timer,
-            KeyCode::Char('p') => self.content = Content::Pomodoro,
-            // toogle app time format
-            KeyCode::Char(':') => self.footer.toggle_app_time_format(),
-            // toogle menu
-            KeyCode::Char('m') => self.footer.set_show_menu(!self.footer.get_show_menu()),
-            KeyCode::Char(',') => {
-                self.style = self.style.next();
-            }
-            KeyCode::Char('.') => {
-                self.with_decis = !self.with_decis;
-                // update clocks
-                self.timer.set_with_decis(self.with_decis);
-                self.countdown.set_with_decis(self.with_decis);
-                self.pomodoro.set_with_decis(self.with_decis);
-            }
-            KeyCode::Up => self.footer.set_show_menu(true),
-            KeyCode::Down => self.footer.set_show_menu(false),
-            _ => {}
-        };
     }
 
     fn draw(&mut self, terminal: &mut Terminal) -> Result<()> {

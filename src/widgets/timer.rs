@@ -1,6 +1,6 @@
 use crate::{
     common::Style,
-    events::{Event, EventHandler},
+    events::{TuiEvent, TuiEventHandler},
     utils::center,
     widgets::clock::{self, ClockState, ClockWidget},
 };
@@ -31,14 +31,14 @@ impl TimerState {
     }
 }
 
-impl EventHandler for TimerState {
-    fn update(&mut self, event: Event) -> Option<Event> {
+impl TuiEventHandler for TimerState {
+    fn update(&mut self, event: TuiEvent) -> Option<TuiEvent> {
         let edit_mode = self.clock.is_edit_mode();
         match event {
-            Event::Tick => {
+            TuiEvent::Tick => {
                 self.clock.tick();
             }
-            Event::Key(key) => match key.code {
+            TuiEvent::Key(key) => match key.code {
                 KeyCode::Char('s') => {
                     self.clock.toggle_pause();
                 }
