@@ -8,6 +8,7 @@ mod logging;
 
 mod args;
 mod duration;
+mod sound;
 mod storage;
 mod terminal;
 mod utils;

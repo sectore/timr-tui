@@ -2,8 +2,8 @@ use crate::{
     args::Args,
     common::{AppEditMode, AppTime, AppTimeFormat, Content, Notification, Style},
     constants::TICK_VALUE_MS,
-    events,
-    events::TuiEventHandler,
+    events::{self, TuiEventHandler},
+    sound::Sound,
     storage::AppStorage,
     terminal::Terminal,
     widgets::{
@@ -240,6 +240,13 @@ impl App {
             match event {
                 events::AppEvent::ClockDone => {
                     debug!("AppEvent::ClockDone");
+                    // TODO: Get path by CLI
+                    _ = Sound::new("./sound.mp3")
+                        .and_then(|sound| sound.play())
+                        .or_else(|err| -> Result<()> {
+                            error!("Sound error {:?}", err);
+                            Ok(())
+                        });
                 }
             }
             Ok(())
