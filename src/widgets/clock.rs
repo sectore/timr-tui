@@ -369,9 +369,9 @@ impl<T> ClockState<T> {
 
     /// Updates inner value of `done_count`.
     /// It should be called whenever `TuiEvent::Tick` is handled.
-    /// At first glance it might in `Clock::tick`.
-    /// However, somethimes `tick` won't be called after `Mode::Done`,
-    /// so that's `update_done_count` is called from "outside".
+    /// At first glance it might happen in `Clock::tick`, but sometimes
+    /// `tick` won't be called again after `Mode::Done` event (e.g. in `widget::Countdown`).
+    /// That's why `update_done_count` is called from "outside".
     pub fn update_done_count(&mut self) {
         if let Some(count) = self.done_count {
             if count > 0 {
@@ -635,12 +635,12 @@ where
         DIGIT_HEIGHT
     }
 
-    /// Check whether to blink the clock while rendering.
-    /// It logic is based on a given `count` value.
+    /// Checks whether to blink the clock while rendering.
+    /// Its logic is based on a given `count` value.
     fn should_blink(&self, count_value: &Option<u64>) -> bool {
         // Example:
-        // if RANGE_OF_DONE_COUNT is 4
-        // then it returns `true` for ranges `0..4`, `8..12` etc.
+        // if `RANGE_OF_DONE_COUNT` is 4
+        // then for ranges `0..4`, `8..12` etc. it will return `true`
         count_value
             .map(|b| (b % (RANGE_OF_DONE_COUNT * 2)) < RANGE_OF_DONE_COUNT)
             .unwrap_or(false)
@@ -656,6 +656,8 @@ where
     fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
         let with_decis = state.with_decis;
         let format = state.format;
+        // to simulate a blink effect, just use an "empty" symbol (string)
+        // to "empty" all digits and to have an "empty" render area
         let symbol = if self.blink && self.should_blink(&state.done_count) {
             " "
         } else {
