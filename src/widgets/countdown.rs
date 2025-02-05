@@ -151,6 +151,7 @@ impl TuiEventHandler for CountdownState {
                 if !self.clock.is_done() {
                     self.clock.tick();
                 } else {
+                    self.clock.update_done_count();
                     self.elapsed_clock.tick();
                     if self.elapsed_clock.is_initial() {
                         self.elapsed_clock.run();

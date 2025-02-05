@@ -130,6 +130,7 @@ impl TuiEventHandler for PomodoroState {
         match event {
             TuiEvent::Tick => {
                 self.get_clock_mut().tick();
+                self.get_clock_mut().update_done_count();
             }
             TuiEvent::Key(key) => match key.code {
                 KeyCode::Char('s') => {

@@ -37,6 +37,7 @@ impl TuiEventHandler for TimerState {
         match event {
             TuiEvent::Tick => {
                 self.clock.tick();
+                self.clock.update_done_count();
             }
             TuiEvent::Key(key) => match key.code {
                 KeyCode::Char('s') => {
