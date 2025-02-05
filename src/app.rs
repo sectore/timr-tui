@@ -1,6 +1,6 @@
 use crate::{
     args::Args,
-    common::{AppEditMode, AppTime, AppTimeFormat, Content, Notification, Style},
+    common::{AppEditMode, AppTime, AppTimeFormat, ClockTypeId, Content, Notification, Style},
     constants::TICK_VALUE_MS,
     events::{self, TuiEventHandler},
     storage::AppStorage,
@@ -155,7 +155,6 @@ impl App {
                 elapsed_value: elapsed_value_countdown,
                 app_time,
                 with_decis,
-                with_notification: notification == Notification::On,
                 app_tx: app_tx.clone(),
             }),
             timer: TimerState::new(
@@ -164,20 +163,9 @@ impl App {
                     current_value: current_value_timer,
                     tick_value: Duration::from_millis(TICK_VALUE_MS),
                     with_decis,
-                    app_tx: None,
+                    app_tx: Some(app_tx.clone()),
                 })
-                .with_on_done_by_condition(
-                    notification == Notification::On,
-                    || {
-                        debug!("on_done TIMER");
-                        let result = notify_rust::Notification::new()
-                            .summary(&"Timer stopped by reaching its maximum value".to_uppercase())
-                            .show();
-                        if let Err(err) = result {
-                            error!("on_done TIMER error: {err}");
-                        }
-                    },
-                ),
+                .with_name("Timer".to_owned()),
             ),
             pomodoro: PomodoroState::new(PomodoroStateArgs {
                 mode: pomodoro_mode,
@@ -186,7 +174,6 @@ impl App {
                 initial_value_pause,
                 current_value_pause,
                 with_decis,
-                with_notification: notification == Notification::On,
                 app_tx: app_tx.clone(),
             }),
             footer: FooterState::new(show_menu, app_time_format),
@@ -253,8 +240,25 @@ impl App {
         // Closure to handle `AppEvent`'s
         let handle_app_events = |app: &mut Self, event: events::AppEvent| -> Result<()> {
             match event {
-                events::AppEvent::ClockDone => {
+                events::AppEvent::ClockDone(type_id, name) => {
                     debug!("AppEvent::ClockDone");
+
+                    if app.notification == Notification::On {
+                        let msg = match type_id {
+                            ClockTypeId::Timer => {
+                                format!("{name} stopped by reaching its maximum value.")
+                            }
+                            _ => format!("{:?} {name} done!", type_id),
+                        };
+                        // notification
+                        let result = notify_rust::Notification::new()
+                            .summary(&msg.to_uppercase())
+                            .show();
+                        if let Err(err) = result {
+                            error!("on_done {name} error: {err}");
+                        }
+                    };
+
                     #[cfg(feature = "sound")]
                     if let Some(path) = app.sound_path.clone() {
                         _ = Sound::new(path).and_then(|sound| sound.play()).or_else(

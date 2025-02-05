@@ -10,7 +10,7 @@ use ratatui::{
 };
 
 use crate::{
-    common::Style,
+    common::{ClockTypeId, Style},
     duration::{DurationEx, MAX_DURATION, ONE_DECI_SECOND, ONE_HOUR, ONE_MINUTE, ONE_SECOND},
     events::{AppEvent, AppEventTx},
     utils::center_horizontal,
@@ -67,13 +67,14 @@ pub enum Format {
 }
 
 pub struct ClockState<T> {
+    type_id: ClockTypeId,
+    name: Option<String>,
     initial_value: DurationEx,
     current_value: DurationEx,
     tick_value: DurationEx,
     mode: Mode,
     format: Format,
     pub with_decis: bool,
-    on_done: Option<Box<dyn Fn() + 'static>>,
     app_tx: Option<AppEventTx>,
     phantom: PhantomData<T>,
 }
@@ -87,6 +88,19 @@ pub struct ClockStateArgs {
 }
 
 impl<T> ClockState<T> {
+    pub fn with_name(mut self, name: String) -> Self {
+        self.name = Some(name);
+        self
+    }
+
+    pub fn get_name(&self) -> String {
+        self.name.clone().unwrap_or_default()
+    }
+
+    pub fn get_type_id(&self) -> &ClockTypeId {
+        &self.type_id
+    }
+
     pub fn with_mode(mut self, mode: Mode) -> Self {
         self.mode = mode;
         self
@@ -313,27 +327,13 @@ impl<T> ClockState<T> {
         self.mode == Mode::Done
     }
 
-    pub fn with_on_done_by_condition(
-        mut self,
-        condition: bool,
-        handler: impl Fn() + 'static,
-    ) -> Self {
-        if condition {
-            self.on_done = Some(Box::new(handler));
-            self
-        } else {
-            self
-        }
-    }
-
     fn done(&mut self) {
         if !self.is_done() {
             self.mode = Mode::Done;
-            if let Some(handler) = &mut self.on_done {
-                handler();
-            };
-            if let Some(tx) = &mut self.app_tx {
-                _ = tx.send(AppEvent::ClockDone);
+            let type_id = self.get_type_id().clone();
+            let name = self.get_name();
+            if let Some(tx) = &self.app_tx {
+                _ = tx.send(AppEvent::ClockDone(type_id, name));
             };
         }
     }
@@ -372,6 +372,8 @@ impl ClockState<Countdown> {
             app_tx,
         } = args;
         let mut instance = Self {
+            type_id: ClockTypeId::Countdown,
+            name: None,
             initial_value: initial_value.into(),
             current_value: current_value.into(),
             tick_value: tick_value.into(),
@@ -384,7 +386,6 @@ impl ClockState<Countdown> {
             },
             format: Format::S,
             with_decis,
-            on_done: None,
             app_tx,
             phantom: PhantomData,
         };
@@ -443,6 +444,8 @@ impl ClockState<Timer> {
             app_tx,
         } = args;
         let mut instance = Self {
+            type_id: ClockTypeId::Timer,
+            name: None,
             initial_value: initial_value.into(),
             current_value: current_value.into(),
             tick_value: tick_value.into(),
@@ -455,7 +458,6 @@ impl ClockState<Timer> {
             },
             format: Format::S,
             with_decis,
-            on_done: None,
             app_tx,
             phantom: PhantomData,
         };

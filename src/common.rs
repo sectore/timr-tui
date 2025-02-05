@@ -17,6 +17,12 @@ pub enum Content {
     Pomodoro,
 }
 
+#[derive(Clone, Debug)]
+pub enum ClockTypeId {
+    Countdown,
+    Timer,
+}
+
 #[derive(Debug, Copy, Clone, ValueEnum, Default, Serialize, Deserialize)]
 pub enum Style {
     #[default]

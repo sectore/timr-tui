@@ -9,9 +9,7 @@ use crate::{
         edit_time::{EditTimeState, EditTimeStateArgs, EditTimeWidget},
     },
 };
-
 use crossterm::event::KeyModifiers;
-use notify_rust::Notification;
 use ratatui::{
     buffer::Buffer,
     crossterm::event::KeyCode,
@@ -19,8 +17,6 @@ use ratatui::{
     text::Line,
     widgets::{StatefulWidget, Widget},
 };
-use tracing::{debug, error};
-
 use std::ops::Sub;
 use std::{cmp::max, time::Duration};
 use time::OffsetDateTime;
@@ -31,7 +27,6 @@ pub struct CountdownStateArgs {
     pub elapsed_value: Duration,
     pub app_time: AppTime,
     pub with_decis: bool,
-    pub with_notification: bool,
     pub app_tx: AppEventTx,
 }
 
@@ -52,7 +47,6 @@ impl CountdownState {
             initial_value,
             current_value,
             elapsed_value,
-            with_notification,
             with_decis,
             app_time,
             app_tx,
@@ -65,15 +59,6 @@ impl CountdownState {
                 tick_value: Duration::from_millis(TICK_VALUE_MS),
                 with_decis,
                 app_tx: Some(app_tx.clone()),
-            })
-            .with_on_done_by_condition(with_notification, || {
-                debug!("on_done COUNTDOWN");
-                let result = Notification::new()
-                    .summary(&"Countdown done!".to_uppercase())
-                    .show();
-                if let Err(err) = result {
-                    error!("on_done COUNTDOWN error: {err}");
-                }
             }),
             elapsed_clock: ClockState::<clock::Timer>::new(ClockStateArgs {
                 initial_value: Duration::ZERO,
@@ -82,6 +67,7 @@ impl CountdownState {
                 with_decis: false,
                 app_tx: None,
             })
+            .with_name("MET".to_owned())
             // A previous `elapsed_value > 0` means the `Clock` was running before,
             // but not in `Initial` state anymore. Updating `Mode` here
             // is needed to handle `Event::Tick` in `EventHandler::update` properly
