@@ -77,14 +77,16 @@ impl PomodoroState {
                     tick_value: Duration::from_millis(TICK_VALUE_MS),
                     with_decis,
                     app_tx: Some(app_tx.clone()),
-                }),
+                })
+                .with_name("Work".to_owned()),
                 pause: ClockState::<Countdown>::new(ClockStateArgs {
                     initial_value: initial_value_pause,
                     current_value: current_value_pause,
                     tick_value: Duration::from_millis(TICK_VALUE_MS),
                     with_decis,
                     app_tx: Some(app_tx),
-                }),
+                })
+                .with_name("Pause".to_owned()),
             },
         }
     }

@@ -25,10 +25,11 @@ use ratatui::{
     layout::{Constraint, Layout, Rect},
     widgets::{StatefulWidget, Widget},
 };
+use std::any::TypeId;
 use std::path::PathBuf;
 use std::time::Duration;
 use time::OffsetDateTime;
-use tracing::debug;
+use tracing::{debug, error};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Mode {
@@ -157,13 +158,16 @@ impl App {
                 with_decis,
                 app_tx: app_tx.clone(),
             }),
-            timer: TimerState::new(ClockState::<clock::Timer>::new(ClockStateArgs {
-                initial_value: Duration::ZERO,
-                current_value: current_value_timer,
-                tick_value: Duration::from_millis(TICK_VALUE_MS),
-                with_decis,
-                app_tx: None,
-            })),
+            timer: TimerState::new(
+                ClockState::<clock::Timer>::new(ClockStateArgs {
+                    initial_value: Duration::ZERO,
+                    current_value: current_value_timer,
+                    tick_value: Duration::from_millis(TICK_VALUE_MS),
+                    with_decis,
+                    app_tx: Some(app_tx.clone()),
+                })
+                .with_name("Timer".to_owned()),
+            ),
             pomodoro: PomodoroState::new(PomodoroStateArgs {
                 mode: pomodoro_mode,
                 initial_value_work,
@@ -237,8 +241,27 @@ impl App {
         // Closure to handle `AppEvent`'s
         let handle_app_events = |app: &mut Self, event: events::AppEvent| -> Result<()> {
             match event {
-                events::AppEvent::ClockDone => {
+                events::AppEvent::ClockDone(type_id, name) => {
                     debug!("AppEvent::ClockDone");
+
+                    if app.notification == Notification::On {
+                        // timer
+                        let msg = if type_id == TypeId::of::<clock::Timer>() {
+                            format!("{name} stopped by reaching its maximum value.")
+                        }
+                        // countown
+                        else {
+                            format!("{:?} {name} done!", type_id)
+                        };
+                        // notification
+                        let result = notify_rust::Notification::new()
+                            .summary(&msg.to_uppercase())
+                            .show();
+                        if let Err(err) = result {
+                            error!("on_done {name} error: {err}");
+                        }
+                    };
+
                     #[cfg(feature = "sound")]
                     if let Some(path) = app.sound_path.clone() {
                         _ = Sound::new(path).and_then(|sound| sound.play()).or_else(

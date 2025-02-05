@@ -67,6 +67,7 @@ impl CountdownState {
                 with_decis: false,
                 app_tx: None,
             })
+            .with_name("MET".to_owned())
             // A previous `elapsed_value > 0` means the `Clock` was running before,
             // but not in `Initial` state anymore. Updating `Mode` here
             // is needed to handle `Event::Tick` in `EventHandler::update` properly

@@ -17,6 +17,14 @@ pub enum Content {
     Pomodoro,
 }
 
+// pub enum ClockType {
+//     Countdown,
+//     Met, // Mission Elapsed Time
+//     Timer,
+//     PomodoroWork,
+//     PomodoroPause,
+// }
+
 #[derive(Debug, Copy, Clone, ValueEnum, Default, Serialize, Deserialize)]
 pub enum Style {
     #[default]

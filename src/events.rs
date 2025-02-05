@@ -1,5 +1,6 @@
 use crossterm::event::{Event as CrosstermEvent, EventStream, KeyEvent, KeyEventKind};
 use futures::{Stream, StreamExt};
+use std::any::TypeId;
 use std::{pin::Pin, time::Duration};
 use tokio::sync::mpsc;
 use tokio::time::interval;
@@ -25,7 +26,7 @@ pub enum TuiEvent {
 
 #[derive(Clone, Debug)]
 pub enum AppEvent {
-    ClockDone,
+    ClockDone(TypeId, String),
 }
 
 pub type AppEventTx = mpsc::UnboundedSender<AppEvent>;
