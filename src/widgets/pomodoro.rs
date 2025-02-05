@@ -130,6 +130,7 @@ impl TuiEventHandler for PomodoroState {
         match event {
             TuiEvent::Tick => {
                 self.get_clock_mut().tick();
+                self.get_clock_mut().update_done_count();
             }
             TuiEvent::Key(key) => match key.code {
                 KeyCode::Char('s') => {
@@ -170,12 +171,13 @@ impl TuiEventHandler for PomodoroState {
 
 pub struct PomodoroWidget {
     pub style: Style,
+    pub blink: bool,
 }
 
 impl StatefulWidget for PomodoroWidget {
     type State = PomodoroState;
     fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
-        let clock_widget = ClockWidget::new(self.style);
+        let clock_widget = ClockWidget::new(self.style, self.blink);
         let label = Line::raw(
             (format!(
                 "Pomodoro {} {}",

@@ -151,6 +151,7 @@ impl TuiEventHandler for CountdownState {
                 if !self.clock.is_done() {
                     self.clock.tick();
                 } else {
+                    self.clock.update_done_count();
                     self.elapsed_clock.tick();
                     if self.elapsed_clock.is_initial() {
                         self.elapsed_clock.run();
@@ -278,6 +279,7 @@ impl TuiEventHandler for CountdownState {
 
 pub struct Countdown {
     pub style: Style,
+    pub blink: bool,
 }
 
 fn human_days_diff(a: &OffsetDateTime, b: &OffsetDateTime) -> String {
@@ -337,7 +339,7 @@ impl StatefulWidget for Countdown {
                 }
                 .to_uppercase(),
             );
-            let widget = ClockWidget::new(self.style);
+            let widget = ClockWidget::new(self.style, self.blink);
             let area = center(
                 area,
                 Constraint::Length(max(

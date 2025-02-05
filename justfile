@@ -78,3 +78,8 @@ alias drc := demo-rocket-countdown
 
 demo-rocket-countdown:
     vhs demo/met.tape
+
+alias db := demo-blink
+
+demo-blink:
+    vhs demo/blink.tape

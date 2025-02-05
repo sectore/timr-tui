@@ -66,6 +66,9 @@ pub enum Format {
     HhMmSs,
 }
 
+const RANGE_OF_DONE_COUNT: u64 = 4;
+const MAX_DONE_COUNT: u64 = RANGE_OF_DONE_COUNT * 5;
+
 pub struct ClockState<T> {
     type_id: ClockTypeId,
     name: Option<String>,
@@ -76,6 +79,11 @@ pub struct ClockState<T> {
     format: Format,
     pub with_decis: bool,
     app_tx: Option<AppEventTx>,
+    /// Tick counter starting whenever `Mode::DONE` has been reached.
+    /// Initial value is set in `done()`.
+    /// Updates happened in `update_done_count`
+    /// Default value: `None`
+    done_count: Option<u64>,
     phantom: PhantomData<T>,
 }
 
@@ -335,6 +343,7 @@ impl<T> ClockState<T> {
             if let Some(tx) = &self.app_tx {
                 _ = tx.send(AppEvent::ClockDone(type_id, name));
             };
+            self.done_count = Some(MAX_DONE_COUNT);
         }
     }
 
@@ -355,6 +364,23 @@ impl<T> ClockState<T> {
             Format::Ss
         } else {
             Format::S
+        }
+    }
+
+    /// Updates inner value of `done_count`.
+    /// It should be called whenever `TuiEvent::Tick` is handled.
+    /// At first glance it might happen in `Clock::tick`, but sometimes
+    /// `tick` won't be called again after `Mode::Done` event (e.g. in `widget::Countdown`).
+    /// That's why `update_done_count` is called from "outside".
+    pub fn update_done_count(&mut self) {
+        if let Some(count) = self.done_count {
+            if count > 0 {
+                let value = count - 1;
+                self.done_count = Some(value)
+            } else {
+                // None means we are done and no counting anymore.
+                self.done_count = None
+            }
         }
     }
 }
@@ -387,6 +413,7 @@ impl ClockState<Countdown> {
             format: Format::S,
             with_decis,
             app_tx,
+            done_count: None,
             phantom: PhantomData,
         };
         // update format once
@@ -459,6 +486,7 @@ impl ClockState<Timer> {
             format: Format::S,
             with_decis,
             app_tx,
+            done_count: None,
             phantom: PhantomData,
         };
         // update format once
@@ -502,6 +530,7 @@ where
     T: std::fmt::Debug,
 {
     style: Style,
+    blink: bool,
     phantom: PhantomData<T>,
 }
 
@@ -509,9 +538,10 @@ impl<T> ClockWidget<T>
 where
     T: std::fmt::Debug,
 {
-    pub fn new(style: Style) -> Self {
+    pub fn new(style: Style, blink: bool) -> Self {
         Self {
             style,
+            blink,
             phantom: PhantomData,
         }
     }
@@ -604,6 +634,17 @@ where
     pub fn get_height(&self) -> u16 {
         DIGIT_HEIGHT
     }
+
+    /// Checks whether to blink the clock while rendering.
+    /// Its logic is based on a given `count` value.
+    fn should_blink(&self, count_value: &Option<u64>) -> bool {
+        // Example:
+        // if `RANGE_OF_DONE_COUNT` is 4
+        // then for ranges `0..4`, `8..12` etc. it will return `true`
+        count_value
+            .map(|b| (b % (RANGE_OF_DONE_COUNT * 2)) < RANGE_OF_DONE_COUNT)
+            .unwrap_or(false)
+    }
 }
 
 impl<T> StatefulWidget for ClockWidget<T>
@@ -615,7 +656,13 @@ where
     fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
         let with_decis = state.with_decis;
         let format = state.format;
-        let symbol = self.style.get_digit_symbol();
+        // to simulate a blink effect, just use an "empty" symbol (string)
+        // to "empty" all digits and to have an "empty" render area
+        let symbol = if self.blink && self.should_blink(&state.done_count) {
+            " "
+        } else {
+            self.style.get_digit_symbol()
+        };
         let widths = self.get_horizontal_lengths(&format, with_decis);
         let area = center_horizontal(
             area,
