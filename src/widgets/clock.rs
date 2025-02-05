@@ -530,6 +530,7 @@ where
     T: std::fmt::Debug,
 {
     style: Style,
+    blink: bool,
     phantom: PhantomData<T>,
 }
 
@@ -537,9 +538,10 @@ impl<T> ClockWidget<T>
 where
     T: std::fmt::Debug,
 {
-    pub fn new(style: Style) -> Self {
+    pub fn new(style: Style, blink: bool) -> Self {
         Self {
             style,
+            blink,
             phantom: PhantomData,
         }
     }
@@ -654,7 +656,7 @@ where
     fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
         let with_decis = state.with_decis;
         let format = state.format;
-        let symbol = if self.should_blink(&state.done_count) {
+        let symbol = if self.blink && self.should_blink(&state.done_count) {
             " "
         } else {
             self.style.get_digit_symbol()

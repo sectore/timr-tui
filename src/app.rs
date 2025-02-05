@@ -1,6 +1,6 @@
 use crate::{
     args::Args,
-    common::{AppEditMode, AppTime, AppTimeFormat, ClockTypeId, Content, Notification, Style},
+    common::{AppEditMode, AppTime, AppTimeFormat, ClockTypeId, Content, Style, Toggle},
     constants::TICK_VALUE_MS,
     events::{self, TuiEventHandler},
     storage::AppStorage,
@@ -39,7 +39,8 @@ enum Mode {
 pub struct App {
     content: Content,
     mode: Mode,
-    notification: Notification,
+    notification: Toggle,
+    blink: Toggle,
     #[allow(dead_code)] // w/ `--features sound` available only
     sound_path: Option<PathBuf>,
     app_time: AppTime,
@@ -54,7 +55,8 @@ pub struct App {
 pub struct AppArgs {
     pub style: Style,
     pub with_decis: bool,
-    pub notification: Notification,
+    pub notification: Toggle,
+    pub blink: Toggle,
     pub show_menu: bool,
     pub app_time_format: AppTimeFormat,
     pub content: Content,
@@ -87,6 +89,7 @@ impl From<FromAppArgs> for App {
             with_decis: args.decis || stg.with_decis,
             show_menu: args.menu || stg.show_menu,
             notification: args.notification.unwrap_or(stg.notification),
+            blink: args.blink.unwrap_or(stg.blink),
             app_time_format: stg.app_time_format,
             content: args.mode.unwrap_or(stg.content),
             style: args.style.unwrap_or(stg.style),
@@ -136,6 +139,7 @@ impl App {
             with_decis,
             pomodoro_mode,
             notification,
+            blink,
             sound_path,
             app_tx,
         } = args;
@@ -144,6 +148,7 @@ impl App {
         Self {
             mode: Mode::Running,
             notification,
+            blink,
             sound_path,
             content,
             app_time,
@@ -243,7 +248,7 @@ impl App {
                 events::AppEvent::ClockDone(type_id, name) => {
                     debug!("AppEvent::ClockDone");
 
-                    if app.notification == Notification::On {
+                    if app.notification == Toggle::On {
                         let msg = match type_id {
                             ClockTypeId::Timer => {
                                 format!("{name} stopped by reaching its maximum value.")
@@ -345,6 +350,7 @@ impl App {
             content: self.content,
             show_menu: self.footer.get_show_menu(),
             notification: self.notification,
+            blink: self.blink,
             app_time_format: *self.footer.app_time_format(),
             style: self.style,
             with_decis: self.with_decis,
@@ -373,14 +379,22 @@ impl AppWidget {
     fn render_content(&self, area: Rect, buf: &mut Buffer, state: &mut App) {
         match state.content {
             Content::Timer => {
-                Timer { style: state.style }.render(area, buf, &mut state.timer);
+                Timer {
+                    style: state.style,
+                    blink: state.blink == Toggle::On,
+                }
+                .render(area, buf, &mut state.timer);
             }
-            Content::Countdown => {
-                Countdown { style: state.style }.render(area, buf, &mut state.countdown)
+            Content::Countdown => Countdown {
+                style: state.style,
+                blink: state.blink == Toggle::On,
             }
-            Content::Pomodoro => {
-                PomodoroWidget { style: state.style }.render(area, buf, &mut state.pomodoro)
+            .render(area, buf, &mut state.countdown),
+            Content::Pomodoro => PomodoroWidget {
+                style: state.style,
+                blink: state.blink == Toggle::On,
             }
+            .render(area, buf, &mut state.pomodoro),
         };
     }
 }

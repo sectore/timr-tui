@@ -1,5 +1,5 @@
 use crate::{
-    common::{Content, Notification, Style},
+    common::{Content, Style, Toggle},
     duration,
 };
 #[cfg(feature = "sound")]
@@ -46,9 +46,16 @@ pub struct Args {
         long,
         short,
         value_enum,
-        help = "Toggle desktop notifications on or off. Experimental."
+        help = "Toggle desktop notifications. Experimental."
     )]
-    pub notification: Option<Notification>,
+    pub notification: Option<Toggle>,
+
+    #[arg(
+        long,
+        value_enum,
+        help = "Toggle blink mode to animate a clock when it reaches its finished mode."
+    )]
+    pub blink: Option<Toggle>,
 
     #[cfg(feature = "sound")]
     #[arg(

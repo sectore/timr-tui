@@ -142,7 +142,7 @@ pub enum AppEditMode {
 }
 
 #[derive(Debug, Clone, Copy, ValueEnum, PartialEq, Eq, Default, Serialize, Deserialize)]
-pub enum Notification {
+pub enum Toggle {
     #[value(name = "on")]
     On,
     #[default]

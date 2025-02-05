@@ -1,5 +1,5 @@
 use crate::{
-    common::{AppTimeFormat, Content, Notification, Style},
+    common::{AppTimeFormat, Content, Style, Toggle},
     widgets::pomodoro::Mode as PomodoroMode,
 };
 use color_eyre::eyre::Result;
@@ -12,7 +12,8 @@ use std::time::Duration;
 pub struct AppStorage {
     pub content: Content,
     pub show_menu: bool,
-    pub notification: Notification,
+    pub notification: Toggle,
+    pub blink: Toggle,
     pub app_time_format: AppTimeFormat,
     pub style: Style,
     pub with_decis: bool,
@@ -39,7 +40,8 @@ impl Default for AppStorage {
         AppStorage {
             content: Content::default(),
             show_menu: true,
-            notification: Notification::Off,
+            notification: Toggle::Off,
+            blink: Toggle::Off,
             app_time_format: AppTimeFormat::default(),
             style: Style::default(),
             with_decis: false,

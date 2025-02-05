@@ -71,13 +71,14 @@ impl TuiEventHandler for TimerState {
 
 pub struct Timer {
     pub style: Style,
+    pub blink: bool,
 }
 
 impl StatefulWidget for Timer {
     type State = TimerState;
     fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
         let clock = &mut state.clock;
-        let clock_widget = ClockWidget::new(self.style);
+        let clock_widget = ClockWidget::new(self.style, self.blink);
         let label = Line::raw((format!("Timer {}", clock.get_mode())).to_uppercase());
 
         let area = center(
