@@ -87,7 +87,7 @@ pub struct ClockStateArgs {
     pub app_tx: Option<AppEventTx>,
 }
 
-impl<T: 'static> ClockState<T> {
+impl<T> ClockState<T> {
     pub fn with_name(mut self, name: String) -> Self {
         self.name = Some(name);
         self
