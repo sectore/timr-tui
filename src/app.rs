@@ -1,6 +1,6 @@
 use crate::{
     args::Args,
-    common::{AppEditMode, AppTime, AppTimeFormat, Content, Notification, Style},
+    common::{AppEditMode, AppTime, AppTimeFormat, ClockTypeId, Content, Notification, Style},
     constants::TICK_VALUE_MS,
     events::{self, TuiEventHandler},
     storage::AppStorage,
@@ -25,7 +25,6 @@ use ratatui::{
     layout::{Constraint, Layout, Rect},
     widgets::{StatefulWidget, Widget},
 };
-use std::any::TypeId;
 use std::path::PathBuf;
 use std::time::Duration;
 use time::OffsetDateTime;
@@ -245,13 +244,11 @@ impl App {
                     debug!("AppEvent::ClockDone");
 
                     if app.notification == Notification::On {
-                        // timer
-                        let msg = if type_id == TypeId::of::<clock::Timer>() {
-                            format!("{name} stopped by reaching its maximum value.")
-                        }
-                        // countown
-                        else {
-                            format!("{:?} {name} done!", type_id)
+                        let msg = match type_id {
+                            ClockTypeId::Timer => {
+                                format!("{name} stopped by reaching its maximum value.")
+                            }
+                            _ => format!("{:?} {name} done!", type_id),
                         };
                         // notification
                         let result = notify_rust::Notification::new()

@@ -1,36 +1,33 @@
 use crate::{
+    common::ClockTypeId,
     duration::{ONE_DECI_SECOND, ONE_HOUR, ONE_MINUTE, ONE_SECOND},
     widgets::clock::*,
 };
 use std::time::Duration;
 
-#[test]
-fn test_toggle_edit() {
-    let mut c = ClockState::<Timer>::new(ClockStateArgs {
+fn default_args() -> ClockStateArgs {
+    ClockStateArgs {
         initial_value: ONE_HOUR,
         current_value: ONE_HOUR,
         tick_value: ONE_DECI_SECOND,
-        with_decis: true,
+        with_decis: false,
         app_tx: None,
-    });
-    // off by default
-    assert!(!c.is_edit_mode());
-    // toggle on
-    c.toggle_edit();
-    assert!(c.is_edit_mode());
-    // toggle off
-    c.toggle_edit();
-    assert!(!c.is_edit_mode());
+    }
+}
+
+#[test]
+fn test_type_id() {
+    let c = ClockState::<Timer>::new(default_args());
+    assert!(matches!(c.get_type_id(), ClockTypeId::Timer));
+    let c = ClockState::<Countdown>::new(default_args());
+    assert!(matches!(c.get_type_id(), ClockTypeId::Countdown));
 }
 
 #[test]
 fn test_default_edit_mode_hhmmss() {
     let mut c = ClockState::<Timer>::new(ClockStateArgs {
-        initial_value: ONE_HOUR,
-        current_value: ONE_HOUR,
-        tick_value: ONE_DECI_SECOND,
         with_decis: true,
-        app_tx: None,
+        ..default_args()
     });
 
     // toggle on

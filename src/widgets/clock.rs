@@ -1,4 +1,3 @@
-use std::any::TypeId;
 use std::fmt;
 use std::marker::PhantomData;
 use std::time::Duration;
@@ -11,7 +10,7 @@ use ratatui::{
 };
 
 use crate::{
-    common::Style,
+    common::{ClockTypeId, Style},
     duration::{DurationEx, MAX_DURATION, ONE_DECI_SECOND, ONE_HOUR, ONE_MINUTE, ONE_SECOND},
     events::{AppEvent, AppEventTx},
     utils::center_horizontal,
@@ -68,6 +67,7 @@ pub enum Format {
 }
 
 pub struct ClockState<T> {
+    type_id: ClockTypeId,
     name: Option<String>,
     initial_value: DurationEx,
     current_value: DurationEx,
@@ -97,8 +97,8 @@ impl<T: 'static> ClockState<T> {
         self.name.clone().unwrap_or_default()
     }
 
-    pub fn get_type_id(&mut self) -> TypeId {
-        TypeId::of::<T>()
+    pub fn get_type_id(&self) -> &ClockTypeId {
+        &self.type_id
     }
 
     pub fn with_mode(mut self, mode: Mode) -> Self {
@@ -330,7 +330,7 @@ impl<T: 'static> ClockState<T> {
     fn done(&mut self) {
         if !self.is_done() {
             self.mode = Mode::Done;
-            let type_id = self.get_type_id();
+            let type_id = self.get_type_id().clone();
             let name = self.get_name();
             if let Some(tx) = &self.app_tx {
                 _ = tx.send(AppEvent::ClockDone(type_id, name));
@@ -372,6 +372,7 @@ impl ClockState<Countdown> {
             app_tx,
         } = args;
         let mut instance = Self {
+            type_id: ClockTypeId::Countdown,
             name: None,
             initial_value: initial_value.into(),
             current_value: current_value.into(),
@@ -443,6 +444,7 @@ impl ClockState<Timer> {
             app_tx,
         } = args;
         let mut instance = Self {
+            type_id: ClockTypeId::Timer,
             name: None,
             initial_value: initial_value.into(),
             current_value: current_value.into(),

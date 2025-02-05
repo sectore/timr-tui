@@ -1,11 +1,11 @@
 use crossterm::event::{Event as CrosstermEvent, EventStream, KeyEvent, KeyEventKind};
 use futures::{Stream, StreamExt};
-use std::any::TypeId;
 use std::{pin::Pin, time::Duration};
 use tokio::sync::mpsc;
 use tokio::time::interval;
 use tokio_stream::{wrappers::IntervalStream, StreamMap};
 
+use crate::common::ClockTypeId;
 use crate::constants::{FPS_VALUE_MS, TICK_VALUE_MS};
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
@@ -26,7 +26,7 @@ pub enum TuiEvent {
 
 #[derive(Clone, Debug)]
 pub enum AppEvent {
-    ClockDone(TypeId, String),
+    ClockDone(ClockTypeId, String),
 }
 
 pub type AppEventTx = mpsc::UnboundedSender<AppEvent>;
