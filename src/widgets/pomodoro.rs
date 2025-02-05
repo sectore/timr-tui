@@ -5,7 +5,6 @@ use crate::{
     utils::center,
     widgets::clock::{ClockState, ClockStateArgs, ClockWidget, Countdown},
 };
-use notify_rust::Notification;
 use ratatui::{
     buffer::Buffer,
     crossterm::event::KeyCode,
@@ -16,7 +15,6 @@ use ratatui::{
 use serde::{Deserialize, Serialize};
 use std::{cmp::max, time::Duration};
 use strum::Display;
-use tracing::{debug, error};
 
 #[derive(Debug, Clone, Display, Hash, Eq, PartialEq, Deserialize, Serialize)]
 pub enum Mode {
@@ -56,7 +54,6 @@ pub struct PomodoroStateArgs {
     pub initial_value_pause: Duration,
     pub current_value_pause: Duration,
     pub with_decis: bool,
-    pub with_notification: bool,
     pub app_tx: AppEventTx,
 }
 
@@ -69,7 +66,6 @@ impl PomodoroState {
             initial_value_pause,
             current_value_pause,
             with_decis,
-            with_notification,
             app_tx,
         } = args;
         Self {
@@ -81,15 +77,6 @@ impl PomodoroState {
                     tick_value: Duration::from_millis(TICK_VALUE_MS),
                     with_decis,
                     app_tx: Some(app_tx.clone()),
-                })
-                .with_on_done_by_condition(with_notification, || {
-                    debug!("on_done WORK");
-                    let result = Notification::new()
-                        .summary(&"Work done!".to_uppercase())
-                        .show();
-                    if let Err(err) = result {
-                        error!("on_done WORK error: {err}");
-                    }
                 }),
                 pause: ClockState::<Countdown>::new(ClockStateArgs {
                     initial_value: initial_value_pause,
@@ -97,15 +84,6 @@ impl PomodoroState {
                     tick_value: Duration::from_millis(TICK_VALUE_MS),
                     with_decis,
                     app_tx: Some(app_tx),
-                })
-                .with_on_done_by_condition(with_notification, || {
-                    debug!("on_done PAUSE");
-                    let result = Notification::new()
-                        .summary(&"Pause done!".to_uppercase())
-                        .show();
-                    if let Err(err) = result {
-                        error!("on_done PAUSE error: {err}");
-                    }
                 }),
             },
         }

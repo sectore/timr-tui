@@ -73,7 +73,6 @@ pub struct ClockState<T> {
     mode: Mode,
     format: Format,
     pub with_decis: bool,
-    on_done: Option<Box<dyn Fn() + 'static>>,
     app_tx: Option<AppEventTx>,
     phantom: PhantomData<T>,
 }
@@ -313,25 +312,9 @@ impl<T> ClockState<T> {
         self.mode == Mode::Done
     }
 
-    pub fn with_on_done_by_condition(
-        mut self,
-        condition: bool,
-        handler: impl Fn() + 'static,
-    ) -> Self {
-        if condition {
-            self.on_done = Some(Box::new(handler));
-            self
-        } else {
-            self
-        }
-    }
-
     fn done(&mut self) {
         if !self.is_done() {
             self.mode = Mode::Done;
-            if let Some(handler) = &mut self.on_done {
-                handler();
-            };
             if let Some(tx) = &mut self.app_tx {
                 _ = tx.send(AppEvent::ClockDone);
             };
@@ -384,7 +367,6 @@ impl ClockState<Countdown> {
             },
             format: Format::S,
             with_decis,
-            on_done: None,
             app_tx,
             phantom: PhantomData,
         };
@@ -455,7 +437,6 @@ impl ClockState<Timer> {
             },
             format: Format::S,
             with_decis,
-            on_done: None,
             app_tx,
             phantom: PhantomData,
         };
