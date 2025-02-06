@@ -5,9 +5,10 @@ use crate::{
 #[cfg(feature = "sound")]
 use crate::{sound, sound::SoundError};
 use clap::Parser;
-#[cfg(feature = "sound")]
 use std::path::PathBuf;
 use std::time::Duration;
+
+pub const LOG_DIRECTORY_DEFAULT_MISSING_VALUE: &str = " "; // empty string
 
 #[derive(Parser)]
 #[command(version)]
@@ -66,6 +67,19 @@ pub struct Args {
         value_parser = sound_file_parser,
     )]
     pub sound: Option<PathBuf>,
+
+    #[arg(
+        long,
+        // allows both --log=path and --log path syntax
+        num_args = 0..=1,
+        // Note: If no value is passed, use a " " by default,
+        // this value will be checked later in `main`
+        // to use another (default) log directory instead
+        default_missing_value=LOG_DIRECTORY_DEFAULT_MISSING_VALUE,
+        help = "Directory to store log file. If not set, standard application log directory is used (check README for details).",
+        value_hint = clap::ValueHint::DirPath,
+    )]
+    pub log: Option<PathBuf>,
 }
 
 #[cfg(feature = "sound")]

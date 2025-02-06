@@ -1,4 +1,4 @@
-use color_eyre::eyre::Result;
+use color_eyre::eyre::{eyre, Result};
 use std::fs;
 use std::path::PathBuf;
 use tracing::level_filters::LevelFilter;
@@ -17,7 +17,13 @@ impl Logger {
 
     pub fn init(&self) -> Result<()> {
         let log_path = self.log_dir.join("app.log");
-        let log_file = fs::File::create(log_path)?;
+        let log_file = fs::File::create(log_path).map_err(|err| {
+            eyre!(
+                "Could not create a log file in {:?} : {}",
+                self.log_dir,
+                err
+            )
+        })?;
         let fmt_layer = tracing_subscriber::fmt::layer()
             .with_file(true)
             .with_line_number(true)

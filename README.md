@@ -78,8 +78,8 @@ Options:
   -r, --reset                        Reset stored values to default values.
   -n, --notification <NOTIFICATION>  Toggle desktop notifications. Experimental. [possible values: on, off]
       --blink <BLINK>                Toggle blink mode to animate a clock when it reaches its finished mode. [possible values: on, off]
+      --log [<LOG>]                  Directory to store log file. If not set, standard application log directory is used (check README for details).
   -h, --help                         Print help
-  -V, --version                      Print version
 ```
 
 Extra option (if `--features sound` is enabled by local build only):
@@ -185,7 +185,9 @@ C:/Users/{user}/AppData/Local/timr-tui/data/app.data
 
 ## Logs
 
-In `debug` mode only. Locations:
+To get log output, start the app by passing `--log` to `timr-tui`. See [CLI](./#cli) for details.
+
+Logs will be stored in an `app.log` file at following locations:
 
 ```sh
 # Linux
@@ -195,3 +197,5 @@ In `debug` mode only. Locations:
 # `Windows`
 C:/Users/{user}/AppData/Local/timr-tui/logs/app.log
 ```
+
+Optional: You can use a custom directory by passing it via `--log` arg.

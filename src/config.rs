@@ -5,16 +5,17 @@ use std::fs;
 use std::path::PathBuf;
 
 pub struct Config {
-    // silence `field `log_dir` is never read` the easy way
-    #[cfg_attr(not(debug_assertions), allow(dead_code))]
     pub log_dir: PathBuf,
     pub data_dir: PathBuf,
 }
 
 impl Config {
     pub fn init() -> Result<Self> {
+        // default logs dir
         let log_dir = get_default_state_dir()?.join("logs");
         fs::create_dir_all(&log_dir)?;
+
+        // default data dir
         let data_dir = get_default_state_dir()?.join("data");
         fs::create_dir_all(&data_dir)?;
 
