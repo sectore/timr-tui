@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - "release/**"
+      # REMOVE after successful test build
+      - "rust-1850"
     tags:
       - "v*"
 
