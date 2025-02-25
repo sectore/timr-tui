@@ -1,5 +1,5 @@
 use crate::constants::APP_NAME;
-use color_eyre::eyre::{eyre, Result};
+use color_eyre::eyre::{Result, eyre};
 use directories::ProjectDirs;
 use std::fs;
 use std::path::PathBuf;

@@ -3,7 +3,7 @@ use futures::{Stream, StreamExt};
 use std::{pin::Pin, time::Duration};
 use tokio::sync::mpsc;
 use tokio::time::interval;
-use tokio_stream::{wrappers::IntervalStream, StreamMap};
+use tokio_stream::{StreamMap, wrappers::IntervalStream};
 
 use crate::common::ClockTypeId;
 use crate::constants::{FPS_VALUE_MS, TICK_VALUE_MS};

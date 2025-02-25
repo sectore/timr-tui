@@ -5,7 +5,7 @@ use crossterm::{
     cursor, execute,
     terminal::{EnterAlternateScreen, LeaveAlternateScreen},
 };
-use ratatui::{backend::CrosstermBackend, Terminal as RatatuiTerminal};
+use ratatui::{Terminal as RatatuiTerminal, backend::CrosstermBackend};
 
 pub type Terminal = RatatuiTerminal<CrosstermBackend<io::Stdout>>;
 

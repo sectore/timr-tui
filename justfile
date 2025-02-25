@@ -6,31 +6,41 @@ default:
     @just --list
 
 alias b := build
-alias f := format
-alias l := lint
-alias t := test
-alias r := run
 
 # build app
 build:
     cargo build
 
+alias t := test
+
 # run tests
 test:
     cargo test
+
+alias f := format
 
 # format files
 format:
     just --fmt
     cargo fmt
 
+alias l := lint
+
 # lint
 lint:
     cargo clippy --no-deps
 
+alias r := run
+
 # run app
 run:
     cargo run
+
+alias rs := run-sound
+
+# run app while sound feature is enabled. It expects a path to a sound file.
+run-sound path:
+    cargo run --features sound -- --sound={{ path }}
 
 # demos
 

@@ -18,24 +18,24 @@
   }:
     flake-utils.lib.eachDefaultSystem (system: let
       pkgs = nixpkgs.legacyPackages.${system};
-      toolchain = with fenix.packages.${system};
-        combine [
-          minimal.rustc
-          minimal.cargo
-          targets.x86_64-pc-windows-gnu.latest.rust-std
-          targets.x86_64-unknown-linux-musl.latest.rust-std
-        ];
+
+      toolchain =
+        fenix.packages.${system}.fromToolchainFile
+        {
+          file = ./rust-toolchain.toml;
+          # sha256 = nixpkgs.lib.fakeSha256;
+          sha256 = "sha256-AJ6LX/Q/Er9kS15bn9iflkUwcgYqRQxiOIL2ToVAXaU=";
+        };
+
       craneLib = (crane.mkLib pkgs).overrideToolchain toolchain;
 
-      # Common build inputs for both native and cross compilation
       commonArgs = {
         src = craneLib.cleanCargoSource ./.;
-        cargoArtifacts = craneLib.buildDepsOnly {
-          src = craneLib.cleanCargoSource ./.;
-        };
         strictDeps = true;
         doCheck = false; # skip tests during nix build
       };
+
+      cargoArtifacts = craneLib.buildDepsOnly commonArgs;
 
       # Native build
       timr = craneLib.buildPackage commonArgs;
@@ -43,6 +43,7 @@
       # Linux build w/ statically linked binaries
       staticLinuxBuild = craneLib.buildPackage (commonArgs
         // {
+          inherit cargoArtifacts;
           CARGO_BUILD_TARGET = "x86_64-unknown-linux-musl";
           CARGO_BUILD_RUSTFLAGS = "-C target-feature=+crt-static";
         });
@@ -75,14 +76,10 @@
         windows = windowsBuild;
       };
 
-      # Development shell with all necessary tools
-      devShell = with nixpkgs.legacyPackages.${system};
-        mkShell {
-          buildInputs = with fenix.packages.${system}.stable;
+      devShells.default = with nixpkgs.legacyPackages.${system};
+        craneLib.devShell {
+          packages =
             [
-              rust-analyzer
-              clippy
-              rustfmt
               toolchain
               pkgs.just
               pkgs.nixd
@@ -96,7 +93,7 @@
             ];
 
           inherit (commonArgs) src;
-          RUST_SRC_PATH = "${toolchain}/lib/rustlib/src/rust/library";
+
           ALSA_PLUGIN_DIR =
             if stdenv.isLinux
             then "${pkgs.pipewire}/lib/alsa-lib/"

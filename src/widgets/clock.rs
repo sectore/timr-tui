@@ -15,7 +15,7 @@ use crate::{
     events::{AppEvent, AppEventTx},
     utils::center_horizontal,
     widgets::clock_elements::{
-        Colon, Digit, Dot, COLON_WIDTH, DIGIT_HEIGHT, DIGIT_SPACE_WIDTH, DIGIT_WIDTH, DOT_WIDTH,
+        COLON_WIDTH, Colon, DIGIT_HEIGHT, DIGIT_SPACE_WIDTH, DIGIT_WIDTH, DOT_WIDTH, Digit, Dot,
     },
 };
 

@@ -1,6 +1,6 @@
 use color_eyre::{
-    eyre::{ensure, eyre},
     Report,
+    eyre::{ensure, eyre},
 };
 use std::fmt;
 use std::time::Duration;
