@@ -9,7 +9,7 @@ use ratatui::{
 
 use crate::{
     common::Style,
-    widgets::clock_elements::{Colon, Digit, COLON_WIDTH, DIGIT_SPACE_WIDTH, DIGIT_WIDTH},
+    widgets::clock_elements::{COLON_WIDTH, Colon, DIGIT_SPACE_WIDTH, DIGIT_WIDTH, Digit},
 };
 
 use super::clock_elements::DIGIT_HEIGHT;

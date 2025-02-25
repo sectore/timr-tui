@@ -1,8 +1,8 @@
 use clap::ValueEnum;
 use ratatui::symbols::shade;
 use serde::{Deserialize, Serialize};
-use time::format_description;
 use time::OffsetDateTime;
+use time::format_description;
 
 #[derive(
     Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Default, Serialize, Deserialize,
