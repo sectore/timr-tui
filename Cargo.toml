@@ -2,8 +2,9 @@
 name = "timr-tui"
 version = "1.1.0"
 description = "TUI to organize your time: Pomodoro, Countdown, Timer."
-edition = "2021"
-rust-version = "1.84.0"
+edition = "2024"
+# Reminder: Always keep `channel` in `rust-toolchain.toml` in sync with `rust-version`.
+rust-version = "1.85.0"
 homepage = "https://github.com/sectore/timr-tui"
 repository = "https://github.com/sectore/timr-tui"
 readme = "README.md"
