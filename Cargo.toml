@@ -11,6 +11,7 @@ readme = "README.md"
 license = "MIT"
 keywords = ["tui", "timer", "countdown", "pomodoro"]
 categories = ["command-line-utilities"]
+exclude = [".github/*", "demo/*.tape", "result/*", "*.mp3"]
 
 [dependencies]
 ratatui = "0.29.0"
@@ -34,6 +35,7 @@ rodio = { version = "0.20.1", features = [
     "symphonia-wav",
 ], default-features = false, optional = true }
 thiserror = { version = "2.0.11", optional = true }
+
 
 [features]
 sound = ["dep:rodio", "dep:thiserror"]
