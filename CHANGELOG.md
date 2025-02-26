@@ -1,5 +1,12 @@
 # Changelog
 
+## [Unreleased]
+
+### Misc.
+
+(cargo) Exclude files for packaging [e7a5a1b](https://github.com/sectore/timr-tui/commit/e7a5a1b2da7a7967f2602a0b92f391ac768ca638)
+(just) `group` commands [#70](https://github.com/sectore/timr-tui/pull/70)
+
 ## v1.2.0 - 2025-02-26
 
 ### Features
