@@ -140,20 +140,26 @@ If you have [`direnv`](https://direnv.net) installed, run `direnv allow` once to
 ### Commands
 
 ```sh
-just --list
+just
 
 Available recipes:
-    build   # build app
-    b       # alias for `build`
-    default
-    format  # format files
-    f       # alias for `format`
-    lint    # lint
-    l       # alias for `lint`
-    run     # run app
-    r       # alias for `run`
-    test    # run tests
-    t       # alias for `test`
+    build                 # build app [alias: b]
+    default               # list commands
+    demo-blink            # build demo: blink animation [alias: db]
+    demo-countdown        # build demo: countdown [alias: dc]
+    demo-countdown-met    # build demo: countdown + met [alias: dcm]
+    demo-decis            # build demo: deciseconds [alias: dd]
+    demo-local-time       # build demo: local time [alias: dlt]
+    demo-menu             # build demo: menu [alias: dm]
+    demo-pomodoro         # build demo: pomodoro [alias: dp]
+    demo-rocket-countdown # build demo: rocket countdown [alias: drc]
+    demo-style            # build demo: styles [alias: ds]
+    demo-timer            # build demo: timer [alias: dt]
+    format                # format files [alias: f]
+    lint                  # lint [alias: l]
+    run                   # run app [alias: r]
+    run-sound path        # run app while sound feature is enabled. It expects a path to a sound file. [alias: rs]
+    test                  # run tests [alias: t]
 ```
 
 ### Build
@@ -161,6 +167,8 @@ Available recipes:
 - Linux
 ```sh
 nix build
+# or for bulding w/ statically linked binaries
+nix build .#linuxStatic
 ```
 
 - Windows (cross-compilation)
