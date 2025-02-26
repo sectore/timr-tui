@@ -143,8 +143,12 @@ If you have [`direnv`](https://direnv.net) installed, run `direnv allow` once to
 just
 
 Available recipes:
-    build                 # build app [alias: b]
     default               # list commands
+
+    [build]
+    build                 # build app [alias: b]
+
+    [demo]
     demo-blink            # build demo: blink animation [alias: db]
     demo-countdown        # build demo: countdown [alias: dc]
     demo-countdown-met    # build demo: countdown + met [alias: dcm]
@@ -155,10 +159,16 @@ Available recipes:
     demo-rocket-countdown # build demo: rocket countdown [alias: drc]
     demo-style            # build demo: styles [alias: ds]
     demo-timer            # build demo: timer [alias: dt]
-    format                # format files [alias: f]
-    lint                  # lint [alias: l]
+
+    [dev]
     run                   # run app [alias: r]
     run-sound path        # run app while sound feature is enabled. It expects a path to a sound file. [alias: rs]
+
+    [misc]
+    format                # format files [alias: f]
+    lint                  # lint [alias: l]
+
+    [test]
     test                  # run tests [alias: t]
 ```
 
