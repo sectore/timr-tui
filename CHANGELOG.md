@@ -1,12 +1,20 @@
 # Changelog
 
-## [Unreleased]
+## v1.2.0 - 2025-02-26
 
 ### Features
 
-- (notification) Blink clock when it reaches its `done` mode. (optional) [#65](https://github.com/sectore/timr-tui/pull/65)
-- (notification) Native desktop notification (optional, experimental) [#49](https://github.com/sectore/timr-tui/pull/59)
+- (notification) Clock animation (blink) by reaching `done` mode (optional) [#65](https://github.com/sectore/timr-tui/pull/65)
+- (notification) Native desktop notification (optional, experimental) [#59](https://github.com/sectore/timr-tui/pull/59)
 - (notification) Sound notification (optional, experimental, available in local build only) [#62](https://github.com/sectore/timr-tui/pull/62)
+- (logging) Add `--log` arg to enable logs [e094d7d](https://github.com/sectore/timr-tui/commit/e094d7d81b99f58f0d3bc50124859a4e1f6dbe4f)
+
+### Misc.
+
+- (refactor) Extend event handling for using a `mpsc` channel to send `AppEvent`'s from anywhere. [#61](https://github.com/sectore/timr-tui/pull/61)
+- (extension) Use `set_panic_hook` for better error handling [#67](https://github.com/sectore/timr-tui/pull/67)
+- (deps) Use latest `Rust 1.85` and `Rust 2024 Edition`. Refactor `flake` to consider `rust-toolchain.toml` etc. [#68](https://github.com/sectore/timr-tui/pull/68)
+
 
 ## v1.1.0 - 2025-01-22
 
