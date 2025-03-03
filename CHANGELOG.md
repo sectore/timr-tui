@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixes
+
+(countdown) Reset `Mission Elapsed Time (MET)` if `countdown` is set by cli arguments [#71](https://github.com/sectore/timr-tui/pull/71)
+
 ### Misc.
 
 (cargo) Exclude files for packaging [e7a5a1b](https://github.com/sectore/timr-tui/commit/e7a5a1b2da7a7967f2602a0b92f391ac768ca638)
