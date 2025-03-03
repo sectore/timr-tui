@@ -103,7 +103,11 @@ impl From<FromAppArgs> for App {
             initial_value_countdown: args.countdown.unwrap_or(stg.inital_value_countdown),
             // invalidate `current_value_countdown` if an initial value is set via args
             current_value_countdown: args.countdown.unwrap_or(stg.current_value_countdown),
-            elapsed_value_countdown: stg.elapsed_value_countdown,
+            elapsed_value_countdown: match args.countdown {
+                // reset value if countdown is set by arguments
+                Some(_) => Duration::ZERO,
+                None => stg.elapsed_value_countdown,
+            },
             current_value_timer: stg.current_value_timer,
             app_tx,
             #[cfg(feature = "sound")]
