@@ -4,13 +4,14 @@
 
 ### Fixes
 
-- (countdown) Reset `Mission Elapsed Time (MET)` if `countdown` is set by _local time_ [#72](https://github.com/sectore/timr-tui/pull/72)
 - (countdown) Reset `Mission Elapsed Time (MET)` if `countdown` is set by _cli arguments_ [#71](https://github.com/sectore/timr-tui/pull/71)
+- (countdown) Reset `Mission Elapsed Time (MET)` while setting `countdown` by _local time_ [#72](https://github.com/sectore/timr-tui/pull/72)
 
 ### Misc.
 
-(cargo) Exclude files for packaging [e7a5a1b](https://github.com/sectore/timr-tui/commit/e7a5a1b2da7a7967f2602a0b92f391ac768ca638)
-(just) `group` commands [#70](https://github.com/sectore/timr-tui/pull/70)
+- (deps) Use latest `Rust 1.86` [#73](https://github.com/sectore/timr-tui/pull/73)
+- (cargo) Exclude files for packaging [e7a5a1b](https://github.com/sectore/timr-tui/commit/e7a5a1b2da7a7967f2602a0b92f391ac768ca638)
+- (just) `group` commands [#70](https://github.com/sectore/timr-tui/pull/70)
 
 ## v1.2.0 - 2025-02-26
 
