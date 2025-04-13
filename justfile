@@ -42,12 +42,26 @@ alias r := run
 run:
     cargo run
 
+alias ra := run-args
+
+# run app with arguments. It expects arguments as a string (e.g. "-c 5:00").
+[group('dev')]
+run-args args:
+    cargo run -- {{ args }}
+
 alias rs := run-sound
 
 # run app while sound feature is enabled. It expects a path to a sound file.
 [group('dev')]
 run-sound path:
     cargo run --features sound -- --sound={{ path }}
+
+alias rsa := run-sound-args
+
+# run app while sound feature is enabled by adding a path to a sound file and other arguments as string (e.g. "-c 5:00").
+[group('dev')]
+run-sound-args path args:
+    cargo run --features sound -- --sound={{ path }} {{ args }}
 
 # demos
 
