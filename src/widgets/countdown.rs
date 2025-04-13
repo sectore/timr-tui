@@ -144,8 +144,6 @@ impl CountdownState {
 
 impl TuiEventHandler for CountdownState {
     fn update(&mut self, event: TuiEvent) -> Option<TuiEvent> {
-        let is_edit_clock = self.clock.is_edit_mode();
-        let is_edit_time = self.edit_time.is_some();
         match event {
             TuiEvent::Tick => {
                 if !self.clock.is_done() {
@@ -191,11 +189,9 @@ impl TuiEventHandler for CountdownState {
                 }
                 // STRG + e => toggle edit time
                 KeyCode::Char('e') if key.modifiers.contains(KeyModifiers::CONTROL) => {
-                    // stop editing clock
-                    if self.clock.is_edit_mode() {
-                        // toggle edit mode
-                        self.clock.toggle_edit();
-                    }
+                    // reset both clocks
+                    self.clock.reset();
+                    self.elapsed_clock.reset();
 
                     if let Some(edit_time) = &mut self.edit_time.clone() {
                         self.edit_time_done(edit_time)
@@ -207,18 +203,8 @@ impl TuiEventHandler for CountdownState {
                             max: self.max_time_to_edit(),
                         }));
                     }
-
-                    // stop `clock`
-                    if self.clock.is_running() {
-                        self.clock.toggle_pause();
-                    }
-
-                    // stop `elapsed_clock`
-                    if self.elapsed_clock.is_running() {
-                        self.elapsed_clock.toggle_pause();
-                    }
                 }
-                // STRG + e => toggle edit clock
+                // e => toggle edit clock
                 KeyCode::Char('e') => {
                     // toggle edit mode
                     self.clock.toggle_edit();
@@ -227,47 +213,38 @@ impl TuiEventHandler for CountdownState {
                     if self.elapsed_clock.is_running() {
                         self.elapsed_clock.toggle_pause();
                     }
-
-                    // finish `edit_time` and continue for using `clock`
-                    if let Some(edit_time) = &mut self.edit_time.clone() {
-                        self.edit_time_done(edit_time);
-                    }
                 }
-                KeyCode::Left if is_edit_clock => {
+                KeyCode::Left if self.is_clock_edit_mode() => {
                     self.clock.edit_next();
                 }
-                KeyCode::Left if is_edit_time => {
-                    // safe unwrap because of previous check in `is_edit_time`
+                KeyCode::Left if self.is_time_edit_mode() => {
+                    // safe unwrap because of previous check in `is_time_edit_mode`
                     self.edit_time.as_mut().unwrap().next();
                 }
-                KeyCode::Right if is_edit_clock => {
+                KeyCode::Right if self.is_clock_edit_mode() => {
                     self.clock.edit_prev();
                 }
-                KeyCode::Right if is_edit_time => {
-                    // safe unwrap because of previous check in `is_edit_time`
+                KeyCode::Right if self.is_time_edit_mode() => {
+                    // safe unwrap because of previous check in `is_time_edit_mode`
                     self.edit_time.as_mut().unwrap().prev();
                 }
-                KeyCode::Up if is_edit_clock => {
+                KeyCode::Up if self.is_clock_edit_mode() => {
                     self.clock.edit_up();
                     // whenever `clock`'s value is changed, reset `elapsed_clock`
                     self.elapsed_clock.reset();
                 }
-                KeyCode::Up if is_edit_time => {
-                    // safe unwrap because of previous check in `is_edit_time`
+                KeyCode::Up if self.is_time_edit_mode() => {
+                    // safe unwrap because of previous check in `is_time_edit_mode`
                     self.edit_time.as_mut().unwrap().up();
-                    // whenever `clock`'s value is changed, reset `elapsed_clock`
-                    self.elapsed_clock.reset();
                 }
-                KeyCode::Down if is_edit_clock => {
+                KeyCode::Down if self.is_clock_edit_mode() => {
                     self.clock.edit_down();
                     // whenever clock value is changed, reset timer
                     self.elapsed_clock.reset();
                 }
-                KeyCode::Down if is_edit_time => {
-                    // safe unwrap because of previous check in `is_edit_time`
+                KeyCode::Down if self.is_time_edit_mode() => {
+                    // safe unwrap because of previous check in `is_time_edit_mode`
                     self.edit_time.as_mut().unwrap().down();
-                    // whenever clock value is changed, reset timer
-                    self.elapsed_clock.reset();
                 }
                 _ => return Some(event),
             },

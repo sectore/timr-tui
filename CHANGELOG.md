@@ -4,7 +4,8 @@
 
 ### Fixes
 
-(countdown) Reset `Mission Elapsed Time (MET)` if `countdown` is set by cli arguments [#71](https://github.com/sectore/timr-tui/pull/71)
+- (countdown) Reset `Mission Elapsed Time (MET)` if `countdown` is set by _local time_ [#72](https://github.com/sectore/timr-tui/pull/72)
+- (countdown) Reset `Mission Elapsed Time (MET)` if `countdown` is set by _cli arguments_ [#71](https://github.com/sectore/timr-tui/pull/71)
 
 ### Misc.
 
@@ -25,7 +26,6 @@
 - (refactor) Extend event handling for using a `mpsc` channel to send `AppEvent`'s from anywhere. [#61](https://github.com/sectore/timr-tui/pull/61)
 - (extension) Use `set_panic_hook` for better error handling [#67](https://github.com/sectore/timr-tui/pull/67)
 - (deps) Use latest `Rust 1.85` and `Rust 2024 Edition`. Refactor `flake` to consider `rust-toolchain.toml` etc. [#68](https://github.com/sectore/timr-tui/pull/68)
-
 
 ## v1.1.0 - 2025-01-22
 
