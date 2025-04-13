@@ -9,6 +9,10 @@
 
 ### Misc.
 
+- (deps) Use latest `Rust 1.86` [#73](https://github.com/sectore/timr-tui/pull/73)
+
+### Misc.
+
 (cargo) Exclude files for packaging [e7a5a1b](https://github.com/sectore/timr-tui/commit/e7a5a1b2da7a7967f2602a0b92f391ac768ca638)
 (just) `group` commands [#70](https://github.com/sectore/timr-tui/pull/70)
 
