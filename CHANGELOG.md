@@ -4,7 +4,8 @@
 
 ### Fixes
 
-(countdown) Reset `Mission Elapsed Time (MET)` if `countdown` is set by cli arguments [#71](https://github.com/sectore/timr-tui/pull/71)
+(countdown) Reset `Mission Elapsed Time (MET)` if `countdown` is set by *local time* [#72](https://github.com/sectore/timr-tui/pull/72)
+(countdown) Reset `Mission Elapsed Time (MET)` if `countdown` is set by *cli arguments* [#71](https://github.com/sectore/timr-tui/pull/71)
 
 ### Misc.
 
