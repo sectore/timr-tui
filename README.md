@@ -48,7 +48,7 @@ _Side note:_ Theme colors depend on your terminal preferences.
   <img alt="menu" src="demo/menu.gif" />
 </a>
 
-## Local time
+## Local time (footer)
 
 <a href="demo/local-time.gif">
   <img alt="menu" src="demo/local-time.gif" />
@@ -80,14 +80,14 @@ Options:
       --blink <BLINK>                Toggle blink mode to animate a clock when it reaches its finished mode. [possible values: on, off]
       --log [<LOG>]                  Directory to store log file. If not set, standard application log directory is used (check README for details).
   -h, --help                         Print help
+  -V, --version                      Print version
 ```
 
 Extra option (if `--features sound` is enabled by local build only):
 
 ```sh
-      --sound <SOUND>                Path to sound file (.mp3 or .wav) to play as notification. Experimental.
+--sound <SOUND>                Path to sound file (.mp3 or .wav) to play as notification. Experimental.
 ```
-
 
 # Installation
 
@@ -113,11 +113,9 @@ Install [from the AUR](https://aur.archlinux.org/packages/timr/):
 paru -S timr
 ```
 
-
 ## Release binaries
 
 Pre-built artifacts are available to download from [latest GitHub release](https://github.com/sectore/timr-tui/releases).
-
 
 # Development
 
@@ -128,7 +126,6 @@ Pre-built artifacts are available to download from [latest GitHub release](https
 `cd` into root directory.
 
 If you have [`direnv`](https://direnv.net) installed, run `direnv allow` once to install dependencies. In other case run `nix develop`.
-
 
 ### Non Nix users
 
@@ -161,8 +158,10 @@ Available recipes:
     demo-timer            # build demo: timer [alias: dt]
 
     [dev]
-    run                   # run app [alias: r]
-    run-sound path        # run app while sound feature is enabled. It expects a path to a sound file. [alias: rs]
+    run                      # run app [alias: r]
+    run-args args            # run app with arguments. It expects arguments as a string (e.g. "-c 5:00"). [alias: ra]
+    run-sound path           # run app while sound feature is enabled. It expects a path to a sound file. [alias: rs]
+    run-sound-args path args # run app while sound feature is enabled by adding a path to a sound file and other arguments as string (e.g. "-c 5:00"). [alias: rsa]
 
     [misc]
     format                # format files [alias: f]
@@ -175,6 +174,7 @@ Available recipes:
 ### Build
 
 - Linux
+
 ```sh
 nix build
 # or for bulding w/ statically linked binaries
@@ -182,8 +182,15 @@ nix build .#linuxStatic
 ```
 
 - Windows (cross-compilation)
+
 ```sh
 nix build .#windows
+```
+
+### Run tests
+
+```sh
+cargo test
 ```
 
 # Misc.
