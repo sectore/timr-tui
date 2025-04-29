@@ -526,12 +526,10 @@ impl ClockState<Timer> {
     }
 
     pub fn edit_up(&mut self) {
-        self.prev_value = self.current_value;
         self.edit_current_up();
     }
 
     pub fn edit_down(&mut self) {
-        self.prev_value = self.current_value;
         self.edit_current_down();
     }
 }
