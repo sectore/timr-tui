@@ -173,6 +173,8 @@ impl StatefulWidget for Footer {
                                 _ => vec![
                                     Span::from("[ENTER]apply changes"),
                                     Span::from(SPACE),
+                                    Span::from("[ESC]skip changes"),
+                                    Span::from(SPACE),
                                     Span::from(format!(
                                         "[{} {}]edit selection",
                                         scrollbar::HORIZONTAL.begin,
@@ -182,8 +184,6 @@ impl StatefulWidget for Footer {
                                     Span::from(format!("[{}]edit up", scrollbar::VERTICAL.begin)), // ↑
                                     Span::from(SPACE),
                                     Span::from(format!("[{}]edit up", scrollbar::VERTICAL.end)), // ↓,
-                                    Span::from(SPACE),
-                                    Span::from("[ESC]skip changes"),
                                 ],
                             }
                         })),
