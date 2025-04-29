@@ -18,6 +18,7 @@ pub struct AppStorage {
     pub style: Style,
     pub with_decis: bool,
     pub pomodoro_mode: PomodoroMode,
+    pub pomodoro_count: u64,
     // pomodoro -> work
     pub inital_value_work: Duration,
     pub current_value_work: Duration,
@@ -46,6 +47,7 @@ impl Default for AppStorage {
             style: Style::default(),
             with_decis: false,
             pomodoro_mode: PomodoroMode::Work,
+            pomodoro_count: 1,
             // pomodoro -> work
             inital_value_work: DEFAULT_WORK,
             current_value_work: DEFAULT_WORK,

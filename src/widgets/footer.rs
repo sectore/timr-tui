@@ -149,19 +149,23 @@ impl StatefulWidget for Footer {
                                         }),
                                         Span::from(SPACE),
                                         Span::from("[r]eset"),
+                                    ];
+                                    if self.selected_content == Content::Pomodoro {
+                                        spans.extend_from_slice(&[
+                                            Span::from(SPACE),
+                                            Span::from("[^r]eset round"),
+                                            Span::from(SPACE),
+                                            Span::from("[← →]switch work/pause"),
+                                        ]);
+                                    }
+                                    spans.extend_from_slice(&[
                                         Span::from(SPACE),
                                         Span::from("[e]dit"),
-                                    ];
+                                    ]);
                                     if self.selected_content == Content::Countdown {
                                         spans.extend_from_slice(&[
                                             Span::from(SPACE),
                                             Span::from("[^e]dit by local time"),
-                                        ]);
-                                    }
-                                    if self.selected_content == Content::Pomodoro {
-                                        spans.extend_from_slice(&[
-                                            Span::from(SPACE),
-                                            Span::from("[← →]switch work/pause"),
                                         ]);
                                     }
                                     spans
