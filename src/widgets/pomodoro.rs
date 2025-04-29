@@ -145,7 +145,18 @@ impl TuiEventHandler for PomodoroState {
                 KeyCode::Char('s') => {
                     self.get_clock_mut().toggle_pause();
                 }
-                KeyCode::Char('e') => {
+                // Skip changes
+                KeyCode::Esc if edit_mode => {
+                    let clock = self.get_clock_mut();
+                    clock.toggle_edit();
+                    clock.set_current_value(*clock.get_prev_value());
+                }
+                // Apply changes
+                KeyCode::Enter if edit_mode => {
+                    self.get_clock_mut().toggle_edit();
+                }
+                // Enter edit mode
+                KeyCode::Char('e') if !edit_mode => {
                     self.get_clock_mut().toggle_edit();
                 }
                 KeyCode::Left if edit_mode => {
