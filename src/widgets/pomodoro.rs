@@ -5,6 +5,7 @@ use crate::{
     utils::center,
     widgets::clock::{ClockState, ClockStateArgs, ClockWidget, Countdown},
 };
+use crossterm::event::KeyModifiers;
 use ratatui::{
     buffer::Buffer,
     crossterm::event::KeyCode,
@@ -45,6 +46,7 @@ impl ClockMap {
 pub struct PomodoroState {
     mode: Mode,
     clock_map: ClockMap,
+    round: u64,
 }
 
 pub struct PomodoroStateArgs {
@@ -55,6 +57,7 @@ pub struct PomodoroStateArgs {
     pub current_value_pause: Duration,
     pub with_decis: bool,
     pub app_tx: AppEventTx,
+    pub round: u64,
 }
 
 impl PomodoroState {
@@ -67,6 +70,7 @@ impl PomodoroState {
             current_value_pause,
             with_decis,
             app_tx,
+            round,
         } = args;
         Self {
             mode,
@@ -88,6 +92,7 @@ impl PomodoroState {
                 })
                 .with_name("Pause".to_owned()),
             },
+            round,
         }
     }
 
@@ -109,6 +114,10 @@ impl PomodoroState {
 
     pub fn get_mode(&self) -> &Mode {
         &self.mode
+    }
+
+    pub fn get_round(&self) -> u64 {
+        self.round
     }
 
     pub fn set_with_decis(&mut self, with_decis: bool) {
@@ -158,7 +167,14 @@ impl TuiEventHandler for PomodoroState {
                 KeyCode::Down if edit_mode => {
                     self.get_clock_mut().edit_down();
                 }
+                KeyCode::Char('r') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                    self.round = 1;
+                }
                 KeyCode::Char('r') => {
+                    // count number of finished rounds of WORK before resetting the clock
+                    if self.get_mode() == &Mode::Work && self.get_clock().is_done() {
+                        self.round += 1;
+                    }
                     self.get_clock_mut().reset();
                 }
                 _ => return Some(event),
@@ -186,6 +202,7 @@ impl StatefulWidget for PomodoroWidget {
             ))
             .to_uppercase(),
         );
+        let label_round = Line::raw((format!("round {}", state.get_round(),)).to_uppercase());
 
         let area = center(
             area,
@@ -196,13 +213,18 @@ impl StatefulWidget for PomodoroWidget {
                 ),
                 label.width() as u16,
             )),
-            Constraint::Length(clock_widget.get_height() + 1 /* height of mode_str */),
+            Constraint::Length(
+                // height of `label` + `label_round`
+                clock_widget.get_height() + 2,
+            ),
         );
 
-        let [v1, v2] =
-            Layout::vertical(Constraint::from_lengths([clock_widget.get_height(), 1])).areas(area);
+        let [v1, v2, v3] =
+            Layout::vertical(Constraint::from_lengths([clock_widget.get_height(), 1, 1]))
+                .areas(area);
 
         clock_widget.render(v1, buf, state.get_clock_mut());
         label.centered().render(v2, buf);
+        label_round.centered().render(v3, buf);
     }
 }

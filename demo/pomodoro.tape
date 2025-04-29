@@ -10,9 +10,8 @@ Set Padding 0
 Set Margin 1
 
 # --- START ---
-Set LoopOffset 4
 Hide
-Type "cargo run -- -r -d -m p"
+Type "cargo run -- -d -m p --blink on"
 Enter
 Sleep 0.2
 Show
@@ -25,7 +24,7 @@ Sleep 0.2
 Down@30ms 80
 Sleep 100ms
 Type "e"
-Sleep 3
+Sleep 4
 # --- POMODORO PAUSE ---
 Right
 Sleep 0.5
@@ -36,4 +35,4 @@ Sleep 0.2
 Down@30ms 60
 Sleep 100ms
 Type "e"
-Sleep 3
+Sleep 4
