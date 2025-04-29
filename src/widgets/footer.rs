@@ -170,12 +170,8 @@ impl StatefulWidget for Footer {
                                     }
                                     spans
                                 }
-                                others => vec![
-                                    Span::from(match others {
-                                        AppEditMode::Clock => "[e]dit done",
-                                        AppEditMode::Time => "[^e]dit done",
-                                        _ => "",
-                                    }),
+                                _ => vec![
+                                    Span::from("[ENTER]apply changes"),
                                     Span::from(SPACE),
                                     Span::from(format!(
                                         "[{} {}]edit selection",
@@ -186,6 +182,8 @@ impl StatefulWidget for Footer {
                                     Span::from(format!("[{}]edit up", scrollbar::VERTICAL.begin)), // ↑
                                     Span::from(SPACE),
                                     Span::from(format!("[{}]edit up", scrollbar::VERTICAL.end)), // ↓,
+                                    Span::from(SPACE),
+                                    Span::from("[ESC]skip changes"),
                                 ],
                             }
                         })),

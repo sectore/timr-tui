@@ -74,6 +74,7 @@ pub struct ClockState<T> {
     name: Option<String>,
     initial_value: DurationEx,
     current_value: DurationEx,
+    prev_value: DurationEx,
     tick_value: DurationEx,
     mode: Mode,
     format: Format,
@@ -151,6 +152,10 @@ impl<T> ClockState<T> {
         self.update_format();
     }
 
+    pub fn get_prev_value(&self) -> &DurationEx {
+        &self.prev_value
+    }
+
     pub fn toggle_edit(&mut self) {
         self.mode = match self.mode.clone() {
             Mode::Editable(_, prev) => {
@@ -170,6 +175,8 @@ impl<T> ClockState<T> {
                 }
             }
             mode => {
+                // store prev. value
+                self.prev_value = self.current_value;
                 if self.format <= Format::Ss {
                     Mode::Editable(Time::Seconds, Box::new(mode))
                 } else {
@@ -402,6 +409,7 @@ impl ClockState<Countdown> {
             name: None,
             initial_value: initial_value.into(),
             current_value: current_value.into(),
+            prev_value: current_value.into(),
             tick_value: tick_value.into(),
             mode: if current_value == Duration::ZERO {
                 Mode::Done
@@ -475,6 +483,7 @@ impl ClockState<Timer> {
             name: None,
             initial_value: initial_value.into(),
             current_value: current_value.into(),
+            prev_value: current_value.into(),
             tick_value: tick_value.into(),
             mode: if current_value == initial_value {
                 Mode::Initial
@@ -517,10 +526,12 @@ impl ClockState<Timer> {
     }
 
     pub fn edit_up(&mut self) {
+        self.prev_value = self.current_value;
         self.edit_current_up();
     }
 
     pub fn edit_down(&mut self) {
+        self.prev_value = self.current_value;
         self.edit_current_down();
     }
 }

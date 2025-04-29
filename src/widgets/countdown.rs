@@ -187,25 +187,31 @@ impl TuiEventHandler for CountdownState {
                         self.edit_time_done(edit_time);
                     }
                 }
-                // STRG + e => toggle edit time
-                KeyCode::Char('e') if key.modifiers.contains(KeyModifiers::CONTROL) => {
-                    // reset both clocks
-                    self.clock.reset();
-                    self.elapsed_clock.reset();
-
-                    if let Some(edit_time) = &mut self.edit_time.clone() {
-                        self.edit_time_done(edit_time)
-                    } else {
-                        // update `edit_time`
-                        self.edit_time = Some(EditTimeState::new(EditTimeStateArgs {
-                            time: self.time_to_edit(),
-                            min: self.min_time_to_edit(),
-                            max: self.max_time_to_edit(),
-                        }));
-                    }
+                // skip editing clock
+                KeyCode::Esc if self.is_clock_edit_mode() => {
+                    self.clock.toggle_edit();
+                    self.clock.set_current_value(*self.clock.get_prev_value());
                 }
-                // e => toggle edit clock
-                KeyCode::Char('e') => {
+                // skip editing by local time
+                KeyCode::Esc if self.is_time_edit_mode() => {
+                    self.edit_time = None;
+                }
+
+                // Enter edit by local time mode
+                KeyCode::Char('e')
+                    if key.modifiers.contains(KeyModifiers::CONTROL)
+                        && !self.is_time_edit_mode() =>
+                {
+                    // set `edit_time`
+                    self.edit_time = Some(EditTimeState::new(EditTimeStateArgs {
+                        time: self.time_to_edit(),
+                        min: self.min_time_to_edit(),
+                        max: self.max_time_to_edit(),
+                    }));
+                }
+
+                // Enter edit clock
+                KeyCode::Char('e') if !self.is_clock_edit_mode() => {
                     // toggle edit mode
                     self.clock.toggle_edit();
 
@@ -214,6 +220,22 @@ impl TuiEventHandler for CountdownState {
                         self.elapsed_clock.toggle_pause();
                     }
                 }
+
+                // Apply changes of editing by local time
+                KeyCode::Enter if self.is_time_edit_mode() => {
+                    if let Some(edit_time) = &mut self.edit_time.clone() {
+                        self.elapsed_clock.reset();
+                        self.edit_time_done(edit_time)
+                    }
+                }
+
+                // Apply changes of editing clock
+                // Note: Using Ctrl+e is deprecated, use Enter instead
+                KeyCode::Enter if self.is_clock_edit_mode() => {
+                    // toggle edit mode
+                    self.clock.toggle_edit();
+                }
+
                 KeyCode::Left if self.is_clock_edit_mode() => {
                     self.clock.edit_next();
                 }
