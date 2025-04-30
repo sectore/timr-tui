@@ -104,7 +104,7 @@ impl StatefulWidget for Footer {
             let widths = [Constraint::Length(12), Constraint::Percentage(100)];
             let table = Table::new(
                 [
-                    // content
+                    // screens
                     Row::new(vec![
                         Cell::from(Span::styled(
                             "screens",
@@ -112,27 +112,7 @@ impl StatefulWidget for Footer {
                         )),
                         Cell::from(Line::from(content_labels)),
                     ]),
-                    // format
-                    Row::new(vec![
-                        Cell::from(Span::styled(
-                            "appearance",
-                            Style::default().add_modifier(Modifier::BOLD),
-                        )),
-                        Cell::from(Line::from(vec![
-                            Span::from("[,]change style"),
-                            Span::from(SPACE),
-                            Span::from("[.]toggle deciseconds"),
-                            Span::from(SPACE),
-                            Span::from(format!(
-                                "[:]toggle {} time",
-                                match self.app_time {
-                                    AppTime::Local(_) => "local",
-                                    AppTime::Utc(_) => "utc",
-                                }
-                            )),
-                        ])),
-                    ]),
-                    // edit
+                    // controls
                     Row::new(vec![
                         Cell::from(Span::styled(
                             "controls",
@@ -171,9 +151,9 @@ impl StatefulWidget for Footer {
                                     spans
                                 }
                                 _ => vec![
-                                    Span::from("[ENTER]apply changes"),
+                                    Span::from("[enter]apply changes"),
                                     Span::from(SPACE),
-                                    Span::from("[ESC]skip changes"),
+                                    Span::from("[esc]skip changes"),
                                     Span::from(SPACE),
                                     Span::from(format!(
                                         "[{} {}]edit selection",
@@ -187,6 +167,26 @@ impl StatefulWidget for Footer {
                                 ],
                             }
                         })),
+                    ]),
+                    // appearance
+                    Row::new(vec![
+                        Cell::from(Span::styled(
+                            "appearance",
+                            Style::default().add_modifier(Modifier::BOLD),
+                        )),
+                        Cell::from(Line::from(vec![
+                            Span::from("[,]change style"),
+                            Span::from(SPACE),
+                            Span::from("[.]toggle deciseconds"),
+                            Span::from(SPACE),
+                            Span::from(format!(
+                                "[:]toggle {} time",
+                                match self.app_time {
+                                    AppTime::Local(_) => "local",
+                                    AppTime::Utc(_) => "utc",
+                                }
+                            )),
+                        ])),
                     ]),
                 ],
                 widths,
