@@ -39,36 +39,50 @@ impl TuiEventHandler for TimerState {
                 self.clock.tick();
                 self.clock.update_done_count();
             }
-            TuiEvent::Key(key) => match key.code {
-                KeyCode::Char('s') => {
-                    self.clock.toggle_pause();
-                }
-                KeyCode::Char('r') => {
-                    self.clock.reset();
-                }
-                KeyCode::Esc if edit_mode => {
+            // EDIT mode
+            TuiEvent::Key(key) if edit_mode => match key.code {
+                // Skip changes
+                KeyCode::Esc => {
                     // Important: set current value first
                     self.clock.set_current_value(*self.clock.get_prev_value());
                     // before toggling back to non-edit mode
                     self.clock.toggle_edit();
                 }
-                KeyCode::Enter if edit_mode => {
+                // Apply changes
+                KeyCode::Char('s') => {
                     self.clock.toggle_edit();
                 }
-                KeyCode::Char('e') if !edit_mode => {
-                    self.clock.toggle_edit();
-                }
-                KeyCode::Left if edit_mode => {
+                // move change position to the left
+                KeyCode::Left => {
                     self.clock.edit_next();
                 }
-                KeyCode::Right if edit_mode => {
+                // move change position to the right
+                KeyCode::Right => {
                     self.clock.edit_prev();
                 }
-                KeyCode::Up if edit_mode => {
+                // change value up
+                KeyCode::Up => {
                     self.clock.edit_up();
                 }
-                KeyCode::Down if edit_mode => {
+                // change value down
+                KeyCode::Down => {
                     self.clock.edit_down();
+                }
+                _ => return Some(event),
+            },
+            // default mode
+            TuiEvent::Key(key) => match key.code {
+                // Toggle run/pause
+                KeyCode::Char('s') => {
+                    self.clock.toggle_pause();
+                }
+                // reset clock
+                KeyCode::Char('r') => {
+                    self.clock.reset();
+                }
+                // enter edit mode
+                KeyCode::Char('e') => {
+                    self.clock.toggle_edit();
                 }
                 _ => return Some(event),
             },

@@ -5,10 +5,9 @@ use crate::{
     utils::center,
     widgets::clock::{ClockState, ClockStateArgs, ClockWidget, Countdown},
 };
-use crossterm::event::KeyModifiers;
+use crossterm::event::{KeyCode, KeyModifiers};
 use ratatui::{
     buffer::Buffer,
-    crossterm::event::KeyCode,
     layout::{Constraint, Layout, Rect},
     text::Line,
     widgets::{StatefulWidget, Widget},
@@ -141,46 +140,69 @@ impl TuiEventHandler for PomodoroState {
                 self.get_clock_mut().tick();
                 self.get_clock_mut().update_done_count();
             }
+            // EDIT mode
+            TuiEvent::Key(key) if edit_mode => match key.code {
+                // Skip changes
+                KeyCode::Esc => {
+                    let clock = self.get_clock_mut();
+                    // Important: set current value first
+                    clock.set_current_value(*clock.get_prev_value());
+                    // before toggling back to non-edit mode
+                    clock.toggle_edit();
+                }
+                // Apply changes and update initial value
+                KeyCode::Char('s') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                    self.get_clock_mut().toggle_edit();
+                    // update initial value
+                    let c = *self.get_clock().get_current_value();
+                    self.get_clock_mut().set_initial_value(c);
+                }
+                // Apply changes
+                KeyCode::Char('s') => {
+                    self.get_clock_mut().toggle_edit();
+                }
+                // Value up
+                KeyCode::Up => {
+                    self.get_clock_mut().edit_up();
+                }
+                // Value down
+                KeyCode::Down => {
+                    self.get_clock_mut().edit_down();
+                }
+                // move edit position to the left
+                KeyCode::Left => {
+                    self.get_clock_mut().edit_next();
+                }
+                // move edit position to the right
+                KeyCode::Right => {
+                    self.get_clock_mut().edit_prev();
+                }
+                _ => return Some(event),
+            },
+            // default mode
             TuiEvent::Key(key) => match key.code {
+                // Toggle run/pause
                 KeyCode::Char('s') => {
                     self.get_clock_mut().toggle_pause();
                 }
-                // Skip changes
-                KeyCode::Esc if edit_mode => {
-                    let clock = self.get_clock_mut();
-                    clock.toggle_edit();
-                    clock.set_current_value(*clock.get_prev_value());
-                }
-                // Apply changes
-                KeyCode::Enter if edit_mode => {
-                    self.get_clock_mut().toggle_edit();
-                }
                 // Enter edit mode
-                KeyCode::Char('e') if !edit_mode => {
+                KeyCode::Char('e') => {
                     self.get_clock_mut().toggle_edit();
                 }
-                KeyCode::Left if edit_mode => {
-                    self.get_clock_mut().edit_next();
-                }
+                // toggle WORK/PAUSE
                 KeyCode::Left => {
-                    // `next` is acting as same as a `prev` function, we don't have
+                    // `next` is acting as same as a "prev" function we don't have
                     self.next();
                 }
-                KeyCode::Right if edit_mode => {
-                    self.get_clock_mut().edit_prev();
-                }
+                // toggle WORK/PAUSE
                 KeyCode::Right => {
                     self.next();
                 }
-                KeyCode::Up if edit_mode => {
-                    self.get_clock_mut().edit_up();
-                }
-                KeyCode::Down if edit_mode => {
-                    self.get_clock_mut().edit_down();
-                }
+                // reset round
                 KeyCode::Char('r') if key.modifiers.contains(KeyModifiers::CONTROL) => {
                     self.round = 1;
                 }
+                // reset values
                 KeyCode::Char('r') => {
                     // count number of finished rounds of WORK before resetting the clock
                     if self.get_mode() == &Mode::Work && self.get_clock().is_done() {
