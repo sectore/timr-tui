@@ -160,10 +160,10 @@ impl<T> ClockState<T> {
         self.mode = match self.mode.clone() {
             Mode::Editable(_, prev) => {
                 let p = *prev;
-                // special cases: Should `Mode` be updated?
-                // 1. `Done` -> `Initial` ?
+                // Update `Mode`
+                // 1. `Done` -> `Pause`
                 if p == Mode::Done && self.current_value.gt(&Duration::ZERO.into()) {
-                    Mode::Initial
+                    Mode::Pause
                 }
                 // 2. `_` -> `Done` ?
                 else if p != Mode::Done && self.current_value.eq(&Duration::ZERO.into()) {
