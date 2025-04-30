@@ -8,9 +8,20 @@ TUI to organize your time: Pomodoro, Countdown, Timer.
 
 Built with [Ratatui](https://ratatui.rs/) / [Rust 🦀](https://www.rust-lang.org/).
 
-# Features
 
-_Side note:_ Theme colors depend on your terminal preferences.
+# Table of Contents
+
+- [Preview](./#preview)
+- [CLI](./#cli)
+- [Keybindings](./#keybindings)
+- [Installation](./#installation)
+- [Development](./#development)
+- [Misc](./#misc)
+- [License](./#license)
+
+# Preview
+
+_(theme depends on your terminal preferences)_
 
 ## Pomodoro
 
@@ -88,6 +99,61 @@ Extra option (if `--features sound` is enabled by local build only):
 ```sh
 --sound <SOUND>                Path to sound file (.mp3 or .wav) to play as notification. Experimental.
 ```
+
+# Keybindings
+
+## Menu
+
+| Key | Description |
+| --- | --- |
+| <kbd>↑</kbd> / <kbd>↓</kbd> or <kbd>m</kbd> | Toggle menu |
+
+## Screens
+
+| Key | Description |
+| --- | --- |
+| <kbd>p</kbd> | Pomodoro |
+| <kbd>c</kbd> | Countdown |
+| <kbd>t</kbd> | Timer |
+
+## Controls
+
+| Key | Description |
+| --- | --- |
+| <kbd>s</kbd> | start |
+| <kbd>r</kbd> | reset |
+| <kbd>e</kbd> | enter edit mode |
+| <kbd>q</kbd> | quit |
+
+**In `edit` mode only:**
+
+| Key | Description |
+| --- | --- |
+| <kbd>Enter</kbd> | apply changes |
+| <kbd>Esc</kbd> | skip changes |
+| <kbd>←</kbd> or <kbd>→</kbd> | change selection |
+| <kbd>↑</kbd> or <kbd>↓</kbd> | change values to go up or down |
+
+**In `Pomodoro` screen only**
+
+| Key | Description |
+| --- | --- |
+| <kbd>←</kbd> or <kbd>→</kbd> | switch work/pause |
+| <kbd>^r</kbd> | reset round |
+
+**In `Countdown` screen only:**
+
+| Key | Description |
+| --- | --- |
+| <kbd>^e</kbd> | edit by local time |
+
+## Appearance
+
+| Key | Description |
+| --- | --- |
+| <kbd>,</kbd> | toggle styles |
+| <kbd>.</kbd> | toggle deciseconds |
+| <kbd>:</kbd> | toggle local time in footer |
 
 # Installation
 
@@ -224,3 +290,7 @@ C:/Users/{user}/AppData/Local/timr-tui/logs/app.log
 ```
 
 Optional: You can use a custom directory by passing it via `--log` arg.
+
+# License
+
+[MIT License](./LICENSE)
