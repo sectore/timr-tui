@@ -125,7 +125,7 @@ Extra option (if `--features sound` is enabled by local build only):
 | <kbd>e</kbd> | enter edit mode |
 | <kbd>q</kbd> | quit |
 
-**`Edit` mode only:**
+**In `edit` mode only:**
 
 | Key | Description |
 | --- | --- |
@@ -134,14 +134,14 @@ Extra option (if `--features sound` is enabled by local build only):
 | <kbd>←</kbd> or <kbd>→</kbd> | change selection |
 | <kbd>↑</kbd> or <kbd>↓</kbd> | change values to go up or down |
 
-**`Pomodoro` only**
+**In `Pomodoro` screen only**
 
 | Key | Description |
 | --- | --- |
 | <kbd>←</kbd> or <kbd>→</kbd> | switch work/pause |
 | <kbd>^r</kbd> | reset round |
 
-**`Countdown` only**
+**In `Countdown` screen only:**
 
 | Key | Description |
 | --- | --- |
@@ -153,7 +153,7 @@ Extra option (if `--features sound` is enabled by local build only):
 | --- | --- |
 | <kbd>,</kbd> | toggle styles |
 | <kbd>.</kbd> | toggle deciseconds |
-| <kbd>:</kbd> | toggle local time (footer) |
+| <kbd>:</kbd> | toggle local time in footer |
 
 # Installation
 
