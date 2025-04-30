@@ -47,8 +47,10 @@ impl TuiEventHandler for TimerState {
                     self.clock.reset();
                 }
                 KeyCode::Esc if edit_mode => {
-                    self.clock.toggle_edit();
+                    // Important: set current value first
                     self.clock.set_current_value(*self.clock.get_prev_value());
+                    // before toggling back to non-edit mode
+                    self.clock.toggle_edit();
                 }
                 KeyCode::Enter if edit_mode => {
                     self.clock.toggle_edit();
