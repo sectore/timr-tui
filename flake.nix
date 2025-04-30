@@ -88,16 +88,12 @@
             # some extra pkgs needed to play sound on Linux
             ++ lib.optionals stdenv.isLinux [
               pkgs.pkg-config
-              pkgs.alsa-lib.dev
-              pkgs.pipewire
+              (pkgs.alsa-lib-with-plugins.override {
+                plugins = [pkgs.alsa-plugins pkgs.pipewire];
+              })
             ];
 
           inherit (commonArgs) src;
-
-          ALSA_PLUGIN_DIR =
-            if stdenv.isLinux
-            then "${pkgs.pipewire}/lib/alsa-lib/"
-            else "";
         };
     });
 }
