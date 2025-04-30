@@ -189,8 +189,10 @@ impl TuiEventHandler for CountdownState {
                 }
                 // skip editing clock
                 KeyCode::Esc if self.is_clock_edit_mode() => {
-                    self.clock.toggle_edit();
+                    // Important: set current value first
                     self.clock.set_current_value(*self.clock.get_prev_value());
+                    // before toggling back to non-edit mode
+                    self.clock.toggle_edit();
                 }
                 // skip editing by local time
                 KeyCode::Esc if self.is_time_edit_mode() => {
@@ -208,6 +210,11 @@ impl TuiEventHandler for CountdownState {
                         min: self.min_time_to_edit(),
                         max: self.max_time_to_edit(),
                     }));
+
+                    // pause `elapsed_clock`
+                    if self.elapsed_clock.is_running() {
+                        self.elapsed_clock.toggle_pause();
+                    }
                 }
 
                 // Enter edit clock
@@ -215,7 +222,7 @@ impl TuiEventHandler for CountdownState {
                     // toggle edit mode
                     self.clock.toggle_edit();
 
-                    // stop `elapsed_clock`
+                    // pause `elapsed_clock`
                     if self.elapsed_clock.is_running() {
                         self.elapsed_clock.toggle_pause();
                     }
@@ -224,9 +231,10 @@ impl TuiEventHandler for CountdownState {
                 // Apply changes of editing by local time
                 KeyCode::Enter if self.is_time_edit_mode() => {
                     if let Some(edit_time) = &mut self.edit_time.clone() {
-                        self.elapsed_clock.reset();
                         self.edit_time_done(edit_time)
                     }
+                    // always reset `elapsed_clock`
+                    self.elapsed_clock.reset();
                 }
 
                 // Apply changes of editing clock
@@ -234,6 +242,8 @@ impl TuiEventHandler for CountdownState {
                 KeyCode::Enter if self.is_clock_edit_mode() => {
                     // toggle edit mode
                     self.clock.toggle_edit();
+                    // always reset `elapsed_clock`
+                    self.elapsed_clock.reset();
                 }
 
                 KeyCode::Left if self.is_clock_edit_mode() => {
@@ -252,8 +262,6 @@ impl TuiEventHandler for CountdownState {
                 }
                 KeyCode::Up if self.is_clock_edit_mode() => {
                     self.clock.edit_up();
-                    // whenever `clock`'s value is changed, reset `elapsed_clock`
-                    self.elapsed_clock.reset();
                 }
                 KeyCode::Up if self.is_time_edit_mode() => {
                     // safe unwrap because of previous check in `is_time_edit_mode`
@@ -261,8 +269,6 @@ impl TuiEventHandler for CountdownState {
                 }
                 KeyCode::Down if self.is_clock_edit_mode() => {
                     self.clock.edit_down();
-                    // whenever clock value is changed, reset timer
-                    self.elapsed_clock.reset();
                 }
                 KeyCode::Down if self.is_time_edit_mode() => {
                     // safe unwrap because of previous check in `is_time_edit_mode`
