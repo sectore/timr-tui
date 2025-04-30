@@ -227,17 +227,24 @@ impl StatefulWidget for PomodoroWidget {
                 label.width() as u16,
             )),
             Constraint::Length(
-                // height of `label` + `label_round`
-                clock_widget.get_height() + 2,
+                // empty label + height of `label` + `label_round`
+                clock_widget.get_height() + 3,
             ),
         );
 
-        let [v1, v2, v3] =
-            Layout::vertical(Constraint::from_lengths([clock_widget.get_height(), 1, 1]))
-                .areas(area);
+        let [v1, v2, v3, v4] = Layout::vertical(Constraint::from_lengths([
+            1,
+            clock_widget.get_height(),
+            1,
+            1,
+        ]))
+        .areas(area);
 
-        clock_widget.render(v1, buf, state.get_clock_mut());
-        label.centered().render(v2, buf);
-        label_round.centered().render(v3, buf);
+        // empty line keep everything in center vertically comparing to other
+        // views (which have one label below the clock only)
+        Line::raw("").centered().render(v1, buf);
+        clock_widget.render(v2, buf, state.get_clock_mut());
+        label.centered().render(v3, buf);
+        label_round.centered().render(v4, buf);
     }
 }
