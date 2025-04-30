@@ -112,7 +112,27 @@ impl StatefulWidget for Footer {
                         )),
                         Cell::from(Line::from(content_labels)),
                     ]),
-                    // controls
+                    // appearance
+                    Row::new(vec![
+                        Cell::from(Span::styled(
+                            "appearance",
+                            Style::default().add_modifier(Modifier::BOLD),
+                        )),
+                        Cell::from(Line::from(vec![
+                            Span::from("[,]change style"),
+                            Span::from(SPACE),
+                            Span::from("[.]toggle deciseconds"),
+                            Span::from(SPACE),
+                            Span::from(format!(
+                                "[:]toggle {} time",
+                                match self.app_time {
+                                    AppTime::Local(_) => "local",
+                                    AppTime::Utc(_) => "utc",
+                                }
+                            )),
+                        ])),
+                    ]),
+                    // controls - 1. row
                     Row::new(vec![
                         Cell::from(Span::styled(
                             "controls",
@@ -134,8 +154,6 @@ impl StatefulWidget for Footer {
                                         spans.extend_from_slice(&[
                                             Span::from(SPACE),
                                             Span::from("[^r]eset round"),
-                                            Span::from(SPACE),
-                                            Span::from("[← →]switch work/pause"),
                                         ]);
                                     }
                                     spans.extend_from_slice(&[
@@ -151,42 +169,51 @@ impl StatefulWidget for Footer {
                                     spans
                                 }
                                 _ => vec![
-                                    Span::from("[enter]apply changes"),
+                                    Span::from("[s]ave changes"),
+                                    Span::from(SPACE),
+                                    Span::from("[^s]ave initial value"),
                                     Span::from(SPACE),
                                     Span::from("[esc]skip changes"),
-                                    Span::from(SPACE),
-                                    Span::from(format!(
-                                        "[{} {}]edit selection",
-                                        scrollbar::HORIZONTAL.begin,
-                                        scrollbar::HORIZONTAL.end
-                                    )), // ← →,
-                                    Span::from(SPACE),
-                                    Span::from(format!("[{}]edit up", scrollbar::VERTICAL.begin)), // ↑
-                                    Span::from(SPACE),
-                                    Span::from(format!("[{}]edit up", scrollbar::VERTICAL.end)), // ↓,
                                 ],
                             }
                         })),
                     ]),
-                    // appearance
+                    // controls - 2. row
                     Row::new(vec![
-                        Cell::from(Span::styled(
-                            "appearance",
-                            Style::default().add_modifier(Modifier::BOLD),
-                        )),
-                        Cell::from(Line::from(vec![
-                            Span::from("[,]change style"),
-                            Span::from(SPACE),
-                            Span::from("[.]toggle deciseconds"),
-                            Span::from(SPACE),
-                            Span::from(format!(
-                                "[:]toggle {} time",
-                                match self.app_time {
-                                    AppTime::Local(_) => "local",
-                                    AppTime::Utc(_) => "utc",
+                        Cell::from(Line::from("")),
+                        Cell::from(Line::from({
+                            match self.app_edit_mode {
+                                AppEditMode::None => {
+                                    let mut spans = vec![];
+                                    if self.selected_content == Content::Pomodoro {
+                                        spans.extend_from_slice(&[Span::from(
+                                            "[← →]switch work/pause",
+                                        )]);
+                                    }
+                                    spans
                                 }
-                            )),
-                        ])),
+                                _ => vec![
+                                    Span::from(format!(
+                                        // ← →,
+                                        "[{} {}]edit selection",
+                                        scrollbar::HORIZONTAL.begin,
+                                        scrollbar::HORIZONTAL.end
+                                    )),
+                                    Span::from(SPACE),
+                                    Span::from(format!(
+                                        // ↑
+                                        "[{}]edit up",
+                                        scrollbar::VERTICAL.begin
+                                    )),
+                                    Span::from(SPACE),
+                                    Span::from(format!(
+                                        // ↓
+                                        "[{}]edit up",
+                                        scrollbar::VERTICAL.end
+                                    )),
+                                ],
+                            }
+                        })),
                     ]),
                 ],
                 widths,
