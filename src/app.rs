@@ -202,7 +202,7 @@ impl App {
         let handle_key_event = |app: &mut Self, key: KeyEvent| {
             debug!("Received key {:?}", key.code);
             match key.code {
-                KeyCode::Char('q') | KeyCode::Esc => app.mode = Mode::Quit,
+                KeyCode::Char('q') => app.mode = Mode::Quit,
                 KeyCode::Char('c') => app.content = Content::Countdown,
                 KeyCode::Char('t') => app.content = Content::Timer,
                 KeyCode::Char('p') => app.content = Content::Pomodoro,
