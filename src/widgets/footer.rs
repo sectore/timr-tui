@@ -141,21 +141,11 @@ impl StatefulWidget for Footer {
                         Cell::from(Line::from({
                             match self.app_edit_mode {
                                 AppEditMode::None => {
-                                    let mut spans = vec![
-                                        Span::from(if self.running_clock {
-                                            "[s]top"
-                                        } else {
-                                            "[s]tart"
-                                        }),
-                                        Span::from(SPACE),
-                                        Span::from("[r]eset"),
-                                    ];
-                                    if self.selected_content == Content::Pomodoro {
-                                        spans.extend_from_slice(&[
-                                            Span::from(SPACE),
-                                            Span::from("[^r]eset round"),
-                                        ]);
-                                    }
+                                    let mut spans = vec![Span::from(if self.running_clock {
+                                        "[s]top"
+                                    } else {
+                                        "[s]tart"
+                                    })];
                                     spans.extend_from_slice(&[
                                         Span::from(SPACE),
                                         Span::from("[e]dit"),
@@ -164,6 +154,16 @@ impl StatefulWidget for Footer {
                                         spans.extend_from_slice(&[
                                             Span::from(SPACE),
                                             Span::from("[^e]dit by local time"),
+                                        ]);
+                                    }
+                                    spans.extend_from_slice(&[
+                                        Span::from(SPACE),
+                                        Span::from("[r]eset"),
+                                    ]);
+                                    if self.selected_content == Content::Pomodoro {
+                                        spans.extend_from_slice(&[
+                                            Span::from(SPACE),
+                                            Span::from("[^r]eset round"),
                                         ]);
                                     }
                                     spans
@@ -195,7 +195,7 @@ impl StatefulWidget for Footer {
                                 _ => vec![
                                     Span::from(format!(
                                         // ← →,
-                                        "[{} {}]edit selection",
+                                        "[{} {}]change selection",
                                         scrollbar::HORIZONTAL.begin,
                                         scrollbar::HORIZONTAL.end
                                     )),
