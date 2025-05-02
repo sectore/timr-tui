@@ -414,7 +414,7 @@ impl StatefulWidget for AppWidget {
         let [v0, v1, v2] = Layout::vertical([
             Constraint::Length(1),
             Constraint::Percentage(100),
-            Constraint::Length(if state.footer.get_show_menu() { 4 } else { 1 }),
+            Constraint::Length(if state.footer.get_show_menu() { 5 } else { 1 }),
         ])
         .areas(area);
 

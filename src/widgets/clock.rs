@@ -143,6 +143,10 @@ impl<T> ClockState<T> {
         &self.initial_value
     }
 
+    pub fn set_initial_value(&mut self, duration: DurationEx) {
+        self.initial_value = duration;
+    }
+
     pub fn get_current_value(&self) -> &DurationEx {
         &self.current_value
     }
