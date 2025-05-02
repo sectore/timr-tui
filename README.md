@@ -129,10 +129,12 @@ Extra option (if `--features sound` is enabled by local build only):
 
 | Key | Description |
 | --- | --- |
-| <kbd>Enter</kbd> | apply changes |
+| <kbd>s</kbd> | save changes |
+| <kbd>^s</kbd> | save initial value |
 | <kbd>Esc</kbd> | skip changes |
 | <kbd>←</kbd> or <kbd>→</kbd> | change selection |
-| <kbd>↑</kbd> or <kbd>↓</kbd> | change values to go up or down |
+| <kbd>↑</kbd> | edit to go up |
+| <kbd>↓</kbd> | edit to go down |
 
 **In `Pomodoro` screen only**
 
