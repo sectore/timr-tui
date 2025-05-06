@@ -130,7 +130,6 @@ Extra option (if `--features sound` is enabled by local build only):
 | Key | Description |
 | --- | --- |
 | <kbd>s</kbd> | save changes |
-| <kbd>^s</kbd> | save initial value |
 | <kbd>Esc</kbd> | skip changes |
 | <kbd>←</kbd> or <kbd>→</kbd> | change selection |
 | <kbd>↑</kbd> | edit to go up |
@@ -142,12 +141,14 @@ Extra option (if `--features sound` is enabled by local build only):
 | --- | --- |
 | <kbd>←</kbd> or <kbd>→</kbd> | switch work/pause |
 | <kbd>^r</kbd> | reset round |
+| <kbd>^s</kbd> | save initial value |
 
 **In `Countdown` screen only:**
 
 | Key | Description |
 | --- | --- |
 | <kbd>^e</kbd> | edit by local time |
+| <kbd>^s</kbd> | save initial value |
 
 ## Appearance
 

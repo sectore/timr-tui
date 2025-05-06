@@ -1,5 +1,21 @@
 # Changelog
 
+## v1.3.0 - 2025-05-06
+
+### Features
+
+- (pomodoro) Count WORK rounds [#75](https://github.com/sectore/timr-tui/pull/75), [6b068bb](https://github.com/sectore/timr-tui/commit/6b068bbd094d9ec1a36b47598fadfc71296d9590)
+- (pomodoro/countdown) Change initial value [#79](https://github.com/sectore/timr-tui/pull/79), [aae5c38](https://github.com/sectore/timr-tui/commit/aae5c38cd6a666d5ba418b12fb67879a2146b9a2)
+
+### Changes
+
+- Update keybindings [#76](https://github.com/sectore/timr-tui/pull/76)
+
+### Misc.
+
+- (flake) use alsa-lib-with-plugins [#77](https://github.com/sectore/timr-tui/pull/77)
+- (readme) add keybindings + toc [#78](https://github.com/sectore/timr-tui/pull/78)
+
 ## v1.2.1 - 2025-04-17
 
 ### Fixes
