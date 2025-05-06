@@ -5,7 +5,7 @@
 ### Features
 
 - (pomodoro) Count WORK rounds [#75](https://github.com/sectore/timr-tui/pull/75), [6b068bb](https://github.com/sectore/timr-tui/commit/6b068bbd094d9ec1a36b47598fadfc71296d9590)
-- (pomodoro/countdown) Change initial value [#79](https://github.com/sectore/timr-tui/pull/79)
+- (pomodoro/countdown) Change initial value [#79](https://github.com/sectore/timr-tui/pull/79), [aae5c38](https://github.com/sectore/timr-tui/commit/aae5c38cd6a666d5ba418b12fb67879a2146b9a2)
 
 ### Changes
 
