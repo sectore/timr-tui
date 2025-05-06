@@ -168,13 +168,22 @@ impl StatefulWidget for Footer {
                                     }
                                     spans
                                 }
-                                _ => vec![
-                                    Span::from("[s]ave changes"),
-                                    Span::from(SPACE),
-                                    Span::from("[^s]ave initial value"),
-                                    Span::from(SPACE),
-                                    Span::from("[esc]skip changes"),
-                                ],
+                                _ => {
+                                    let mut spans = vec![Span::from("[s]ave changes")];
+                                    if self.selected_content == Content::Countdown
+                                        || self.selected_content == Content::Pomodoro
+                                    {
+                                        spans.extend_from_slice(&[
+                                            Span::from(SPACE),
+                                            Span::from("[^s]ave initial value"),
+                                        ]);
+                                    }
+                                    spans.extend_from_slice(&[
+                                        Span::from(SPACE),
+                                        Span::from("[esc]skip changes"),
+                                    ]);
+                                    spans
+                                }
                             }
                         })),
                     ]),
