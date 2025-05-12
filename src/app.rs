@@ -92,7 +92,22 @@ impl From<FromAppArgs> for App {
             notification: args.notification.unwrap_or(stg.notification),
             blink: args.blink.unwrap_or(stg.blink),
             app_time_format: stg.app_time_format,
-            content: args.mode.unwrap_or(stg.content),
+            // Check args to set a possible mode to start with.
+            content: match args.mode {
+                Some(mode) => mode,
+                // check other args (especially durations)
+                None => {
+                    if args.work.is_some() || args.pause.is_some() {
+                        Content::Pomodoro
+                    } else if args.countdown.is_some() {
+                        Content::Countdown
+                    }
+                    // in other case just use latest stored state
+                    else {
+                        stg.content
+                    }
+                }
+            },
             style: args.style.unwrap_or(stg.style),
             pomodoro_mode: stg.pomodoro_mode,
             pomodoro_round: stg.pomodoro_count,
