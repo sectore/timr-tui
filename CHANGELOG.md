@@ -6,6 +6,10 @@
 
 - (args) set `content` by given duration [#81](https://github.com/sectore/tick-tock-tui/pull/81)
 
+### Fixes
+
+- (pomodoro) reset active clock only [#82](https://github.com/sectore/tick-tock-tui/pull/82)
+
 ## v1.3.0 - 2025-05-06
 
 ###
