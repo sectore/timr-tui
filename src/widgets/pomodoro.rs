@@ -208,9 +208,7 @@ impl TuiEventHandler for PomodoroState {
                     if self.get_mode() == &Mode::Work && self.get_clock().is_done() {
                         self.round += 1;
                     }
-                    // reset both clocks
-                    self.clock_map.pause.reset();
-                    self.clock_map.work.reset();
+                    self.get_clock_mut().reset();
                 }
                 _ => return Some(event),
             },
