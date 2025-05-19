@@ -107,8 +107,16 @@ impl PomodoroState {
         &self.clock_map.work
     }
 
+    pub fn get_clock_work_mut(&mut self) -> &mut ClockState<Countdown> {
+        self.clock_map.get_mut(&Mode::Work)
+    }
+
     pub fn get_clock_pause(&self) -> &ClockState<Countdown> {
         &self.clock_map.pause
+    }
+
+    pub fn get_clock_pause_mut(&mut self) -> &mut ClockState<Countdown> {
+        self.clock_map.get_mut(&Mode::Pause)
     }
 
     pub fn get_mode(&self) -> &Mode {
@@ -198,13 +206,15 @@ impl TuiEventHandler for PomodoroState {
                 KeyCode::Right => {
                     self.next();
                 }
-                // reset round
+                // reset rounds AND clocks
                 KeyCode::Char('r') if key.modifiers.contains(KeyModifiers::CONTROL) => {
                     self.round = 1;
+                    self.get_clock_work_mut().reset();
+                    self.get_clock_pause_mut().reset();
                 }
-                // reset values
+                // reset current clock
                 KeyCode::Char('r') => {
-                    // count number of finished rounds of WORK before resetting the clock
+                    // increase round before (!!) resetting the clock
                     if self.get_mode() == &Mode::Work && self.get_clock().is_done() {
                         self.round += 1;
                     }
