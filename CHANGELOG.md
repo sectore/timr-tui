@@ -8,6 +8,7 @@
 
 ### Fixes
 
+- (pomodoro) `ctrl+r` resets rounds AND both clocks [#83](https://github.com/sectore/tick-tock-tui/pull/83)
 - (pomodoro) reset active clock only [#82](https://github.com/sectore/tick-tock-tui/pull/82)
 
 ## v1.3.0 - 2025-05-06

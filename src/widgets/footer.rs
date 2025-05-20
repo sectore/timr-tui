@@ -158,12 +158,12 @@ impl StatefulWidget for Footer {
                                     }
                                     spans.extend_from_slice(&[
                                         Span::from(SPACE),
-                                        Span::from("[r]eset"),
+                                        Span::from("[r]eset clock"),
                                     ]);
                                     if self.selected_content == Content::Pomodoro {
                                         spans.extend_from_slice(&[
                                             Span::from(SPACE),
-                                            Span::from("[^r]eset round"),
+                                            Span::from("[^r]eset clocks+rounds"),
                                         ]);
                                     }
                                     spans
