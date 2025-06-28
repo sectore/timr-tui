@@ -177,22 +177,22 @@ mod tests {
     fn test_fmt() {
         // hh:mm:ss
         let ex: DurationEx = Duration::from_secs(36001).into();
-        assert_eq!(format!("{}", ex), "10:00:01");
+        assert_eq!(format!("{ex}"), "10:00:01");
         // h:mm:ss
         let ex: DurationEx = Duration::from_secs(3601).into();
-        assert_eq!(format!("{}", ex), "1:00:01");
+        assert_eq!(format!("{ex}"), "1:00:01");
         // mm:ss
         let ex: DurationEx = Duration::from_secs(71).into();
-        assert_eq!(format!("{}", ex), "1:11");
+        assert_eq!(format!("{ex}"), "1:11");
         // m:ss
         let ex: DurationEx = Duration::from_secs(61).into();
-        assert_eq!(format!("{}", ex), "1:01");
+        assert_eq!(format!("{ex}"), "1:01");
         // ss
         let ex: DurationEx = Duration::from_secs(11).into();
-        assert_eq!(format!("{}", ex), "11");
+        assert_eq!(format!("{ex}"), "11");
         // s
         let ex: DurationEx = Duration::from_secs(1).into();
-        assert_eq!(format!("{}", ex), "1");
+        assert_eq!(format!("{ex}"), "1");
     }
 
     #[test]
@@ -200,7 +200,7 @@ mod tests {
         let ex: DurationEx = Duration::from_secs(10).into();
         let ex2: DurationEx = Duration::from_secs(1).into();
         let ex3 = ex.saturating_sub(ex2);
-        assert_eq!(format!("{}", ex3), "9");
+        assert_eq!(format!("{ex3}"), "9");
     }
 
     #[test]
@@ -208,7 +208,7 @@ mod tests {
         let ex: DurationEx = Duration::from_secs(10).into();
         let ex2: DurationEx = Duration::from_secs(1).into();
         let ex3 = ex.saturating_add(ex2);
-        assert_eq!(format!("{}", ex3), "11");
+        assert_eq!(format!("{ex3}"), "11");
     }
 
     #[test]
