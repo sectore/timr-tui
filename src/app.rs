@@ -276,7 +276,7 @@ impl App {
                             ClockTypeId::Timer => {
                                 format!("{name} stopped by reaching its maximum value.")
                             }
-                            _ => format!("{:?} {name} done!", type_id),
+                            _ => format!("{type_id:?} {name} done!"),
                         };
                         // notification
                         let result = notify_rust::Notification::new()
