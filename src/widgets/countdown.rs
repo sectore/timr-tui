@@ -319,7 +319,7 @@ fn human_days_diff(a: &OffsetDateTime, b: &OffsetDateTime) -> String {
     match days_diff {
         0 => "today".to_owned(),
         1 => "tomorrow".to_owned(),
-        n => format!("+{}days", n),
+        n => format!("+{n}days"),
     }
 }
 

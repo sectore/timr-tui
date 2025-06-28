@@ -89,7 +89,7 @@ impl StatefulWidget for Footer {
                     let mut style = Style::default();
                     // Add space for all except last
                     let label = if index < content_labels.len() - 1 {
-                        format!("{}  ", label)
+                        format!("{label}  ")
                     } else {
                         label.to_string()
                     };
