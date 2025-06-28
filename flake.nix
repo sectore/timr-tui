@@ -24,7 +24,7 @@
         {
           file = ./rust-toolchain.toml;
           # sha256 = nixpkgs.lib.fakeSha256;
-          sha256 = "sha256-KUm16pHj+cRedf8vxs/Hd2YWxpOrWZ7UOrwhILdSJBU=";
+          sha256 = "sha256-Qxt8XAuaUR2OMdKbN4u8dBJOhSHxS+uS06Wl9+flVEk=";
         };
 
       craneLib = (crane.mkLib pkgs).overrideToolchain toolchain;
