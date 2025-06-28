@@ -13,7 +13,7 @@
 
 ### Misc.
 
-- (deps) Rust 1.87.0 [#84](https://github.com/sectore/timr-tui/pull/84)
+- (deps) Rust 1.88.0 [#85](https://github.com/sectore/timr-tui/pull/85)
 
 ## v1.3.0 - 2025-05-06
 
