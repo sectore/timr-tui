@@ -1,15 +1,15 @@
 # Changelog
 
-## [Unreleased]
+## v1.3.1 - 2025-07-03
 
 ### Features
 
-- (args) set `content` by given duration [#81](https://github.com/sectore/tick-tock-tui/pull/81)
+- (args) set `content` by given duration [#81](https://github.com/sectore/timr-tui/pull/81)
 
 ### Fixes
 
-- (pomodoro) `ctrl+r` resets rounds AND both clocks [#83](https://github.com/sectore/tick-tock-tui/pull/83)
-- (pomodoro) reset active clock only [#82](https://github.com/sectore/tick-tock-tui/pull/82)
+- (pomodoro) `ctrl+r` resets rounds AND both clocks [#83](https://github.com/sectore/timr-tui/pull/83)
+- (pomodoro) reset active clock only [#82](https://github.com/sectore/timr-tui/pull/82)
 
 ### Misc.
 
