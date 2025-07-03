@@ -1,6 +1,6 @@
 [package]
 name = "timr-tui"
-version = "1.3.0"
+version = "1.3.1"
 description = "TUI to organize your time: Pomodoro, Countdown, Timer."
 edition = "2024"
 # Reminder: Always keep `channel` in `rust-toolchain.toml` in sync with `rust-version`.
