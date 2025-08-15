@@ -1,6 +1,6 @@
 [toolchain]
 # Reminder: Always keep `rust-version` in `Cargo.toml` in sync with `channel`.
-channel = "1.88.0"
+channel = "1.89.0"
 components = ["clippy", "rustfmt", "rust-src", "rust-analyzer"]
 targets = ["x86_64-pc-windows-gnu", "x86_64-unknown-linux-musl"]
 profile = "minimal"
