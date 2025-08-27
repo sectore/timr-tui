@@ -73,6 +73,7 @@ pub struct AppArgs {
     pub current_value_timer: Duration,
     pub app_tx: events::AppEventTx,
     pub sound_path: Option<PathBuf>,
+    pub footer_toggle_app_time: Toggle,
 }
 
 pub struct FromAppArgs {
@@ -132,6 +133,7 @@ impl From<FromAppArgs> for App {
             sound_path: args.sound,
             #[cfg(not(feature = "sound"))]
             sound_path: None,
+            footer_toggle_app_time: stg.footer_app_time,
         })
     }
 }
@@ -165,6 +167,7 @@ impl App {
             blink,
             sound_path,
             app_tx,
+            footer_toggle_app_time,
         } = args;
         let app_time = get_app_time();
 
@@ -206,8 +209,14 @@ impl App {
                 round: pomodoro_round,
                 app_tx: app_tx.clone(),
             }),
-            // TODO: Check content != LocalClock
-            footer: FooterState::new(show_menu, Some(app_time_format)),
+            footer: FooterState::new(
+                show_menu,
+                if footer_toggle_app_time == Toggle::On {
+                    Some(app_time_format)
+                } else {
+                    None
+                },
+            ),
         }
     }
 
@@ -415,6 +424,7 @@ impl App {
             ),
             elapsed_value_countdown: Duration::from(*self.countdown.get_elapsed_value()),
             current_value_timer: Duration::from(*self.timer.get_clock().get_current_value()),
+            footer_app_time: self.footer.app_time_format().is_some().into(),
         }
     }
 }

@@ -153,6 +153,15 @@ pub enum Toggle {
     Off,
 }
 
+impl From<bool> for Toggle {
+    fn from(value: bool) -> Self {
+        match value {
+            true => Toggle::On,
+            false => Toggle::Off,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
 

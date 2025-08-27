@@ -44,6 +44,8 @@ pub struct AppStorage {
     pub elapsed_value_countdown: Duration,
     // timer
     pub current_value_timer: Duration,
+    // footer
+    pub footer_app_time: Toggle,
 }
 
 impl Default for AppStorage {
@@ -73,6 +75,8 @@ impl Default for AppStorage {
             elapsed_value_countdown: Duration::ZERO,
             // timer
             current_value_timer: Duration::ZERO,
+            // footer
+            footer_app_time: Toggle::Off,
         }
     }
 }
