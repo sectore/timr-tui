@@ -44,6 +44,7 @@ pub struct App {
     #[allow(dead_code)] // w/ `--features sound` available only
     sound_path: Option<PathBuf>,
     app_time: AppTime,
+    app_time_format: AppTimeFormat,
     countdown: CountdownState,
     timer: TimerState,
     pomodoro: PomodoroState,
@@ -72,6 +73,7 @@ pub struct AppArgs {
     pub current_value_timer: Duration,
     pub app_tx: events::AppEventTx,
     pub sound_path: Option<PathBuf>,
+    pub footer_toggle_app_time: Toggle,
 }
 
 pub struct FromAppArgs {
@@ -131,6 +133,7 @@ impl From<FromAppArgs> for App {
             sound_path: args.sound,
             #[cfg(not(feature = "sound"))]
             sound_path: None,
+            footer_toggle_app_time: stg.footer_app_time,
         })
     }
 }
@@ -164,6 +167,7 @@ impl App {
             blink,
             sound_path,
             app_tx,
+            footer_toggle_app_time,
         } = args;
         let app_time = get_app_time();
 
@@ -174,6 +178,7 @@ impl App {
             sound_path,
             content,
             app_time,
+            app_time_format,
             style,
             with_decis,
             countdown: CountdownState::new(CountdownStateArgs {
@@ -204,7 +209,14 @@ impl App {
                 round: pomodoro_round,
                 app_tx: app_tx.clone(),
             }),
-            footer: FooterState::new(show_menu, app_time_format),
+            footer: FooterState::new(
+                show_menu,
+                if footer_toggle_app_time == Toggle::On {
+                    Some(app_time_format)
+                } else {
+                    None
+                },
+            ),
         }
     }
 
@@ -222,7 +234,26 @@ impl App {
                 KeyCode::Char('t') => app.content = Content::Timer,
                 KeyCode::Char('p') => app.content = Content::Pomodoro,
                 // toogle app time format
-                KeyCode::Char(':') => app.footer.toggle_app_time_format(),
+                KeyCode::Char(':') => {
+                    //
+                    // TODO: Check content != LocalClock
+                    let new_format = match app.footer.app_time_format() {
+                        // footer is hidden in footer ->
+                        None => Some(AppTimeFormat::first()),
+                        Some(v) => {
+                            if v != &AppTimeFormat::last() {
+                                Some(v.next())
+                            } else {
+                                None
+                            }
+                        }
+                    };
+
+                    if let Some(format) = new_format {
+                        app.app_time_format = format;
+                    }
+                    app.footer.set_app_time_format(new_format);
+                }
                 // toogle menu
                 KeyCode::Char('m') => app.footer.set_show_menu(!app.footer.get_show_menu()),
                 KeyCode::Char(',') => {
@@ -374,7 +405,7 @@ impl App {
             show_menu: self.footer.get_show_menu(),
             notification: self.notification,
             blink: self.blink,
-            app_time_format: *self.footer.app_time_format(),
+            app_time_format: self.app_time_format,
             style: self.style,
             with_decis: self.with_decis,
             pomodoro_mode: self.pomodoro.get_mode().clone(),
@@ -393,6 +424,7 @@ impl App {
             ),
             elapsed_value_countdown: Duration::from(*self.countdown.get_elapsed_value()),
             current_value_timer: Duration::from(*self.timer.get_clock().get_current_value()),
+            footer_app_time: self.footer.app_time_format().is_some().into(),
         }
     }
 }

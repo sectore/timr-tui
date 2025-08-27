@@ -3,10 +3,22 @@ use crate::{
     widgets::pomodoro::Mode as PomodoroMode,
 };
 use color_eyre::eyre::Result;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 use std::fs;
 use std::path::PathBuf;
 use std::time::Duration;
+
+fn deserialize_app_time_format<'de, D>(deserializer: D) -> Result<AppTimeFormat, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let s = String::deserialize(deserializer)?;
+    match s.as_str() {
+        // Hidden is deprecated - use `default` value instead
+        "Hidden" => Ok(AppTimeFormat::default()),
+        _ => s.parse().map_err(serde::de::Error::custom),
+    }
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AppStorage {
@@ -14,6 +26,7 @@ pub struct AppStorage {
     pub show_menu: bool,
     pub notification: Toggle,
     pub blink: Toggle,
+    #[serde(deserialize_with = "deserialize_app_time_format")]
     pub app_time_format: AppTimeFormat,
     pub style: Style,
     pub with_decis: bool,
@@ -31,6 +44,8 @@ pub struct AppStorage {
     pub elapsed_value_countdown: Duration,
     // timer
     pub current_value_timer: Duration,
+    // footer
+    pub footer_app_time: Toggle,
 }
 
 impl Default for AppStorage {
@@ -60,6 +75,8 @@ impl Default for AppStorage {
             elapsed_value_countdown: Duration::ZERO,
             // timer
             current_value_timer: Duration::ZERO,
+            // footer
+            footer_app_time: Toggle::Off,
         }
     }
 }

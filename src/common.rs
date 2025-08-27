@@ -1,6 +1,7 @@
 use clap::ValueEnum;
 use ratatui::symbols::shade;
 use serde::{Deserialize, Serialize};
+use strum::EnumString;
 use time::OffsetDateTime;
 use time::format_description;
 
@@ -15,6 +16,8 @@ pub enum Content {
     Timer,
     #[value(name = "pomodoro", alias = "p")]
     Pomodoro,
+    // #[value(name = "localclock", alias = "l")]
+    // LocalClock,
 }
 
 #[derive(Clone, Debug)]
@@ -71,7 +74,7 @@ impl Style {
     }
 }
 
-#[derive(Debug, Clone, Copy, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, EnumString, Serialize, Deserialize)]
 pub enum AppTimeFormat {
     /// `hh:mm:ss`
     #[default]
@@ -80,17 +83,22 @@ pub enum AppTimeFormat {
     HhMm,
     /// `hh:mm AM` (or PM)
     Hh12Mm,
-    /// `` (empty)
-    Hidden,
 }
 
 impl AppTimeFormat {
+    pub const fn first() -> Self {
+        Self::HhMmSs
+    }
+
+    pub const fn last() -> Self {
+        Self::Hh12Mm
+    }
+
     pub fn next(&self) -> Self {
         match self {
             AppTimeFormat::HhMmSs => AppTimeFormat::HhMm,
             AppTimeFormat::HhMm => AppTimeFormat::Hh12Mm,
-            AppTimeFormat::Hh12Mm => AppTimeFormat::Hidden,
-            AppTimeFormat::Hidden => AppTimeFormat::HhMmSs,
+            AppTimeFormat::Hh12Mm => AppTimeFormat::HhMmSs,
         }
     }
 }
@@ -113,24 +121,19 @@ impl From<AppTime> for OffsetDateTime {
 impl AppTime {
     pub fn format(&self, app_format: &AppTimeFormat) -> String {
         let parse_str = match app_format {
-            AppTimeFormat::HhMmSs => Some("[hour]:[minute]:[second]"),
-            AppTimeFormat::HhMm => Some("[hour]:[minute]"),
-            AppTimeFormat::Hh12Mm => Some("[hour repr:12 padding:none]:[minute] [period]"),
-            AppTimeFormat::Hidden => None,
+            AppTimeFormat::HhMmSs => "[hour]:[minute]:[second]",
+            AppTimeFormat::HhMm => "[hour]:[minute]",
+            AppTimeFormat::Hh12Mm => "[hour repr:12 padding:none]:[minute] [period]",
         };
 
-        if let Some(str) = parse_str {
-            format_description::parse(str)
-                .map_err(|_| "parse error")
-                .and_then(|fd| {
-                    OffsetDateTime::from(*self)
-                        .format(&fd)
-                        .map_err(|_| "format error")
-                })
-                .unwrap_or_else(|e| e.to_string())
-        } else {
-            "".to_owned()
-        }
+        format_description::parse(parse_str)
+            .map_err(|_| "parse error")
+            .and_then(|fd| {
+                OffsetDateTime::from(*self)
+                    .format(&fd)
+                    .map_err(|_| "format error")
+            })
+            .unwrap_or_else(|e| e.to_string())
     }
 }
 
@@ -148,6 +151,15 @@ pub enum Toggle {
     #[default]
     #[value(name = "off")]
     Off,
+}
+
+impl From<bool> for Toggle {
+    fn from(value: bool) -> Self {
+        match value {
+            true => Toggle::On,
+            false => Toggle::Off,
+        }
+    }
 }
 
 #[cfg(test)]
@@ -194,13 +206,6 @@ mod tests {
         assert_eq!(
             AppTime::Local(dt).format(&AppTimeFormat::Hh12Mm),
             "6:06 PM",
-            "local"
-        );
-        // hidden
-        assert_eq!(AppTime::Utc(dt).format(&AppTimeFormat::Hidden), "", "utc");
-        assert_eq!(
-            AppTime::Local(dt).format(&AppTimeFormat::Hidden),
-            "",
             "local"
         );
     }

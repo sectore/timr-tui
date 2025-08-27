@@ -13,11 +13,11 @@ use ratatui::{
 #[derive(Debug, Clone)]
 pub struct FooterState {
     show_menu: bool,
-    app_time_format: AppTimeFormat,
+    app_time_format: Option<AppTimeFormat>,
 }
 
 impl FooterState {
-    pub const fn new(show_menu: bool, app_time_format: AppTimeFormat) -> Self {
+    pub const fn new(show_menu: bool, app_time_format: Option<AppTimeFormat>) -> Self {
         Self {
             show_menu,
             app_time_format,
@@ -32,12 +32,12 @@ impl FooterState {
         self.show_menu
     }
 
-    pub const fn app_time_format(&self) -> &AppTimeFormat {
+    pub const fn app_time_format(&self) -> &Option<AppTimeFormat> {
         &self.app_time_format
     }
 
-    pub fn toggle_app_time_format(&mut self) {
-        self.app_time_format = self.app_time_format.next();
+    pub const fn set_app_time_format(&mut self, value: Option<AppTimeFormat>) {
+        self.app_time_format = value;
     }
 }
 
@@ -73,9 +73,9 @@ impl StatefulWidget for Footer {
                 Line::from(
                     match state.app_time_format {
                         // `Hidden` -> no (empty) title
-                        AppTimeFormat::Hidden => "".into(),
+                        None => "".into(),
                         // others -> add some space around
-                        _ => format!(" {} ", self.app_time.format(&state.app_time_format))
+                        Some(v) => format!(" {} ", self.app_time.format(&v))
                     }
                 ).right_aligned())
             .border_set(border::PLAIN)
