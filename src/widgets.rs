@@ -8,7 +8,7 @@ pub mod countdown;
 pub mod edit_time;
 pub mod footer;
 pub mod header;
-pub mod local_clock;
+pub mod local_time;
 pub mod pomodoro;
 pub mod progressbar;
 pub mod timer;

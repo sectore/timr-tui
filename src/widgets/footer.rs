@@ -56,6 +56,7 @@ impl StatefulWidget for Footer {
             (Content::Countdown, "[c]ountdown"),
             (Content::Timer, "[t]imer"),
             (Content::Pomodoro, "[p]omodoro"),
+            (Content::LocalTime, "[l]ocal time"),
         ]);
 
         let [_, area] =
@@ -71,11 +72,12 @@ impl StatefulWidget for Footer {
             )
             .title(
                 Line::from(
-                    match state.app_time_format {
-                        // `Hidden` -> no (empty) title
-                        None => "".into(),
-                        // others -> add some space around
-                        Some(v) => format!(" {} ", self.app_time.format(&v))
+                    match (state.app_time_format, self.selected_content) {
+                        // Show time
+                        (Some(v), content) if content != Content::LocalTime => format!(" {} " // add some space around
+                            , self.app_time.format(&v)),
+                        // Hide time -> empty
+                        _ => "".into(),
                     }
                 ).right_aligned())
             .border_set(border::PLAIN)
