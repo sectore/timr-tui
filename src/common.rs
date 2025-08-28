@@ -16,8 +16,8 @@ pub enum Content {
     Timer,
     #[value(name = "pomodoro", alias = "p")]
     Pomodoro,
-    // #[value(name = "localclock", alias = "l")]
-    // LocalClock,
+    #[value(name = "localclock", alias = "l")]
+    LocalClock,
 }
 
 #[derive(Clone, Debug)]

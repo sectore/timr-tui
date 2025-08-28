@@ -48,6 +48,7 @@ pub struct App {
     countdown: CountdownState,
     timer: TimerState,
     pomodoro: PomodoroState,
+    local_clock: LocalClockState,
     style: Style,
     with_decis: bool,
     footer: FooterState,
@@ -283,6 +284,7 @@ impl App {
                 Content::Countdown => app.countdown.update(event.clone()),
                 Content::Timer => app.timer.update(event.clone()),
                 Content::Pomodoro => app.pomodoro.update(event.clone()),
+                Content::LocalClock => app.local_clock.update(event.clone()),
             } {
                 match unhandled {
                     events::TuiEvent::Render | events::TuiEvent::Resize => {
