@@ -267,6 +267,7 @@ impl App {
 
                         if let Some(format) = new_format {
                             app.app_time_format = format;
+                            app.local_time.set_app_time_format(format);
                         }
                         app.footer.set_app_time_format(new_format);
                     }
