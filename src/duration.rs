@@ -232,18 +232,18 @@ mod tests {
         let result = ex.hours_mod_12();
         assert_eq!(result, 12);
 
+        // 0 -> 12
+        let ex: DurationEx = ONE_SECOND.into();
+        let result = ex.hours_mod_12();
+        assert_eq!(result, 12);
+
         // 13 -> 1
         let ex: DurationEx = ONE_HOUR.saturating_mul(13).into();
         let result = ex.hours_mod_12();
         assert_eq!(result, 1);
 
         // 1 -> 1
-        let ex: DurationEx = ONE_HOUR.saturating_mul(13).into();
-        let result = ex.hours_mod_12();
-        assert_eq!(result, 1);
-
-        // 0 -> 0
-        let ex: DurationEx = ONE_HOUR.saturating_mul(13).into();
+        let ex: DurationEx = ONE_HOUR.saturating_mul(1).into();
         let result = ex.hours_mod_12();
         assert_eq!(result, 1);
     }
