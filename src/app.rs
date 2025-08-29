@@ -214,7 +214,6 @@ impl App {
             local_time: LocalTimeState::new(LocalTimeStateArgs {
                 app_time,
                 app_time_format,
-                with_decis,
             }),
             footer: FooterState::new(
                 show_menu,
@@ -283,7 +282,6 @@ impl App {
                     app.timer.set_with_decis(app.with_decis);
                     app.countdown.set_with_decis(app.with_decis);
                     app.pomodoro.set_with_decis(app.with_decis);
-                    app.local_time.set_with_decis(app.with_decis);
                 }
                 KeyCode::Up => app.footer.set_show_menu(true),
                 KeyCode::Down => app.footer.set_show_menu(false),

@@ -12,14 +12,13 @@ use crate::{
     events::{TuiEvent, TuiEventHandler},
     utils::center,
     widgets::clock_elements::{
-        COLON_WIDTH, Colon, DIGIT_HEIGHT, DIGIT_SPACE_WIDTH, DIGIT_WIDTH, DOT_WIDTH, Digit, Dot,
+        COLON_WIDTH, Colon, DIGIT_HEIGHT, DIGIT_SPACE_WIDTH, DIGIT_WIDTH, Digit,
     },
 };
 use std::cmp::max;
 
 /// State for `LocalTimeWidget`
 pub struct LocalTimeState {
-    with_decis: bool,
     time: AppTime,
     format: AppTimeFormat,
 }
@@ -27,7 +26,6 @@ pub struct LocalTimeState {
 pub struct LocalTimeStateArgs {
     pub app_time: AppTime,
     pub app_time_format: AppTimeFormat,
-    pub with_decis: bool,
 }
 
 impl LocalTimeState {
@@ -35,13 +33,11 @@ impl LocalTimeState {
         let LocalTimeStateArgs {
             app_time,
             app_time_format,
-            with_decis,
         } = args;
 
         Self {
             time: app_time,
             format: app_time_format,
-            with_decis,
         }
     }
 
@@ -51,10 +47,6 @@ impl LocalTimeState {
 
     pub fn set_app_time_format(&mut self, format: AppTimeFormat) {
         self.format = format;
-    }
-
-    pub fn set_with_decis(&mut self, with_decis: bool) {
-        self.with_decis = with_decis;
     }
 }
 
@@ -70,30 +62,21 @@ pub struct LocalTimeWidget {
 }
 
 impl LocalTimeWidget {
-    fn get_horizontal_lengths(&self, format: &AppTimeFormat, with_decis: bool) -> Vec<u16> {
+    fn get_horizontal_lengths(&self, format: &AppTimeFormat) -> Vec<u16> {
         match format {
-            AppTimeFormat::HhMmSs => {
-                let mut lengths = vec![
-                    DIGIT_WIDTH,       // H
-                    DIGIT_SPACE_WIDTH, // (space)
-                    DIGIT_WIDTH,       // h
-                    COLON_WIDTH,       // :
-                    DIGIT_WIDTH,       // M
-                    DIGIT_SPACE_WIDTH, // (space)
-                    DIGIT_WIDTH,       // m
-                    COLON_WIDTH,       // :
-                    DIGIT_WIDTH,       // S
-                    DIGIT_SPACE_WIDTH, // (space)
-                    DIGIT_WIDTH,       // s
-                ];
-                if with_decis {
-                    lengths.extend_from_slice(&[
-                        DOT_WIDTH,   // .
-                        DIGIT_WIDTH, // ds
-                    ])
-                }
-                lengths
-            }
+            AppTimeFormat::HhMmSs => vec![
+                DIGIT_WIDTH,       // H
+                DIGIT_SPACE_WIDTH, // (space)
+                DIGIT_WIDTH,       // h
+                COLON_WIDTH,       // :
+                DIGIT_WIDTH,       // M
+                DIGIT_SPACE_WIDTH, // (space)
+                DIGIT_WIDTH,       // m
+                COLON_WIDTH,       // :
+                DIGIT_WIDTH,       // S
+                DIGIT_SPACE_WIDTH, // (space)
+                DIGIT_WIDTH,       // s
+            ],
             AppTimeFormat::HhMm => vec![
                 DIGIT_WIDTH,       // H
                 DIGIT_SPACE_WIDTH, // (space)
@@ -121,9 +104,8 @@ impl StatefulWidget for LocalTimeWidget {
     fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
         let label = Line::raw("Local Time".to_uppercase());
 
-        let with_decis = state.with_decis;
         let format = state.format;
-        let widths = self.get_horizontal_lengths(&format, with_decis);
+        let widths = self.get_horizontal_lengths(&format);
         let width = widths.iter().sum();
         let area = center(
             area,
@@ -137,23 +119,8 @@ impl StatefulWidget for LocalTimeWidget {
         let hours = current_value.hours();
         let minutes = current_value.minutes_mod();
         let seconds = current_value.seconds_mod();
-        let decis = current_value.decis();
         let symbol = self.style.get_digit_symbol();
         match state.format {
-            AppTimeFormat::HhMmSs if state.with_decis => {
-                let [hh, _, h, c_hm, mm, _, m, c_ms, ss, _, s, d, ds] =
-                    Layout::horizontal(Constraint::from_lengths(widths)).areas(v1);
-                Digit::new(hours / 10, false, symbol).render(hh, buf);
-                Digit::new(hours % 10, false, symbol).render(h, buf);
-                Colon::new(symbol).render(c_hm, buf);
-                Digit::new(minutes / 10, false, symbol).render(mm, buf);
-                Digit::new(minutes % 10, false, symbol).render(m, buf);
-                Colon::new(symbol).render(c_ms, buf);
-                Digit::new(seconds / 10, false, symbol).render(ss, buf);
-                Digit::new(seconds % 10, false, symbol).render(s, buf);
-                Dot::new(symbol).render(d, buf);
-                Digit::new(decis, false, symbol).render(ds, buf);
-            }
             AppTimeFormat::HhMmSs => {
                 let [hh, _, h, c_hm, mm, _, m, c_ms, ss, _, s] =
                     Layout::horizontal(Constraint::from_lengths(widths)).areas(v1);
