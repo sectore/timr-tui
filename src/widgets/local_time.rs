@@ -146,10 +146,11 @@ impl StatefulWidget for LocalTimeWidget {
                 Digit::new(minutes % 10, false, symbol).render(m, buf);
             }
             AppTimeFormat::Hh12Mm => {
+                let hours12 = current_value.hours_mod_12();
                 // Note: Format might be `h:Mm` OR `Hh:Mm`
-                // depending on having one OR two digits for `hours`
+                // depending on `hours12` having one OR two digits
                 let mut widths = widths;
-                if hours < 10 {
+                if hours12 < 10 {
                     //we don't draw `H` and no space
                     widths[0] = 0; // `H`
                     widths[1] = 0; // `space`
@@ -157,21 +158,13 @@ impl StatefulWidget for LocalTimeWidget {
                 let [hh, _, h, c_hm, mm, _, m, _, p] =
                     Layout::horizontal(Constraint::from_lengths(widths)).areas(v1);
                 // Hh
-                if hours >= 10 {
-                    Digit::new(hours / 10, false, symbol).render(hh, buf);
-                    Digit::new(hours % 10, false, symbol).render(h, buf);
+                if hours12 >= 10 {
+                    Digit::new(hours12 / 10, false, symbol).render(hh, buf);
+                    Digit::new(hours12 % 10, false, symbol).render(h, buf);
                 }
                 // h
                 else {
-                    // Convert hours:
-                    // 00->12(am)
-                    // 12->12(pm)
-                    // 23->11(pm)
-                    // 13->1(pm)
-                    // 4->4(am)
-                    // etc.
-                    let hours = (hours + 11) % 12 + 1;
-                    Digit::new(hours, false, symbol).render(h, buf);
+                    Digit::new(hours12, false, symbol).render(h, buf);
                 }
                 Colon::new(symbol).render(c_hm, buf);
                 Digit::new(minutes / 10, false, symbol).render(mm, buf);
