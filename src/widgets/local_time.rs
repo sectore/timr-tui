@@ -88,6 +88,8 @@ impl LocalTimeWidget {
             ],
             AppTimeFormat::Hh12Mm => vec![
                 DIGIT_WIDTH,       // H
+                DIGIT_SPACE_WIDTH, // (space)
+                DIGIT_WIDTH,       // h
                 COLON_WIDTH,       // :
                 DIGIT_WIDTH,       // M
                 DIGIT_SPACE_WIDTH, // (space)
@@ -102,6 +104,12 @@ impl LocalTimeWidget {
 impl StatefulWidget for LocalTimeWidget {
     type State = LocalTimeState;
     fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
+        let current_value: DurationEx = state.time.as_duration_of_today().into();
+        let hours = current_value.hours_mod();
+        let minutes = current_value.minutes_mod();
+        let seconds = current_value.seconds_mod();
+        let symbol = self.style.get_digit_symbol();
+
         let label = Line::raw("Local Time".to_uppercase());
 
         let format = state.format;
@@ -115,11 +123,6 @@ impl StatefulWidget for LocalTimeWidget {
 
         let [v1, v2] = Layout::vertical(Constraint::from_lengths([DIGIT_HEIGHT, 1])).areas(area);
 
-        let current_value: DurationEx = state.time.as_duration_of_today().into();
-        let hours = current_value.hours();
-        let minutes = current_value.minutes_mod();
-        let seconds = current_value.seconds_mod();
-        let symbol = self.style.get_digit_symbol();
         match state.format {
             AppTimeFormat::HhMmSs => {
                 let [hh, _, h, c_hm, mm, _, m, c_ms, ss, _, s] =
@@ -143,9 +146,33 @@ impl StatefulWidget for LocalTimeWidget {
                 Digit::new(minutes % 10, false, symbol).render(m, buf);
             }
             AppTimeFormat::Hh12Mm => {
-                let [h, c_hm, mm, _, m, _, p] =
+                // Note: Format might be `h:Mm` OR `Hh:Mm`
+                // depending on having one OR two digits for `hours`
+                let mut widths = widths;
+                if hours < 10 {
+                    //we don't draw `H` and no space
+                    widths[0] = 0; // `H`
+                    widths[1] = 0; // `space`
+                }
+                let [hh, _, h, c_hm, mm, _, m, _, p] =
                     Layout::horizontal(Constraint::from_lengths(widths)).areas(v1);
-                Digit::new((hours - 1) % 12 + 1, false, symbol).render(h, buf);
+                // Hh
+                if hours >= 10 {
+                    Digit::new(hours / 10, false, symbol).render(hh, buf);
+                    Digit::new(hours % 10, false, symbol).render(h, buf);
+                }
+                // h
+                else {
+                    // Convert hours:
+                    // 00->12(am)
+                    // 12->12(pm)
+                    // 23->11(pm)
+                    // 13->1(pm)
+                    // 4->4(am)
+                    // etc.
+                    let hours = (hours + 11) % 12 + 1;
+                    Digit::new(hours, false, symbol).render(h, buf);
+                }
                 Colon::new(symbol).render(c_hm, buf);
                 Digit::new(minutes / 10, false, symbol).render(mm, buf);
                 Digit::new(minutes % 10, false, symbol).render(m, buf);
