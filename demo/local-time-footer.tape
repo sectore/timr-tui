@@ -1,7 +1,7 @@
-Output demo/local-time.gif
+Output demo/local-time-footer.gif
 
 # https://github.com/charmbracelet/vhs/blob/main/THEMES.md
-Set Theme "Atom"
+Set Theme "AtomOneLight"
 
 Set FontSize 14
 Set Width 800
@@ -12,7 +12,7 @@ Set Margin 1
 # --- START ---
 Set LoopOffset 4
 Hide
-Type "cargo run -- -m l"
+Type "cargo run -- -m c"
 Enter
 Sleep 0.2
 Show
