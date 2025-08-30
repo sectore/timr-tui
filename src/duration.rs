@@ -60,8 +60,17 @@ impl DurationEx {
         self.seconds() / (SECS_PER_MINUTE * MINS_PER_HOUR)
     }
 
+    /// Hours as 24-hour clock
     pub fn hours_mod(&self) -> u64 {
         self.hours() % HOURS_PER_DAY
+    }
+
+    /// Hours as 12-hour clock
+    pub fn hours_mod_12(&self) -> u64 {
+        // 0 => 12,
+        // 1..=12 => hours,
+        // 13..=23 => hours - 12,
+        (self.hours_mod() + 11) % 12 + 1
     }
 
     pub fn minutes(&self) -> u64 {
@@ -209,6 +218,34 @@ mod tests {
         let ex2: DurationEx = Duration::from_secs(1).into();
         let ex3 = ex.saturating_add(ex2);
         assert_eq!(format!("{ex3}"), "11");
+    }
+
+    #[test]
+    fn test_hours_mod_12() {
+        // 24 -> 12
+        let ex: DurationEx = ONE_HOUR.saturating_mul(24).into();
+        let result = ex.hours_mod_12();
+        assert_eq!(result, 12);
+
+        // 12 -> 12
+        let ex: DurationEx = ONE_HOUR.saturating_mul(12).into();
+        let result = ex.hours_mod_12();
+        assert_eq!(result, 12);
+
+        // 0 -> 12
+        let ex: DurationEx = ONE_SECOND.into();
+        let result = ex.hours_mod_12();
+        assert_eq!(result, 12);
+
+        // 13 -> 1
+        let ex: DurationEx = ONE_HOUR.saturating_mul(13).into();
+        let result = ex.hours_mod_12();
+        assert_eq!(result, 1);
+
+        // 1 -> 1
+        let ex: DurationEx = ONE_HOUR.saturating_mul(1).into();
+        let result = ex.hours_mod_12();
+        assert_eq!(result, 1);
     }
 
     #[test]

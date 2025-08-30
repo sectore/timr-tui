@@ -10,6 +10,7 @@ use crate::{
         countdown::{Countdown, CountdownState, CountdownStateArgs},
         footer::{Footer, FooterState},
         header::Header,
+        local_time::{LocalTimeState, LocalTimeStateArgs, LocalTimeWidget},
         pomodoro::{Mode as PomodoroMode, PomodoroState, PomodoroStateArgs, PomodoroWidget},
         timer::{Timer, TimerState},
     },
@@ -48,6 +49,7 @@ pub struct App {
     countdown: CountdownState,
     timer: TimerState,
     pomodoro: PomodoroState,
+    local_time: LocalTimeState,
     style: Style,
     with_decis: bool,
     footer: FooterState,
@@ -209,6 +211,10 @@ impl App {
                 round: pomodoro_round,
                 app_tx: app_tx.clone(),
             }),
+            local_time: LocalTimeState::new(LocalTimeStateArgs {
+                app_time,
+                app_time_format,
+            }),
             footer: FooterState::new(
                 show_menu,
                 if footer_toggle_app_time == Toggle::On {
@@ -233,26 +239,38 @@ impl App {
                 KeyCode::Char('c') => app.content = Content::Countdown,
                 KeyCode::Char('t') => app.content = Content::Timer,
                 KeyCode::Char('p') => app.content = Content::Pomodoro,
+                KeyCode::Char('l') => app.content = Content::LocalTime,
                 // toogle app time format
                 KeyCode::Char(':') => {
-                    //
-                    // TODO: Check content != LocalClock
-                    let new_format = match app.footer.app_time_format() {
-                        // footer is hidden in footer ->
-                        None => Some(AppTimeFormat::first()),
-                        Some(v) => {
-                            if v != &AppTimeFormat::last() {
-                                Some(v.next())
-                            } else {
-                                None
-                            }
+                    if app.content == Content::LocalTime {
+                        // For LocalTime content: just cycle through formats
+                        app.app_time_format = app.app_time_format.next();
+                        app.local_time.set_app_time_format(app.app_time_format);
+                        // Only update footer if it's currently showing time
+                        if app.footer.app_time_format().is_some() {
+                            app.footer.set_app_time_format(Some(app.app_time_format));
                         }
-                    };
+                    } else {
+                        // For other content: allow footer to toggle between formats and None
+                        let new_format = match app.footer.app_time_format() {
+                            // footer is hidden -> show first format
+                            None => Some(AppTimeFormat::first()),
+                            Some(v) => {
+                                if v != &AppTimeFormat::last() {
+                                    Some(v.next())
+                                } else {
+                                    // reached last format -> hide footer time
+                                    None
+                                }
+                            }
+                        };
 
-                    if let Some(format) = new_format {
-                        app.app_time_format = format;
+                        if let Some(format) = new_format {
+                            app.app_time_format = format;
+                            app.local_time.set_app_time_format(format);
+                        }
+                        app.footer.set_app_time_format(new_format);
                     }
-                    app.footer.set_app_time_format(new_format);
                 }
                 // toogle menu
                 KeyCode::Char('m') => app.footer.set_show_menu(!app.footer.get_show_menu()),
@@ -276,6 +294,7 @@ impl App {
             if matches!(event, events::TuiEvent::Tick) {
                 app.app_time = get_app_time();
                 app.countdown.set_app_time(app.app_time);
+                app.local_time.set_app_time(app.app_time);
             }
 
             // Pipe events into subviews and handle only 'unhandled' events afterwards
@@ -283,6 +302,7 @@ impl App {
                 Content::Countdown => app.countdown.update(event.clone()),
                 Content::Timer => app.timer.update(event.clone()),
                 Content::Pomodoro => app.pomodoro.update(event.clone()),
+                Content::LocalTime => app.local_time.update(event.clone()),
             } {
                 match unhandled {
                     events::TuiEvent::Render | events::TuiEvent::Resize => {
@@ -373,6 +393,7 @@ impl App {
                     AppEditMode::None
                 }
             }
+            Content::LocalTime => AppEditMode::None,
         }
     }
 
@@ -381,6 +402,8 @@ impl App {
             Content::Countdown => self.countdown.is_running(),
             Content::Timer => self.timer.get_clock().is_running(),
             Content::Pomodoro => self.pomodoro.get_clock().is_running(),
+            // `LocalTime` does not use a `Clock`
+            Content::LocalTime => false,
         }
     }
 
@@ -389,6 +412,7 @@ impl App {
             Content::Countdown => Some(self.countdown.get_clock().get_percentage_done()),
             Content::Timer => None,
             Content::Pomodoro => Some(self.pomodoro.get_clock().get_percentage_done()),
+            Content::LocalTime => None,
         }
     }
 
@@ -451,6 +475,9 @@ impl AppWidget {
                 blink: state.blink == Toggle::On,
             }
             .render(area, buf, &mut state.pomodoro),
+            Content::LocalTime => {
+                LocalTimeWidget { style: state.style }.render(area, buf, &mut state.local_time);
+            }
         };
     }
 }

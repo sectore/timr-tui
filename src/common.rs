@@ -2,8 +2,7 @@ use clap::ValueEnum;
 use ratatui::symbols::shade;
 use serde::{Deserialize, Serialize};
 use strum::EnumString;
-use time::OffsetDateTime;
-use time::format_description;
+use time::{OffsetDateTime, format_description};
 
 #[derive(
     Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Default, Serialize, Deserialize,
@@ -16,8 +15,8 @@ pub enum Content {
     Timer,
     #[value(name = "pomodoro", alias = "p")]
     Pomodoro,
-    // #[value(name = "localclock", alias = "l")]
-    // LocalClock,
+    #[value(name = "localtime", alias = "l")]
+    LocalTime,
 }
 
 #[derive(Clone, Debug)]
@@ -134,6 +133,30 @@ impl AppTime {
                     .map_err(|_| "format error")
             })
             .unwrap_or_else(|e| e.to_string())
+    }
+
+    pub fn get_period(&self) -> String {
+        format_description::parse("[period]")
+            .map_err(|_| "parse error")
+            .and_then(|fd| {
+                OffsetDateTime::from(*self)
+                    .format(&fd)
+                    .map_err(|_| "format error")
+            })
+            .unwrap_or_else(|e| e.to_string())
+    }
+
+    /// Converts `AppTime` into a `Duration` representing elapsed time since midnight (today).
+    pub fn as_duration_of_today(&self) -> std::time::Duration {
+        let dt = OffsetDateTime::from(*self);
+        let time = dt.time();
+
+        let total_nanos = u64::from(time.hour()) * 3_600_000_000_000
+            + u64::from(time.minute()) * 60_000_000_000
+            + u64::from(time.second()) * 1_000_000_000
+            + u64::from(time.nanosecond());
+
+        std::time::Duration::from_nanos(total_nanos)
     }
 }
 
