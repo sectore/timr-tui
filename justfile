@@ -121,6 +121,13 @@ alias dlt := demo-local-time
 demo-local-time:
     vhs demo/local-time.tape
 
+alias dltf := demo-local-time-footer
+
+# build demo: local time (footer)
+[group('demo')]
+demo-local-time-footer:
+    vhs demo/local-time-footer.tape
+
 alias drc := demo-rocket-countdown
 
 # build demo: rocket countdown

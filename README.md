@@ -41,10 +41,23 @@ _(theme depends on your terminal preferences)_
   <img alt="countdown" src="demo/countdown.gif" />
 </a>
 
-## Change style
+## Countdown: Mission Elapsed Time ([MET](https://en.wikipedia.org/wiki/Mission_Elapsed_Time))
 
-<a href="demo/style.gif">
-  <img alt="style" src="demo/style.gif" />
+<a href="demo/countdown-met.gif">
+  <img alt="menu" src="demo/countdown-met.gif" />
+</a>
+
+
+## Local time
+
+<a href="demo/local-time.gif">
+  <img alt="menu" src="demo/local-time.gif" />
+</a>
+
+## Local time (footer)
+
+<a href="demo/local-time-footer.gif">
+  <img alt="menu" src="demo/local-time-footer.gif" />
 </a>
 
 ## Toggle deciseconds
@@ -53,22 +66,16 @@ _(theme depends on your terminal preferences)_
   <img alt="deciseconds" src="demo/decis.gif" />
 </a>
 
+## Change style
+
+<a href="demo/style.gif">
+  <img alt="style" src="demo/style.gif" />
+</a>
+
 ## Menu
 
 <a href="demo/menu.gif">
   <img alt="menu" src="demo/menu.gif" />
-</a>
-
-## Local time (footer)
-
-<a href="demo/local-time.gif">
-  <img alt="menu" src="demo/local-time.gif" />
-</a>
-
-## Mission Elapsed Time ([MET](https://en.wikipedia.org/wiki/Mission_Elapsed_Time))
-
-<a href="demo/countdown-met.gif">
-  <img alt="menu" src="demo/countdown-met.gif" />
 </a>
 
 # CLI
@@ -83,7 +90,7 @@ Options:
   -w, --work <WORK>                  Work time to count down from. Formats: 'ss', 'mm:ss', or 'hh:mm:ss'
   -p, --pause <PAUSE>                Pause time to count down from. Formats: 'ss', 'mm:ss', or 'hh:mm:ss'
   -d, --decis                        Show deciseconds.
-  -m, --mode <MODE>                  Mode to start with. [possible values: countdown, timer, pomodoro]
+  -m, --mode <MODE>                  Mode to start with. [possible values: countdown, timer, pomodoro, localtime]
   -s, --style <STYLE>                Style to display time with. [possible values: full, light, medium, dark, thick, cross, braille]
       --menu                         Open the menu.
   -r, --reset                        Reset stored values to default values.
@@ -115,6 +122,7 @@ Extra option (if `--features sound` is enabled by local build only):
 | <kbd>p</kbd> | Pomodoro |
 | <kbd>c</kbd> | Countdown |
 | <kbd>t</kbd> | Timer |
+| <kbd>l</kbd> | Local Time |
 
 ## Controls
 
@@ -135,7 +143,7 @@ Extra option (if `--features sound` is enabled by local build only):
 | <kbd>↑</kbd> | edit to go up |
 | <kbd>↓</kbd> | edit to go down |
 
-**In `Pomodoro` screen only**
+**In `Pomodoro` screen only:**
 
 | Key | Description |
 | --- | --- |
@@ -156,7 +164,7 @@ Extra option (if `--features sound` is enabled by local build only):
 | --- | --- |
 | <kbd>,</kbd> | toggle styles |
 | <kbd>.</kbd> | toggle deciseconds |
-| <kbd>:</kbd> | toggle local time in footer |
+| <kbd>:</kbd> | toggle local time |
 
 # Installation
 
@@ -209,22 +217,23 @@ If you have [`direnv`](https://direnv.net) installed, run `direnv allow` once to
 just
 
 Available recipes:
-    default               # list commands
+    default                  # list commands
 
     [build]
-    build                 # build app [alias: b]
+    build                    # build app [alias: b]
 
     [demo]
-    demo-blink            # build demo: blink animation [alias: db]
-    demo-countdown        # build demo: countdown [alias: dc]
-    demo-countdown-met    # build demo: countdown + met [alias: dcm]
-    demo-decis            # build demo: deciseconds [alias: dd]
-    demo-local-time       # build demo: local time [alias: dlt]
-    demo-menu             # build demo: menu [alias: dm]
-    demo-pomodoro         # build demo: pomodoro [alias: dp]
-    demo-rocket-countdown # build demo: rocket countdown [alias: drc]
-    demo-style            # build demo: styles [alias: ds]
-    demo-timer            # build demo: timer [alias: dt]
+    demo-blink               # build demo: blink animation [alias: db]
+    demo-countdown           # build demo: countdown [alias: dc]
+    demo-countdown-met       # build demo: countdown + met [alias: dcm]
+    demo-decis               # build demo: deciseconds [alias: dd]
+    demo-local-time          # build demo: local time [alias: dlt]
+    demo-local-time-footer   # build demo: local time (footer) [alias: dltf]
+    demo-menu                # build demo: menu [alias: dm]
+    demo-pomodoro            # build demo: pomodoro [alias: dp]
+    demo-rocket-countdown    # build demo: rocket countdown [alias: drc]
+    demo-style               # build demo: styles [alias: ds]
+    demo-timer               # build demo: timer [alias: dt]
 
     [dev]
     run                      # run app [alias: r]
@@ -233,11 +242,11 @@ Available recipes:
     run-sound-args path args # run app while sound feature is enabled by adding a path to a sound file and other arguments as string (e.g. "-c 5:00"). [alias: rsa]
 
     [misc]
-    format                # format files [alias: f]
-    lint                  # lint [alias: l]
+    format                   # format files [alias: f]
+    lint                     # lint [alias: l]
 
     [test]
-    test                  # run tests [alias: t]
+    test                     # run tests [alias: t]
 ```
 
 ### Build
