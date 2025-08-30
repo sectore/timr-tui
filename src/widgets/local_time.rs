@@ -63,6 +63,8 @@ pub struct LocalTimeWidget {
 
 impl LocalTimeWidget {
     fn get_horizontal_lengths(&self, format: &AppTimeFormat) -> Vec<u16> {
+        const PERIOD_WIDTH: u16 = 2; // PM or AM
+
         match format {
             AppTimeFormat::HhMmSs => vec![
                 DIGIT_WIDTH,       // H
@@ -87,15 +89,16 @@ impl LocalTimeWidget {
                 DIGIT_WIDTH,       // m
             ],
             AppTimeFormat::Hh12Mm => vec![
-                DIGIT_WIDTH,       // H
-                DIGIT_SPACE_WIDTH, // (space)
-                DIGIT_WIDTH,       // h
-                COLON_WIDTH,       // :
-                DIGIT_WIDTH,       // M
-                DIGIT_SPACE_WIDTH, // (space)
-                DIGIT_WIDTH,       // m
-                DIGIT_SPACE_WIDTH, // (space)
-                2,                 // period (PM or AM)
+                DIGIT_SPACE_WIDTH + PERIOD_WIDTH, // (space) + (empty period) to center everything well horizontally
+                DIGIT_WIDTH,                      // H
+                DIGIT_SPACE_WIDTH,                // (space)
+                DIGIT_WIDTH,                      // h
+                COLON_WIDTH,                      // :
+                DIGIT_WIDTH,                      // M
+                DIGIT_SPACE_WIDTH,                // (space)
+                DIGIT_WIDTH,                      // m
+                DIGIT_SPACE_WIDTH,                // (space)
+                PERIOD_WIDTH,                     // period
             ],
         }
     }
@@ -106,6 +109,7 @@ impl StatefulWidget for LocalTimeWidget {
     fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
         let current_value: DurationEx = state.time.as_duration_of_today().into();
         let hours = current_value.hours_mod();
+        let hours12 = current_value.hours_mod_12();
         let minutes = current_value.minutes_mod();
         let seconds = current_value.seconds_mod();
         let symbol = self.style.get_digit_symbol();
@@ -114,6 +118,15 @@ impl StatefulWidget for LocalTimeWidget {
 
         let format = state.format;
         let widths = self.get_horizontal_lengths(&format);
+        let mut widths = widths;
+        // Special case for `Hh12Mm`
+        // It might be `h:Mm` OR `Hh:Mm` depending on `hours12`
+        if state.format == AppTimeFormat::Hh12Mm && hours12 < 10 {
+            // single digit means, no (zero) width's for `H` and `space`
+            widths[1] = 0; // `H`
+            widths[2] = 0; // `space`
+        }
+
         let width = widths.iter().sum();
         let area = center(
             area,
@@ -146,16 +159,7 @@ impl StatefulWidget for LocalTimeWidget {
                 Digit::new(minutes % 10, false, symbol).render(m, buf);
             }
             AppTimeFormat::Hh12Mm => {
-                let hours12 = current_value.hours_mod_12();
-                // Note: Format might be `h:Mm` OR `Hh:Mm`
-                // depending on `hours12` having one OR two digits
-                let mut widths = widths;
-                if hours12 < 10 {
-                    //we don't draw `H` and no space
-                    widths[0] = 0; // `H`
-                    widths[1] = 0; // `space`
-                }
-                let [hh, _, h, c_hm, mm, _, m, _, p] =
+                let [_, hh, _, h, c_hm, mm, _, m, _, p] =
                     Layout::horizontal(Constraint::from_lengths(widths)).areas(v1);
                 // Hh
                 if hours12 >= 10 {
