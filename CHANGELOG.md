@@ -1,6 +1,10 @@
 # Changelog
 
-## [unreleased]
+## v1.4.0 - 2025-09-02
+
+### Features
+
+- (screen): Local Time [#89](https://github.com/sectore/timr-tui/pull/89), [#90](https://github.com/sectore/timr-tui/pull/90), [#91](https://github.com/sectore/timr-tui/pull/91)
 
 ### Misc.
 
