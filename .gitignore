@@ -21,3 +21,7 @@ result/**/*
 
 # ignore (possible) sound files
 **/*.{mp3,wav}
+
+
+CLAUDE.md
+.claude

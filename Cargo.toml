@@ -11,7 +11,14 @@ readme = "README.md"
 license = "MIT"
 keywords = ["tui", "timer", "countdown", "pomodoro"]
 categories = ["command-line-utilities"]
-exclude = [".github/*", "demo/*.tape", "result/*", "*.mp3"]
+exclude = [
+    ".github/*",
+    "demo/*.tape",
+    "result/*",
+    "*.mp3",
+    ".claude",
+    "CLAUDE.md",
+]
 
 [dependencies]
 ratatui = "0.29.0"
