@@ -1,5 +1,11 @@
 # Changelog
 
+## [unreleased]
+
+### Misc.
+
+- (deps) Rust 1.90.0 [#95](https://github.com/sectore/timr-tui/pull/95)
+
 ## v1.4.0 - 2025-09-02
 
 ### Features
