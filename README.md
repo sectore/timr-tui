@@ -17,6 +17,7 @@ Built with [Ratatui](https://ratatui.rs/) / [Rust 🦀](https://www.rust-lang.or
 - [Installation](./#installation)
 - [Development](./#development)
 - [Misc](./#misc)
+- [Contributing](./#contributing)
 - [License](./#license)
 
 # Preview
@@ -302,6 +303,10 @@ C:/Users/{user}/AppData/Local/timr-tui/logs/app.log
 ```
 
 Optional: You can use a custom directory by passing it via `--log` arg.
+
+# Contributing
+
+[CONTRIBUTING.md](./CONTRIBUTING.md)
 
 # License
 
