@@ -306,7 +306,7 @@ Optional: You can use a custom directory by passing it via `--log` arg.
 
 # Contributing
 
-Check [CONTRIBUTING.md](./CONTRIBUTING.md)
+[CONTRIBUTING.md](./CONTRIBUTING.md)
 
 # License
 
