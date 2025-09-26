@@ -23,8 +23,8 @@
         fenix.packages.${system}.fromToolchainFile
         {
           file = ./rust-toolchain.toml;
-          #sha256 = nixpkgs.lib.fakeSha256;
-          sha256 = "sha256-+9FmLhAOezBZCOziO0Qct1NOrfpjNsXxc/8I0c7BdKE=";
+          # sha256 = nixpkgs.lib.fakeSha256;
+          sha256 = "sha256-SJwZ8g0zF2WrKDVmHrVG3pD2RGoQeo24MEXnNx5FyuI=";
         };
 
       craneLib = (crane.mkLib pkgs).overrideToolchain toolchain;
@@ -85,15 +85,18 @@
               pkgs.nixd
               pkgs.alejandra
             ]
-            # some extra pkgs needed to play sound on Linux
+            # pkgs needed to play sound on Linux
             ++ lib.optionals stdenv.isLinux [
               pkgs.pkg-config
-              (pkgs.alsa-lib-with-plugins.override {
-                plugins = [pkgs.alsa-plugins pkgs.pipewire];
-              })
+              pkgs.pipewire
+              pkgs.alsa-lib
             ];
 
           inherit (commonArgs) src;
+
+          # Environment variables needed discover ALSA/PipeWire properly on Linux
+          LD_LIBRARY_PATH = lib.optionalString stdenv.isLinux "${pkgs.alsa-lib}/lib:${pkgs.pipewire}/lib";
+          ALSA_PLUGIN_DIR = lib.optionalString stdenv.isLinux "${pkgs.pipewire}/lib/alsa-lib";
         };
     });
 }
