@@ -9,6 +9,9 @@ pub const ONE_DECI_SECOND: Duration = Duration::from_millis(100);
 pub const ONE_SECOND: Duration = Duration::from_secs(1);
 pub const ONE_MINUTE: Duration = Duration::from_secs(SECS_PER_MINUTE);
 pub const ONE_HOUR: Duration = Duration::from_secs(MINS_PER_HOUR * SECS_PER_MINUTE);
+pub const ONE_DAY: Duration = Duration::from_secs(HOURS_PER_DAY * MINS_PER_HOUR * SECS_PER_MINUTE);
+pub const ONE_YEAR: Duration =
+    Duration::from_secs(DAYS_PER_YEAR * HOURS_PER_DAY * MINS_PER_HOUR * SECS_PER_MINUTE);
 
 // unstable
 // https://doc.rust-lang.org/src/core/time.rs.html#32
@@ -26,9 +29,8 @@ const HOURS_PER_DAY: u64 = 24;
 // ^ https://www.math.net/days-in-a-year
 const DAYS_PER_YEAR: u64 = 365; // ignore leap year of 366 days
 
-// max. 99:59:59
-pub const MAX_DURATION: Duration =
-    Duration::from_secs(100 * MINS_PER_HOUR * SECS_PER_MINUTE).saturating_sub(ONE_SECOND);
+// max. 999y 364d 23:59:59 (1000 years - 1 second)
+pub const MAX_DURATION: Duration = ONE_YEAR.saturating_mul(1000).saturating_sub(ONE_SECOND);
 
 #[derive(Debug, Clone, Copy, PartialOrd)]
 pub struct DurationEx {
