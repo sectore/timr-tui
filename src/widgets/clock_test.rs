@@ -1,6 +1,6 @@
 use crate::{
     common::ClockTypeId,
-    duration::{ONE_DECI_SECOND, ONE_HOUR, ONE_MINUTE, ONE_SECOND},
+    duration::{ONE_DAY, ONE_DECI_SECOND, ONE_HOUR, ONE_MINUTE, ONE_SECOND, ONE_YEAR},
     widgets::clock::*,
 };
 use std::time::Duration;
@@ -21,6 +21,152 @@ fn test_type_id() {
     assert!(matches!(c.get_type_id(), ClockTypeId::Timer));
     let c = ClockState::<Countdown>::new(default_args());
     assert!(matches!(c.get_type_id(), ClockTypeId::Countdown));
+}
+
+#[test]
+fn test_get_format_seconds() {
+    let mut c = ClockState::<Timer>::new(ClockStateArgs {
+        initial_value: Duration::from_secs(5),
+        current_value: Duration::from_secs(5),
+        tick_value: ONE_DECI_SECOND,
+        with_decis: false,
+        app_tx: None,
+    });
+    // S
+    assert_eq!(c.get_format(), Format::S);
+    // Ss
+    c.set_current_value(Duration::from_secs(15).into());
+    assert_eq!(c.get_format(), Format::Ss);
+}
+
+#[test]
+fn test_get_format_minutes() {
+    let mut c = ClockState::<Timer>::new(ClockStateArgs {
+        initial_value: ONE_MINUTE,
+        current_value: ONE_MINUTE,
+        tick_value: ONE_DECI_SECOND,
+        with_decis: false,
+        app_tx: None,
+    });
+    // MSs
+    assert_eq!(c.get_format(), Format::MSs);
+    // MmSs
+    c.set_current_value(Duration::from_secs(610).into()); // 10+ minutes
+    assert_eq!(c.get_format(), Format::MmSs);
+}
+
+#[test]
+fn test_get_format_hours() {
+    let mut c = ClockState::<Timer>::new(ClockStateArgs {
+        initial_value: ONE_HOUR,
+        current_value: ONE_HOUR,
+        tick_value: ONE_DECI_SECOND,
+        with_decis: false,
+        app_tx: None,
+    });
+    // HMmSS
+    assert_eq!(c.get_format(), Format::HMmSs);
+    // HhMmSs
+    c.set_current_value((10 * ONE_HOUR).into());
+    assert_eq!(c.get_format(), Format::HhMmSs);
+}
+
+#[test]
+fn test_get_format_boundaries() {
+    let mut c = ClockState::<Timer>::new(ClockStateArgs {
+        initial_value: ONE_SECOND,
+        current_value: ONE_SECOND,
+        tick_value: ONE_DECI_SECOND,
+        with_decis: false,
+        app_tx: None,
+    });
+
+    // S
+    c.set_current_value(Duration::from_secs(9).into());
+    assert_eq!(c.get_format(), Format::S);
+    // Ss
+    c.set_current_value((10 * ONE_SECOND).into());
+    assert_eq!(c.get_format(), Format::Ss);
+    // Ss
+    c.set_current_value((59 * ONE_SECOND).into());
+    assert_eq!(c.get_format(), Format::Ss);
+    // MSs
+    c.set_current_value(ONE_MINUTE.into());
+    assert_eq!(c.get_format(), Format::MSs);
+    // HhMmSs
+    c.set_current_value((ONE_DAY.saturating_sub(ONE_SECOND)).into());
+    assert_eq!(c.get_format(), Format::HhMmSs);
+    // DHhMmSs
+    c.set_current_value(ONE_DAY.into());
+    assert_eq!(c.get_format(), Format::DHhMmSs);
+    // DHhMmSs
+    c.set_current_value(((10 * ONE_DAY).saturating_sub(ONE_SECOND)).into());
+    assert_eq!(c.get_format(), Format::DHhMmSs);
+    // DdHhMmSs
+    c.set_current_value((10 * ONE_DAY).into());
+    assert_eq!(c.get_format(), Format::DdHhMmSs);
+    // DdHhMmSs
+    c.set_current_value(((100 * ONE_DAY).saturating_sub(ONE_SECOND)).into());
+    assert_eq!(c.get_format(), Format::DdHhMmSs);
+    // DddHhMmSs
+    c.set_current_value((100 * ONE_DAY).into());
+    assert_eq!(c.get_format(), Format::DddHhMmSs);
+    // DddHhMmSs
+    c.set_current_value((ONE_YEAR.saturating_sub(ONE_SECOND)).into());
+    assert_eq!(c.get_format(), Format::DddHhMmSs);
+    // YDddHhMmSs
+    c.set_current_value(ONE_YEAR.into());
+    assert_eq!(c.get_format(), Format::YDddHhMmSs);
+    // YDddHhMmSs
+    c.set_current_value(((10 * ONE_YEAR).saturating_sub(ONE_SECOND)).into());
+    assert_eq!(c.get_format(), Format::YDddHhMmSs);
+    // YyDddHhMmSs
+    c.set_current_value((10 * ONE_YEAR).into());
+    assert_eq!(c.get_format(), Format::YyDddHhMmSs);
+    // YyDddHhMmSs
+    c.set_current_value(((100 * ONE_YEAR).saturating_sub(ONE_SECOND)).into());
+    assert_eq!(c.get_format(), Format::YyDddHhMmSs);
+    // YyyDddHhMmSs
+    c.set_current_value((100 * ONE_YEAR).into());
+    assert_eq!(c.get_format(), Format::YyyDddHhMmSs);
+}
+
+#[test]
+fn test_get_format_days() {
+    let mut c = ClockState::<Timer>::new(ClockStateArgs {
+        initial_value: ONE_DAY,
+        current_value: ONE_DAY,
+        tick_value: ONE_DECI_SECOND,
+        with_decis: false,
+        app_tx: None,
+    });
+    // DHhMmSs
+    assert_eq!(c.get_format(), Format::DHhMmSs);
+    // DdHhMmSs
+    c.set_current_value((10 * ONE_DAY).into());
+    assert_eq!(c.get_format(), Format::DdHhMmSs);
+    // DddHhMmSs
+    c.set_current_value((101 * ONE_DAY).into());
+    assert_eq!(c.get_format(), Format::DddHhMmSs);
+}
+
+#[test]
+fn test_get_format_years() {
+    let mut c = ClockState::<Timer>::new(ClockStateArgs {
+        initial_value: ONE_YEAR,
+        current_value: ONE_YEAR,
+        tick_value: ONE_DECI_SECOND,
+        with_decis: false,
+        app_tx: None,
+    });
+    // YDddHhMmSs
+    assert_eq!(c.get_format(), Format::YDddHhMmSs);
+    // YyDddHhMmSs
+    c.set_current_value((10 * ONE_YEAR).into());
+    assert_eq!(c.get_format(), Format::YyDddHhMmSs);
+
+    c.set_current_value((100 * ONE_YEAR).into());
+    assert_eq!(c.get_format(), Format::YyyDddHhMmSs);
 }
 
 #[test]
@@ -64,6 +210,249 @@ fn test_default_edit_mode_ss() {
 }
 
 #[test]
+fn test_edit_up_stays_in_seconds() {
+    let mut c = ClockState::<Timer>::new(ClockStateArgs {
+        initial_value: ONE_MINUTE - ONE_SECOND,
+        current_value: ONE_MINUTE - ONE_SECOND,
+        tick_value: ONE_DECI_SECOND,
+        with_decis: false,
+        app_tx: None,
+    });
+
+    c.toggle_edit();
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Seconds, _)));
+    c.edit_up();
+    // Edit mode should stay on seconds
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Seconds, _)));
+}
+
+#[test]
+fn test_edit_up_stays_in_minutes() {
+    let mut c = ClockState::<Timer>::new(ClockStateArgs {
+        initial_value: ONE_HOUR - ONE_SECOND,
+        current_value: ONE_HOUR - ONE_SECOND,
+        tick_value: ONE_DECI_SECOND,
+        with_decis: false,
+        app_tx: None,
+    });
+
+    c.toggle_edit();
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Minutes, _)));
+    c.edit_up();
+    // Edit mode should stay on minutes
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Minutes, _)));
+}
+
+#[test]
+fn test_edit_up_stays_in_hours() {
+    let mut c = ClockState::<Timer>::new(ClockStateArgs {
+        initial_value: ONE_DAY - ONE_SECOND,
+        current_value: ONE_DAY - ONE_SECOND,
+        tick_value: ONE_DECI_SECOND,
+        with_decis: false,
+        app_tx: None,
+    });
+
+    c.toggle_edit();
+    c.edit_next();
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Hours, _)));
+    c.edit_up();
+    // Edit mode should stay on hours
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Hours, _)));
+}
+
+#[test]
+fn test_edit_up_stays_in_days() {
+    let mut c = ClockState::<Timer>::new(ClockStateArgs {
+        initial_value: ONE_YEAR - ONE_DAY,
+        current_value: ONE_YEAR - ONE_DAY,
+        tick_value: ONE_DECI_SECOND,
+        with_decis: false,
+        app_tx: None,
+    });
+
+    c.toggle_edit();
+    c.edit_next(); // Hours
+    c.edit_next(); // Days
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Days, _)));
+    c.edit_up();
+    // Edit mode should stay on days
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Days, _)));
+}
+
+#[test]
+fn test_edit_down_years_to_days() {
+    let mut c = ClockState::<Timer>::new(ClockStateArgs {
+        initial_value: ONE_YEAR,
+        current_value: ONE_YEAR,
+        tick_value: ONE_DECI_SECOND,
+        with_decis: false,
+        app_tx: None,
+    });
+
+    c.toggle_edit();
+    c.edit_next(); // Hours
+    c.edit_next(); // Days
+    c.edit_next(); // Years
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Years, _)));
+    c.edit_down();
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Days, _)));
+}
+
+#[test]
+fn test_edit_down_days_to_hours() {
+    let mut c = ClockState::<Timer>::new(ClockStateArgs {
+        initial_value: ONE_DAY,
+        current_value: ONE_DAY,
+        tick_value: ONE_DECI_SECOND,
+        with_decis: false,
+        app_tx: None,
+    });
+
+    c.toggle_edit();
+    c.edit_next(); // Hours
+    c.edit_next(); // Days
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Days, _)));
+    c.edit_down();
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Hours, _)));
+}
+
+#[test]
+fn test_edit_down_hours_to_minutes() {
+    let mut c = ClockState::<Timer>::new(ClockStateArgs {
+        initial_value: ONE_HOUR,
+        current_value: ONE_HOUR,
+        tick_value: ONE_DECI_SECOND,
+        with_decis: false,
+        app_tx: None,
+    });
+
+    c.toggle_edit();
+    c.edit_next(); // Hours
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Hours, _)));
+    c.edit_down();
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Minutes, _)));
+}
+
+#[test]
+fn test_edit_down_minutes_to_seconds() {
+    let mut c = ClockState::<Timer>::new(ClockStateArgs {
+        initial_value: ONE_MINUTE,
+        current_value: ONE_MINUTE,
+        tick_value: ONE_DECI_SECOND,
+        with_decis: false,
+        app_tx: None,
+    });
+
+    c.toggle_edit();
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Minutes, _)));
+    c.edit_down();
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Seconds, _)));
+}
+
+#[test]
+fn test_edit_next_ydddhhmmssd() {
+    let mut c = ClockState::<Timer>::new(ClockStateArgs {
+        initial_value: ONE_YEAR,
+        current_value: ONE_YEAR,
+        tick_value: ONE_DECI_SECOND,
+        with_decis: true,
+        app_tx: None,
+    });
+
+    // toggle on - should start at Minutes
+    c.toggle_edit();
+    c.edit_next();
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Hours, _)));
+    c.edit_next();
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Days, _)));
+    c.edit_next();
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Years, _)));
+    c.edit_next();
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Decis, _)));
+    c.edit_next();
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Seconds, _)));
+    c.edit_next();
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Minutes, _)));
+}
+
+#[test]
+fn test_edit_hours_in_dhhmmss_format() {
+    let mut c = ClockState::<Timer>::new(ClockStateArgs {
+        initial_value: ONE_DAY + ONE_HOUR,
+        current_value: ONE_DAY + ONE_HOUR,
+        tick_value: ONE_DECI_SECOND,
+        with_decis: false,
+        app_tx: None,
+    });
+
+    // Should be in D HH:MM:SS format
+    assert_eq!(c.get_format(), Format::DHhMmSs);
+
+    c.toggle_edit();
+    c.edit_next(); // Move to Hours
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Hours, _)));
+
+    // Increment hours - should stay in Hours edit mode
+    c.edit_up();
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Hours, _)));
+    assert_eq!(
+        Duration::from(*c.get_current_value()),
+        ONE_DAY + 2 * ONE_HOUR
+    );
+}
+
+#[test]
+fn test_edit_next_ydddhhmmss() {
+    let mut c = ClockState::<Timer>::new(ClockStateArgs {
+        initial_value: ONE_YEAR,
+        current_value: ONE_YEAR,
+        tick_value: ONE_DECI_SECOND,
+        with_decis: false,
+        app_tx: None,
+    });
+
+    // toggle on - should start at Minutes
+    c.toggle_edit();
+    c.edit_next();
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Hours, _)));
+    c.edit_next();
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Days, _)));
+    c.edit_next();
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Years, _)));
+    c.edit_next();
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Seconds, _)));
+    c.edit_next();
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Minutes, _)));
+}
+
+#[test]
+fn test_edit_next_dhhmmssd() {
+    let mut c = ClockState::<Timer>::new(ClockStateArgs {
+        initial_value: ONE_DAY,
+        current_value: ONE_DAY,
+        tick_value: ONE_DECI_SECOND,
+        with_decis: true,
+        app_tx: None,
+    });
+
+    // toggle on - should start at Minutes (following existing pattern)
+    c.toggle_edit();
+    c.edit_next();
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Hours, _)));
+    c.edit_next();
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Days, _)));
+    c.edit_next();
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Years, _)));
+    c.edit_next();
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Decis, _)));
+    c.edit_next();
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Seconds, _)));
+    c.edit_next();
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Minutes, _)));
+}
+
+#[test]
 fn test_edit_next_hhmmssd() {
     let mut c = ClockState::<Timer>::new(ClockStateArgs {
         initial_value: ONE_HOUR,
@@ -77,6 +466,10 @@ fn test_edit_next_hhmmssd() {
     c.toggle_edit();
     c.edit_next();
     assert!(matches!(c.get_mode(), Mode::Editable(Time::Hours, _)));
+    c.edit_next();
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Days, _)));
+    c.edit_next();
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Years, _)));
     c.edit_next();
     assert!(matches!(c.get_mode(), Mode::Editable(Time::Decis, _)));
     c.edit_next();
@@ -99,6 +492,10 @@ fn test_edit_next_hhmmss() {
     c.toggle_edit();
     c.edit_next();
     assert!(matches!(c.get_mode(), Mode::Editable(Time::Hours, _)));
+    c.edit_next();
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Days, _)));
+    c.edit_next();
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Years, _)));
     c.edit_next();
     assert!(matches!(c.get_mode(), Mode::Editable(Time::Seconds, _)));
     c.edit_next();
@@ -160,6 +557,25 @@ fn test_edit_next_ssd() {
 }
 
 #[test]
+fn test_edit_next_sd() {
+    let mut c = ClockState::<Timer>::new(ClockStateArgs {
+        initial_value: ONE_SECOND,
+        current_value: ONE_SECOND,
+        tick_value: ONE_DECI_SECOND,
+        with_decis: true,
+        app_tx: None,
+    });
+
+    // toggle on
+    c.toggle_edit();
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Seconds, _)));
+    c.edit_next();
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Decis, _)));
+    c.edit_next();
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Seconds, _)));
+}
+
+#[test]
 fn test_edit_next_ss() {
     let mut c = ClockState::<Timer>::new(ClockStateArgs {
         initial_value: ONE_SECOND * 3,
@@ -172,8 +588,101 @@ fn test_edit_next_ss() {
     // toggle on
     c.toggle_edit();
     c.edit_next();
-    println!("mode -> {:?}", c.get_mode());
     assert!(matches!(c.get_mode(), Mode::Editable(Time::Seconds, _)));
+}
+
+#[test]
+fn test_edit_next_s() {
+    let mut c = ClockState::<Timer>::new(ClockStateArgs {
+        initial_value: ONE_SECOND,
+        current_value: ONE_SECOND,
+        tick_value: ONE_DECI_SECOND,
+        with_decis: false,
+        app_tx: None,
+    });
+
+    // toggle on
+    c.toggle_edit();
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Seconds, _)));
+    c.edit_next();
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Seconds, _)));
+}
+
+#[test]
+fn test_edit_prev_ydddhhmmssd() {
+    let mut c = ClockState::<Timer>::new(ClockStateArgs {
+        initial_value: ONE_YEAR,
+        current_value: ONE_YEAR,
+        tick_value: ONE_DECI_SECOND,
+        with_decis: true,
+        app_tx: None,
+    });
+
+    // toggle on - should start at Minutes
+    c.toggle_edit();
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Minutes, _)));
+    c.edit_prev();
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Seconds, _)));
+    c.edit_prev();
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Decis, _)));
+    c.edit_prev();
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Years, _)));
+    c.edit_prev();
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Days, _)));
+    c.edit_prev();
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Hours, _)));
+    c.edit_prev();
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Minutes, _)));
+}
+
+#[test]
+fn test_edit_prev_ydddhhmmss() {
+    let mut c = ClockState::<Timer>::new(ClockStateArgs {
+        initial_value: ONE_YEAR,
+        current_value: ONE_YEAR,
+        tick_value: ONE_DECI_SECOND,
+        with_decis: false,
+        app_tx: None,
+    });
+
+    // toggle on - should start at Minutes
+    c.toggle_edit();
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Minutes, _)));
+    c.edit_prev();
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Seconds, _)));
+    c.edit_prev();
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Years, _)));
+    c.edit_prev();
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Days, _)));
+    c.edit_prev();
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Hours, _)));
+    c.edit_prev();
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Minutes, _)));
+}
+
+#[test]
+fn test_edit_prev_dhhmmssd() {
+    let mut c = ClockState::<Timer>::new(ClockStateArgs {
+        initial_value: ONE_DAY,
+        current_value: ONE_DAY,
+        tick_value: ONE_DECI_SECOND,
+        with_decis: true,
+        app_tx: None,
+    });
+
+    // toggle on - should start at Minutes
+    c.toggle_edit();
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Minutes, _)));
+    c.edit_prev();
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Seconds, _)));
+    c.edit_prev();
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Decis, _)));
+    c.edit_prev();
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Days, _)));
+    c.edit_prev();
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Hours, _)));
+    c.edit_prev();
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Minutes, _)));
 }
 
 #[test]
@@ -276,7 +785,43 @@ fn test_edit_prev_ssd() {
 }
 
 #[test]
+fn test_edit_prev_sd() {
+    let mut c = ClockState::<Timer>::new(ClockStateArgs {
+        initial_value: ONE_SECOND,
+        current_value: ONE_SECOND,
+        tick_value: ONE_DECI_SECOND,
+        with_decis: true,
+        app_tx: None,
+    });
+
+    // toggle on
+    c.toggle_edit();
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Seconds, _)));
+    c.edit_prev();
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Decis, _)));
+    c.edit_prev();
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Seconds, _)));
+}
+
+#[test]
 fn test_edit_prev_ss() {
+    let mut c = ClockState::<Timer>::new(ClockStateArgs {
+        initial_value: ONE_SECOND,
+        current_value: ONE_SECOND,
+        tick_value: ONE_DECI_SECOND,
+        with_decis: false,
+        app_tx: None,
+    });
+
+    // toggle on
+    c.toggle_edit();
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Seconds, _)));
+    c.edit_prev();
+    assert!(matches!(c.get_mode(), Mode::Editable(Time::Seconds, _)));
+}
+
+#[test]
+fn test_edit_prev_s() {
     let mut c = ClockState::<Timer>::new(ClockStateArgs {
         initial_value: ONE_SECOND,
         current_value: ONE_SECOND,
