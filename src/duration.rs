@@ -20,6 +20,12 @@ pub const MINS_PER_HOUR: u64 = 60;
 // https://doc.rust-lang.org/src/core/time.rs.html#36
 const HOURS_PER_DAY: u64 = 24;
 
+// Days per year
+// "There are 365 days in a year in a common year of the Gregorian calendar and 366 days in a leap year.
+// Leap years occur every four years. The average number of days in a year is 365.2425 days."
+// ^ https://www.math.net/days-in-a-year
+const DAYS_PER_YEAR: u64 = 365; // ignore leap year of 366 days
+
 // max. 99:59:59
 pub const MAX_DURATION: Duration =
     Duration::from_secs(100 * MINS_PER_HOUR * SECS_PER_MINUTE).saturating_sub(ONE_SECOND);
@@ -48,12 +54,17 @@ impl From<DurationEx> for Duration {
 }
 
 impl DurationEx {
-    pub fn seconds(&self) -> u64 {
-        self.inner.as_secs()
+    pub fn years(&self) -> u64 {
+        self.days() / DAYS_PER_YEAR
     }
 
-    pub fn seconds_mod(&self) -> u64 {
-        self.seconds() % SECS_PER_MINUTE
+    pub fn days(&self) -> u64 {
+        self.hours() / HOURS_PER_DAY
+    }
+
+    /// Days in a year
+    pub fn days_mod(&self) -> u64 {
+        self.days() % DAYS_PER_YEAR
     }
 
     pub fn hours(&self) -> u64 {
@@ -79,6 +90,14 @@ impl DurationEx {
 
     pub fn minutes_mod(&self) -> u64 {
         self.minutes() % SECS_PER_MINUTE
+    }
+
+    pub fn seconds(&self) -> u64 {
+        self.inner.as_secs()
+    }
+
+    pub fn seconds_mod(&self) -> u64 {
+        self.seconds() % SECS_PER_MINUTE
     }
 
     // deciseconds
@@ -107,7 +126,26 @@ impl DurationEx {
 
 impl fmt::Display for DurationEx {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if self.hours() >= 10 {
+        if self.years() >= 1 {
+            write!(
+                f,
+                "{}y {}d {:02}:{:02}:{:02}",
+                self.years(),
+                self.days_mod(),
+                self.hours_mod(),
+                self.minutes_mod(),
+                self.seconds_mod(),
+            )
+        } else if self.hours() >= HOURS_PER_DAY {
+            write!(
+                f,
+                "{}d {:02}:{:02}:{:02}",
+                self.days_mod(),
+                self.hours_mod(),
+                self.minutes_mod(),
+                self.seconds_mod(),
+            )
+        } else if self.hours() >= 10 {
             write!(
                 f,
                 "{:02}:{:02}:{:02}",
@@ -184,6 +222,29 @@ mod tests {
 
     #[test]
     fn test_fmt() {
+        const DAY_IN_SECONDS: u64 = 86400; // 24 * 60 * 60
+        const YEAR_IN_SECONDS: u64 = 31536000; // 365 * 86400
+        // 1y Dd hh:mm:ss (single year)
+        let ex: DurationEx =
+            Duration::from_secs(YEAR_IN_SECONDS + 10 * DAY_IN_SECONDS + 36001).into();
+        assert_eq!(format!("{ex}"), "1y 10d 10:00:01");
+        // 5y Dd hh:mm:ss (multiple years)
+        let ex: DurationEx =
+            Duration::from_secs(5 * YEAR_IN_SECONDS + 100 * DAY_IN_SECONDS + 36001).into();
+        assert_eq!(format!("{ex}"), "5y 100d 10:00:01");
+        // 150y Dd hh:mm:ss (more than 100 years)
+        let ex: DurationEx =
+            Duration::from_secs(150 * YEAR_IN_SECONDS + 200 * DAY_IN_SECONDS + 36001).into();
+        assert_eq!(format!("{ex}"), "150y 200d 10:00:01");
+        // 366d hh:mm:ss (days more than a year)
+        let ex: DurationEx = Duration::from_secs(366 * DAY_IN_SECONDS + 36001).into();
+        assert_eq!(format!("{ex}"), "1y 1d 10:00:01");
+        // 1d hh:mm:ss (single day)
+        let ex: DurationEx = Duration::from_secs(DAY_IN_SECONDS + 36001).into();
+        assert_eq!(format!("{ex}"), "1d 10:00:01");
+        // 2d hh:mm:ss (multiple days)
+        let ex: DurationEx = Duration::from_secs(2 * DAY_IN_SECONDS + 36001).into();
+        assert_eq!(format!("{ex}"), "2d 10:00:01");
         // hh:mm:ss
         let ex: DurationEx = Duration::from_secs(36001).into();
         assert_eq!(format!("{ex}"), "10:00:01");
