@@ -7,9 +7,13 @@ use ratatui::{
 pub const DIGIT_SIZE: usize = 5;
 pub const DIGIT_WIDTH: u16 = DIGIT_SIZE as u16;
 pub const DIGIT_HEIGHT: u16 = DIGIT_SIZE as u16 + 1 /* border height */;
+pub const TWO_DIGITS_WIDTH: u16 = COLON_WIDTH + DIGIT_SPACE_WIDTH + COLON_WIDTH; // digit-space-digit
+pub const THREE_DIGITS_WIDTH: u16 =
+    COLON_WIDTH + DIGIT_SPACE_WIDTH + COLON_WIDTH + DIGIT_SPACE_WIDTH + COLON_WIDTH; // digit-space-digit-space-digit
 pub const COLON_WIDTH: u16 = 4; // incl. padding left + padding right
 pub const DOT_WIDTH: u16 = 4; // incl. padding left + padding right
 pub const DIGIT_SPACE_WIDTH: u16 = 1; // space between digits
+pub const DIGIT_LABEL_WIDTH: u16 = 3; // label (single char) incl. padding left + padding right
 
 #[rustfmt::skip]
 const DIGIT_0: [u8; DIGIT_SIZE * DIGIT_SIZE] = [

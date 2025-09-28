@@ -21,7 +21,8 @@ use crate::{
     events::{AppEvent, AppEventTx},
     utils::center_horizontal,
     widgets::clock_elements::{
-        COLON_WIDTH, Colon, DIGIT_HEIGHT, DIGIT_SPACE_WIDTH, DIGIT_WIDTH, DOT_WIDTH, Digit, Dot,
+        COLON_WIDTH, Colon, DIGIT_HEIGHT, DIGIT_LABEL_WIDTH, DIGIT_SPACE_WIDTH, DIGIT_WIDTH,
+        DOT_WIDTH, Digit, Dot, THREE_DIGITS_WIDTH, TWO_DIGITS_WIDTH,
     },
 };
 
@@ -79,8 +80,14 @@ pub enum Format {
     DHhMmSs,
     DdHhMmSs,
     DddHhMmSs,
+    // YDHhMmSs,
+    // YDdHhMmSs,
     YDddHhMmSs,
+    // YYDHhMmSs,
+    // YYDdHhMmSs,
     YyDddHhMmSs,
+    // YyyDHhMmSs,
+    // YyyDdHhMmSs,
     YyyDddHhMmSs,
 }
 
@@ -643,39 +650,20 @@ where
             lengths
         };
 
-        // TODO: Add x-offset (before+after)
-        const LABEL_WIDTH: u16 = 1; // `Y` or `D`
+        const LABEL_WIDTH: u16 = DIGIT_LABEL_WIDTH + DIGIT_SPACE_WIDTH;
 
         match format {
             Format::YyyDddHhMmSs => add_decis(
                 vec![
-                    DIGIT_WIDTH,           // y
-                    DIGIT_SPACE_WIDTH,     // (space)
-                    DIGIT_WIDTH,           // y
-                    DIGIT_SPACE_WIDTH,     // (space)
-                    DIGIT_WIDTH,           // y
-                    DIGIT_SPACE_WIDTH,     // (space)
-                    LABEL_WIDTH,           // label
-                    2 * DIGIT_SPACE_WIDTH, // (space)
-                    DIGIT_WIDTH,           // d
-                    DIGIT_SPACE_WIDTH,     // (space)
-                    DIGIT_WIDTH,           // d
-                    DIGIT_SPACE_WIDTH,     // (space)
-                    DIGIT_WIDTH,           // d
-                    DIGIT_SPACE_WIDTH,     // (space)
-                    LABEL_WIDTH,           // label
-                    2 * DIGIT_SPACE_WIDTH, // (space)
-                    DIGIT_WIDTH,           // h
-                    DIGIT_SPACE_WIDTH,     // (space)
-                    DIGIT_WIDTH,           // h
-                    COLON_WIDTH,           // :
-                    DIGIT_WIDTH,           // m
-                    DIGIT_SPACE_WIDTH,     // (space)
-                    DIGIT_WIDTH,           // m
-                    COLON_WIDTH,           // :
-                    DIGIT_WIDTH,           // s
-                    DIGIT_SPACE_WIDTH,     // (space)
-                    DIGIT_WIDTH,           // s
+                    THREE_DIGITS_WIDTH, // y_y_y
+                    LABEL_WIDTH,        // _l__
+                    THREE_DIGITS_WIDTH, // d_d_d
+                    LABEL_WIDTH,        // _l__
+                    TWO_DIGITS_WIDTH,   // d_d
+                    COLON_WIDTH,        // :
+                    TWO_DIGITS_WIDTH,   // m_m
+                    COLON_WIDTH,        // :
+                    TWO_DIGITS_WIDTH,   // s_s
                 ],
                 with_decis,
             ),
@@ -920,154 +908,179 @@ where
         let edit_secs = matches!(state.mode, Mode::Editable(Time::Seconds, _));
         let edit_decis = matches!(state.mode, Mode::Editable(Time::Decis, _));
 
+        let render_three_digits = |d1, d2, d3, editable, area, buf: &mut Buffer| {
+            let [a1, a2, a3] = Layout::horizontal(Constraint::from_lengths([
+                DIGIT_WIDTH + DIGIT_SPACE_WIDTH,
+                DIGIT_WIDTH + DIGIT_SPACE_WIDTH,
+                DIGIT_WIDTH,
+            ]))
+            .areas(area);
+            Digit::new(d1, editable, symbol).render(a1, buf);
+            Digit::new(d2, editable, symbol).render(a2, buf);
+            Digit::new(d3, editable, symbol).render(a3, buf);
+        };
+
+        let render_two_digits = |d1, d2, editable, area, buf: &mut Buffer| {
+            let [a1, a2] = Layout::horizontal(Constraint::from_lengths([
+                DIGIT_WIDTH + DIGIT_SPACE_WIDTH,
+                DIGIT_WIDTH,
+            ]))
+            .areas(area);
+            Digit::new(d1, editable, symbol).render(a1, buf);
+            Digit::new(d2, editable, symbol).render(a2, buf);
+        };
+
+        let render_colon = |area, buf: &mut Buffer| {
+            Colon::new(symbol).render(area, buf);
+        };
+
+        let render_dot = |area, buf: &mut Buffer| {
+            Dot::new(symbol).render(area, buf);
+        };
+
+        let render_yyy = |area, buf| {
+            render_three_digits(
+                state.current_value.years() % 10,
+                (state.current_value.years() / 10) % 10,
+                (state.current_value.years() / 100) % 10,
+                edit_years,
+                area,
+                buf,
+            );
+        };
+
+        let render_yy = |area, buf| {
+            render_two_digits(
+                state.current_value.years() % 10,
+                (state.current_value.years() / 10) % 10,
+                edit_years,
+                area,
+                buf,
+            );
+        };
+
+        let render_y = |area, buf| {
+            Digit::new(state.current_value.years() % 10, edit_years, symbol).render(area, buf);
+        };
+
+        let render_ddd = |area, buf| {
+            render_three_digits(
+                state.current_value.days_mod() % 10,
+                (state.current_value.days_mod() / 10) % 10,
+                (state.current_value.days_mod() / 100) % 10,
+                edit_days,
+                area,
+                buf,
+            );
+        };
+
+        let render_dd = |area, buf| {
+            render_two_digits(
+                state.current_value.days_mod() % 10,
+                (state.current_value.days_mod() / 10) % 10,
+                edit_days,
+                area,
+                buf,
+            );
+        };
+
+        let render_d = |area, buf| {
+            Digit::new(state.current_value.days_mod() % 10, edit_days, symbol).render(area, buf);
+        };
+
+        let render_hh = |area, buf| {
+            render_two_digits(
+                state.current_value.hours_mod() % 10,
+                state.current_value.hours_mod() / 10,
+                edit_hours,
+                area,
+                buf,
+            );
+        };
+
+        let render_h = |area, buf| {
+            Digit::new(state.current_value.hours_mod() % 10, edit_hours, symbol).render(area, buf);
+        };
+
+        let render_mm = |area, buf| {
+            render_two_digits(
+                state.current_value.minutes_mod() % 10,
+                state.current_value.minutes_mod() / 10,
+                edit_minutes,
+                area,
+                buf,
+            );
+        };
+
+        let render_m = |area, buf| {
+            Digit::new(state.current_value.minutes_mod() % 10, edit_minutes, symbol)
+                .render(area, buf);
+        };
+
+        let render_ss = |area, buf| {
+            render_two_digits(
+                state.current_value.seconds_mod() % 10,
+                state.current_value.seconds_mod() / 10,
+                edit_secs,
+                area,
+                buf,
+            );
+        };
+
+        let render_s = |area, buf| {
+            Digit::new(state.current_value.seconds_mod() % 10, edit_secs, symbol).render(area, buf);
+        };
+
+        let render_ds = |area, buf| {
+            Digit::new(state.current_value.decis(), edit_decis, symbol).render(area, buf);
+        };
+
+        let render_label = |l: &str, area, buf: &mut Buffer| {
+            Span::styled(
+                l.to_uppercase(),
+                Style::default().add_modifier(Modifier::BOLD),
+            )
+            .render(area, buf);
+        };
+
+        let render_label_y = |area, buf| {
+            // TODO: Replace w/ `Y` + remove const
+            render_label(LABEL_YEARS, area, buf);
+        };
+
+        let render_label_d = |area, buf| {
+            // TODO: Replace w/ `D` + remove const
+            render_label(LABEL_DAYS, area, buf);
+        };
+
         match format {
             Format::YyyDddHhMmSs if with_decis => {
-                let [
-                    yyy,
-                    _,
-                    yy,
-                    _,
-                    y,
-                    _,
-                    ly,
-                    _,
-                    ddd,
-                    _,
-                    dd,
-                    _,
-                    d,
-                    _,
-                    ld,
-                    _,
-                    hh,
-                    _,
-                    h,
-                    c_hm,
-                    mm,
-                    _,
-                    m,
-                    c_ms,
-                    ss,
-                    _,
-                    s,
-                    dot,
-                    ds,
-                ] = Layout::horizontal(Constraint::from_lengths(widths)).areas(area);
-                Digit::new((state.current_value.years() / 100) % 10, edit_years, symbol)
-                    .render(yyy, buf);
-                Digit::new((state.current_value.years() / 10) % 10, edit_years, symbol)
-                    .render(yy, buf);
-                Digit::new(state.current_value.years() % 10, edit_years, symbol).render(y, buf);
-                Span::styled(
-                    LABEL_YEARS.to_uppercase(),
-                    Style::default().add_modifier(Modifier::BOLD),
-                )
-                .render(ly, buf);
-                Digit::new(
-                    (state.current_value.days_mod() / 100) % 10,
-                    edit_days,
-                    symbol,
-                )
-                .render(ddd, buf);
-                Digit::new(
-                    (state.current_value.days_mod() / 10) % 10,
-                    edit_days,
-                    symbol,
-                )
-                .render(dd, buf);
-                Digit::new(state.current_value.days_mod() % 10, edit_days, symbol).render(d, buf);
-                Span::styled(
-                    LABEL_DAYS.to_uppercase(),
-                    Style::default().add_modifier(Modifier::BOLD),
-                )
-                .render(ld, buf);
-                Digit::new(state.current_value.hours_mod() / 10, edit_hours, symbol)
-                    .render(hh, buf);
-                Digit::new(state.current_value.hours_mod() % 10, edit_hours, symbol).render(h, buf);
-                Colon::new(symbol).render(c_hm, buf);
-                Digit::new(state.current_value.minutes_mod() / 10, edit_minutes, symbol)
-                    .render(mm, buf);
-                Digit::new(state.current_value.minutes_mod() % 10, edit_minutes, symbol)
-                    .render(m, buf);
-                Colon::new(symbol).render(c_ms, buf);
-                Digit::new(state.current_value.seconds_mod() / 10, edit_secs, symbol)
-                    .render(ss, buf);
-                Digit::new(state.current_value.seconds_mod() % 10, edit_secs, symbol)
-                    .render(s, buf);
-                Dot::new(symbol).render(dot, buf);
-                Digit::new(state.current_value.decis(), edit_decis, symbol).render(ds, buf);
+                let [y_y_y, ly, d_d_d, ld, h_h, c_hm, m_m, c_ms, s_s, dot, ds] =
+                    Layout::horizontal(Constraint::from_lengths(widths)).areas(area);
+                render_yyy(y_y_y, buf);
+                render_label_y(ly, buf);
+                render_ddd(d_d_d, buf);
+                render_label_d(ld, buf);
+                render_hh(h_h, buf);
+                render_colon(c_hm, buf);
+                render_mm(m_m, buf);
+                render_colon(c_ms, buf);
+                render_ss(s_s, buf);
+                render_dot(dot, buf);
+                render_ds(ds, buf);
             }
             Format::YyyDddHhMmSs => {
-                let [
-                    yyy,
-                    _,
-                    yy,
-                    _,
-                    y,
-                    _,
-                    ly,
-                    _,
-                    ddd,
-                    _,
-                    dd,
-                    _,
-                    d,
-                    _,
-                    ld,
-                    _,
-                    hh,
-                    _,
-                    h,
-                    c_hm,
-                    mm,
-                    _,
-                    m,
-                    c_ms,
-                    ss,
-                    _,
-                    s,
-                ] = Layout::horizontal(Constraint::from_lengths(widths)).areas(area);
-                Digit::new((state.current_value.years() / 100) % 10, edit_years, symbol)
-                    .render(yyy, buf);
-                Digit::new((state.current_value.years() / 10) % 10, edit_years, symbol)
-                    .render(yy, buf);
-                Digit::new(state.current_value.years() % 10, edit_years, symbol).render(y, buf);
-                Span::styled(
-                    LABEL_YEARS.to_uppercase(),
-                    Style::default().add_modifier(Modifier::BOLD),
-                )
-                .render(ly, buf);
-                Digit::new(
-                    (state.current_value.days_mod() / 100) % 10,
-                    edit_days,
-                    symbol,
-                )
-                .render(ddd, buf);
-                Digit::new(
-                    (state.current_value.days_mod() / 10) % 10,
-                    edit_days,
-                    symbol,
-                )
-                .render(dd, buf);
-                Digit::new(state.current_value.days_mod() % 10, edit_days, symbol).render(d, buf);
-                Span::styled(
-                    LABEL_DAYS.to_uppercase(),
-                    Style::default().add_modifier(Modifier::BOLD),
-                )
-                .render(ld, buf);
-                Digit::new(state.current_value.hours_mod() / 10, edit_hours, symbol)
-                    .render(hh, buf);
-                Digit::new(state.current_value.hours_mod() % 10, edit_hours, symbol).render(h, buf);
-                Colon::new(symbol).render(c_hm, buf);
-                Digit::new(state.current_value.minutes_mod() / 10, edit_minutes, symbol)
-                    .render(mm, buf);
-                Digit::new(state.current_value.minutes_mod() % 10, edit_minutes, symbol)
-                    .render(m, buf);
-                Colon::new(symbol).render(c_ms, buf);
-                Digit::new(state.current_value.seconds_mod() / 10, edit_secs, symbol)
-                    .render(ss, buf);
-                Digit::new(state.current_value.seconds_mod() % 10, edit_secs, symbol)
-                    .render(s, buf);
+                let [y_y_y, ly, d_d_d, ld, h_h, c_hm, m_m, c_ms, s_s] =
+                    Layout::horizontal(Constraint::from_lengths(widths)).areas(area);
+                render_yyy(y_y_y, buf);
+                render_label_y(ly, buf);
+                render_ddd(d_d_d, buf);
+                render_label_d(ld, buf);
+                render_hh(h_h, buf);
+                render_colon(c_hm, buf);
+                render_mm(m_m, buf);
+                render_colon(c_ms, buf);
+                render_ss(s_s, buf);
             }
             Format::YyDddHhMmSs if with_decis => {
                 let [
