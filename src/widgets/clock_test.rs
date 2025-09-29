@@ -1,6 +1,8 @@
 use crate::{
     common::ClockTypeId,
-    duration::{ONE_DAY, ONE_DECI_SECOND, ONE_HOUR, ONE_MINUTE, ONE_SECOND, ONE_YEAR},
+    duration::{
+        MAX_DURATION, ONE_DAY, ONE_DECI_SECOND, ONE_HOUR, ONE_MINUTE, ONE_SECOND, ONE_YEAR,
+    },
     widgets::clock::*,
 };
 use std::time::Duration;
@@ -114,20 +116,44 @@ fn test_get_format_boundaries() {
     // DddHhMmSs
     c.set_current_value((ONE_YEAR.saturating_sub(ONE_SECOND)).into());
     assert_eq!(c.get_format(), Format::DddHhMmSs);
-    // YDddHhMmSs
+    // YDHhMmSs
     c.set_current_value(ONE_YEAR.into());
+    assert_eq!(c.get_format(), Format::YDHhMmSs);
+    // YDdHhMmSs
+    c.set_current_value((ONE_YEAR + (100 * ONE_DAY).saturating_sub(ONE_SECOND)).into());
+    assert_eq!(c.get_format(), Format::YDdHhMmSs);
+    // YDddHhMmSs
+    c.set_current_value((ONE_YEAR + 100 * ONE_DAY).into());
     assert_eq!(c.get_format(), Format::YDddHhMmSs);
     // YDddHhMmSs
     c.set_current_value(((10 * ONE_YEAR).saturating_sub(ONE_SECOND)).into());
     assert_eq!(c.get_format(), Format::YDddHhMmSs);
-    // YyDddHhMmSs
+    // YyDHhMmSs
     c.set_current_value((10 * ONE_YEAR).into());
+    assert_eq!(c.get_format(), Format::YyDHhMmSs);
+    // YyDdHhMmSs
+    c.set_current_value((10 * ONE_YEAR + 10 * ONE_DAY).into());
+    assert_eq!(c.get_format(), Format::YyDdHhMmSs);
+    // YyDdHhMmSs
+    c.set_current_value((10 * ONE_YEAR + (100 * ONE_DAY).saturating_sub(ONE_SECOND)).into());
+    assert_eq!(c.get_format(), Format::YyDdHhMmSs);
+    // YyDddHhMmSs
+    c.set_current_value((10 * ONE_YEAR + 100 * ONE_DAY).into());
     assert_eq!(c.get_format(), Format::YyDddHhMmSs);
     // YyDddHhMmSs
     c.set_current_value(((100 * ONE_YEAR).saturating_sub(ONE_SECOND)).into());
     assert_eq!(c.get_format(), Format::YyDddHhMmSs);
-    // YyyDddHhMmSs
+    // YyyDHhMmSs
     c.set_current_value((100 * ONE_YEAR).into());
+    assert_eq!(c.get_format(), Format::YyyDHhMmSs);
+    // YyyDdHhMmSs
+    c.set_current_value((100 * ONE_YEAR + 10 * ONE_DAY).into());
+    assert_eq!(c.get_format(), Format::YyyDdHhMmSs);
+    // YyyDdHhMmSs
+    c.set_current_value((100 * ONE_YEAR + (100 * ONE_DAY).saturating_sub(ONE_SECOND)).into());
+    assert_eq!(c.get_format(), Format::YyyDdHhMmSs);
+    // YyyDddHhMmSs
+    c.set_current_value((100 * ONE_YEAR + 100 * ONE_DAY).into());
     assert_eq!(c.get_format(), Format::YyyDddHhMmSs);
 }
 
@@ -159,13 +185,43 @@ fn test_get_format_years() {
         with_decis: false,
         app_tx: None,
     });
-    // YDddHhMmSs
+    // YDHhMmSs (1 year, 0 days)
+    assert_eq!(c.get_format(), Format::YDHhMmSs);
+
+    // YDHhMmSs (1 year, 1 day)
+    c.set_current_value((ONE_YEAR + ONE_DAY).into());
+    assert_eq!(c.get_format(), Format::YDHhMmSs);
+
+    // YDdHhMmSs (1 year, 10 days)
+    c.set_current_value((ONE_YEAR + 10 * ONE_DAY).into());
+    assert_eq!(c.get_format(), Format::YDdHhMmSs);
+
+    // YDddHhMmSs (1 year, 100 days)
+    c.set_current_value((ONE_YEAR + 100 * ONE_DAY).into());
     assert_eq!(c.get_format(), Format::YDddHhMmSs);
-    // YyDddHhMmSs
+
+    // YyDHhMmSs (10 years)
     c.set_current_value((10 * ONE_YEAR).into());
+    assert_eq!(c.get_format(), Format::YyDHhMmSs);
+
+    // YyDdHhMmSs (10 years, 10 days)
+    c.set_current_value((10 * ONE_YEAR + 10 * ONE_DAY).into());
+    assert_eq!(c.get_format(), Format::YyDdHhMmSs);
+
+    // YyDddHhMmSs (10 years, 100 days)
+    c.set_current_value((10 * ONE_YEAR + 100 * ONE_DAY).into());
     assert_eq!(c.get_format(), Format::YyDddHhMmSs);
 
+    // YyyDHhMmSs (100 years)
     c.set_current_value((100 * ONE_YEAR).into());
+    assert_eq!(c.get_format(), Format::YyyDHhMmSs);
+
+    // YyyDdHhMmSs (100 years, 10 days)
+    c.set_current_value((100 * ONE_YEAR + 10 * ONE_DAY).into());
+    assert_eq!(c.get_format(), Format::YyyDdHhMmSs);
+
+    // YyyDddHhMmSs (100 years, 100 days)
+    c.set_current_value((100 * ONE_YEAR + 100 * ONE_DAY).into());
     assert_eq!(c.get_format(), Format::YyyDddHhMmSs);
 }
 
@@ -278,6 +334,38 @@ fn test_edit_up_stays_in_days() {
     c.edit_up();
     // Edit mode should stay on days
     assert!(matches!(c.get_mode(), Mode::Editable(Time::Days, _)));
+}
+
+#[test]
+fn test_edit_up_overflow_protection() {
+    let mut c = ClockState::<Timer>::new(ClockStateArgs {
+        initial_value: MAX_DURATION.saturating_sub(ONE_SECOND),
+        current_value: MAX_DURATION.saturating_sub(ONE_SECOND),
+        tick_value: ONE_DECI_SECOND,
+        with_decis: false,
+        app_tx: None,
+    });
+
+    c.toggle_edit();
+    c.edit_next(); // Hours
+    c.edit_next(); // Days
+    c.edit_next(); // Years
+    c.edit_up(); // +1y
+    assert!(Duration::from(*c.get_current_value()) <= MAX_DURATION);
+    c.edit_prev(); // Days
+    c.edit_up(); // +1d
+    assert!(Duration::from(*c.get_current_value()) <= MAX_DURATION);
+    c.edit_prev(); // Hours
+    c.edit_up(); // +1h
+    assert!(Duration::from(*c.get_current_value()) <= MAX_DURATION);
+    c.edit_prev(); // Minutes
+    c.edit_up(); // +1m
+    assert!(Duration::from(*c.get_current_value()) <= MAX_DURATION);
+    c.edit_prev(); // Sec.
+    c.edit_up(); // +1s
+    c.edit_up(); // +1s
+    c.edit_up(); // +1s
+    assert!(Duration::from(*c.get_current_value()) <= MAX_DURATION);
 }
 
 #[test]
