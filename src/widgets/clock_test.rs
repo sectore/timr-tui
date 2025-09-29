@@ -117,11 +117,26 @@ fn test_get_format_boundaries() {
     // YDHhMmSs
     c.set_current_value(ONE_YEAR.into());
     assert_eq!(c.get_format(), Format::YDHhMmSs);
+    // YDdHhMmSs
+    c.set_current_value((ONE_YEAR + (100 * ONE_DAY).saturating_sub(ONE_SECOND)).into());
+    assert_eq!(c.get_format(), Format::YDdHhMmSs);
+    // YDddHhMmSs
+    c.set_current_value((ONE_YEAR + 100 * ONE_DAY).into());
+    assert_eq!(c.get_format(), Format::YDddHhMmSs);
     // YDddHhMmSs
     c.set_current_value(((10 * ONE_YEAR).saturating_sub(ONE_SECOND)).into());
     assert_eq!(c.get_format(), Format::YDddHhMmSs);
-    // YyDddHhMmSs
+    // YyDHhMmSs
     c.set_current_value((10 * ONE_YEAR).into());
+    assert_eq!(c.get_format(), Format::YyDHhMmSs);
+    // YyDdHhMmSs
+    c.set_current_value((10 * ONE_YEAR + 10 * ONE_DAY).into());
+    assert_eq!(c.get_format(), Format::YyDdHhMmSs);
+    // YyDdHhMmSs
+    c.set_current_value((10 * ONE_YEAR + (100 * ONE_DAY).saturating_sub(ONE_SECOND)).into());
+    assert_eq!(c.get_format(), Format::YyDdHhMmSs);
+    // YyDddHhMmSs
+    c.set_current_value((10 * ONE_YEAR + 100 * ONE_DAY).into());
     assert_eq!(c.get_format(), Format::YyDddHhMmSs);
     // YyDddHhMmSs
     c.set_current_value(((100 * ONE_YEAR).saturating_sub(ONE_SECOND)).into());
@@ -170,8 +185,20 @@ fn test_get_format_years() {
     c.set_current_value((ONE_YEAR + 10 * ONE_DAY).into());
     assert_eq!(c.get_format(), Format::YDdHhMmSs);
 
-    // YyDddHhMmSs (10 years)
+    // YDddHhMmSs (1 year, 100 days)
+    c.set_current_value((ONE_YEAR + 100 * ONE_DAY).into());
+    assert_eq!(c.get_format(), Format::YDddHhMmSs);
+
+    // YyDHhMmSs (10 years)
     c.set_current_value((10 * ONE_YEAR).into());
+    assert_eq!(c.get_format(), Format::YyDHhMmSs);
+
+    // YyDdHhMmSs (10 years, 10 days)
+    c.set_current_value((10 * ONE_YEAR + 10 * ONE_DAY).into());
+    assert_eq!(c.get_format(), Format::YyDdHhMmSs);
+
+    // YyDddHhMmSs (10 years, 100 days)
+    c.set_current_value((10 * ONE_YEAR + 100 * ONE_DAY).into());
     assert_eq!(c.get_format(), Format::YyDddHhMmSs);
 
     // YyyDddHhMmSs (100 years)
