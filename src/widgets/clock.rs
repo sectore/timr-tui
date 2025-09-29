@@ -79,8 +79,8 @@ pub enum Format {
     DHhMmSs,
     DdHhMmSs,
     DddHhMmSs,
-    // YDHhMmSs,
-    // YDdHhMmSs,
+    YDHhMmSs,
+    YDdHhMmSs,
     YDddHhMmSs,
     // YYDHhMmSs,
     // YYDdHhMmSs,
@@ -438,8 +438,12 @@ impl<T> ClockState<T> {
             Format::YyyDddHhMmSs
         } else if v.years() >= 10 {
             Format::YyDddHhMmSs
-        } else if v.years() >= 1 {
+        } else if v.years() >= 1 && v.days_mod() >= 101 {
             Format::YDddHhMmSs
+        } else if v.years() >= 1 && v.days_mod() >= 10 {
+            Format::YDdHhMmSs
+        } else if v.years() >= 1 && v.days() >= 1 {
+            Format::YDHhMmSs
         } else if v.days() >= 100 {
             Format::DddHhMmSs
         } else if v.days() >= 10 {
@@ -698,6 +702,35 @@ where
                 ],
                 with_decis,
             ),
+            Format::YDdHhMmSs => add_decis(
+                vec![
+                    DIGIT_WIDTH,      // Y
+                    LABEL_WIDTH,      // _l__
+                    TWO_DIGITS_WIDTH, // d_d
+                    LABEL_WIDTH,      // _l__
+                    TWO_DIGITS_WIDTH, // h_h
+                    COLON_WIDTH,      // :
+                    TWO_DIGITS_WIDTH, // m_m
+                    COLON_WIDTH,      // :
+                    TWO_DIGITS_WIDTH, // s_s
+                ],
+                with_decis,
+            ),
+            Format::YDHhMmSs => add_decis(
+                vec![
+                    DIGIT_WIDTH,      // Y
+                    LABEL_WIDTH,      // _l__
+                    DIGIT_WIDTH,      // d
+                    LABEL_WIDTH,      // _l__
+                    TWO_DIGITS_WIDTH, // h_h
+                    COLON_WIDTH,      // :
+                    TWO_DIGITS_WIDTH, // m_m
+                    COLON_WIDTH,      // :
+                    TWO_DIGITS_WIDTH, // s_s
+                ],
+                with_decis,
+            ),
+
             Format::DddHhMmSs => add_decis(
                 vec![
                     THREE_DIGITS_WIDTH, // d_d_d
@@ -1054,6 +1087,62 @@ where
                 render_y(y, buf);
                 render_label_y(ly, buf);
                 render_ddd(d_d_d, buf);
+                render_label_d(ld, buf);
+                render_hh(h_h, buf);
+                render_colon(c_hm, buf);
+                render_mm(m_m, buf);
+                render_colon(c_ms, buf);
+                render_ss(s_s, buf);
+            }
+            Format::YDdHhMmSs if with_decis => {
+                let [y, ly, d_d, ld, h_h, c_hm, m_m, c_ms, s_s, dot, ds] =
+                    Layout::horizontal(Constraint::from_lengths(widths)).areas(area);
+                render_y(y, buf);
+                render_label_y(ly, buf);
+                render_dd(d_d, buf);
+                render_label_d(ld, buf);
+                render_hh(h_h, buf);
+                render_colon(c_hm, buf);
+                render_mm(m_m, buf);
+                render_colon(c_ms, buf);
+                render_ss(s_s, buf);
+                render_dot(dot, buf);
+                render_ds(ds, buf);
+            }
+            Format::YDdHhMmSs => {
+                let [y, ly, d_d, ld, h_h, c_hm, m_m, c_ms, s_s] =
+                    Layout::horizontal(Constraint::from_lengths(widths)).areas(area);
+                render_y(y, buf);
+                render_label_y(ly, buf);
+                render_dd(d_d, buf);
+                render_label_d(ld, buf);
+                render_hh(h_h, buf);
+                render_colon(c_hm, buf);
+                render_mm(m_m, buf);
+                render_colon(c_ms, buf);
+                render_ss(s_s, buf);
+            }
+            Format::YDHhMmSs if with_decis => {
+                let [y, ly, d, ld, h_h, c_hm, m_m, c_ms, s_s, dot, ds] =
+                    Layout::horizontal(Constraint::from_lengths(widths)).areas(area);
+                render_y(y, buf);
+                render_label_y(ly, buf);
+                render_d(d, buf);
+                render_label_d(ld, buf);
+                render_hh(h_h, buf);
+                render_colon(c_hm, buf);
+                render_mm(m_m, buf);
+                render_colon(c_ms, buf);
+                render_ss(s_s, buf);
+                render_dot(dot, buf);
+                render_ds(ds, buf);
+            }
+            Format::YDHhMmSs => {
+                let [y, ly, d, ld, h_h, c_hm, m_m, c_ms, s_s] =
+                    Layout::horizontal(Constraint::from_lengths(widths)).areas(area);
+                render_y(y, buf);
+                render_label_y(ly, buf);
+                render_d(d, buf);
                 render_label_d(ld, buf);
                 render_hh(h_h, buf);
                 render_colon(c_hm, buf);
