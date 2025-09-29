@@ -67,7 +67,7 @@ impl fmt::Display for Mode {
 }
 
 // Clock format:
-// From `1 deciseconds` up to `999y 364d 23:59:59`
+// From `1s` up to `999y 364d 23:59:59`
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Display, PartialOrd, Ord)]
 pub enum Format {
     S,
@@ -127,6 +127,24 @@ pub fn format_by_duration(d: &DurationEx) -> Format {
         Format::Ss
     } else {
         Format::S
+    }
+}
+
+pub fn time_by_format(format: &Format) -> Time {
+    match format {
+        Format::YDddHhMmSs
+        | Format::YDdHhMmSs
+        | Format::YDHhMmSs
+        | Format::YyDddHhMmSs
+        | Format::YyDdHhMmSs
+        | Format::YyDHhMmSs
+        | Format::YyyDddHhMmSs
+        | Format::YyyDdHhMmSs
+        | Format::YyyDHhMmSs => Time::Years,
+        Format::DddHhMmSs | Format::DdHhMmSs | Format::DHhMmSs => Time::Days,
+        Format::HhMmSs | Format::HMmSs => Time::Hours,
+        Format::MmSs | Format::MSs => Time::Minutes,
+        Format::Ss | Format::S => Time::Seconds,
     }
 }
 
@@ -428,24 +446,23 @@ impl<T> ClockState<T> {
         self.update_format();
     }
 
+    // Note: Since `Format` does not include `deciseconds` for different reason,
+    // `Mode::Editable` can be downgraded up to `Time::Seconds` (but not to `Time::Decis`)
     fn downgrade_mode_by_format(&mut self, format: &Format) {
         let mode = self.mode.clone();
-
-        // FIXME: By editing an hour from 01:00:00 down,
-        // but `Editable` should be `Seconds`, but it's minutes
-        // Same for others (years, days, etc.).
+        let time = time_by_format(format);
         self.mode = match mode {
             Mode::Editable(Time::Years, prev) if format <= &Format::DddHhMmSs => {
-                Mode::Editable(Time::Days, prev)
+                Mode::Editable(time, prev)
             }
             Mode::Editable(Time::Days, prev) if format <= &Format::HhMmSs => {
-                Mode::Editable(Time::Hours, prev)
+                Mode::Editable(time, prev)
             }
             Mode::Editable(Time::Hours, prev) if format <= &Format::MmSs => {
-                Mode::Editable(Time::Minutes, prev)
+                Mode::Editable(time, prev)
             }
             Mode::Editable(Time::Minutes, prev) if format <= &Format::Ss => {
-                Mode::Editable(Time::Seconds, prev)
+                Mode::Editable(time, prev)
             }
             _ => mode,
         }
