@@ -90,6 +90,46 @@ pub enum Format {
     YyyDddHhMmSs,
 }
 
+pub fn format_by_duration(d: &DurationEx) -> Format {
+    if d.years() >= 100 && d.days_mod() >= 100 {
+        Format::YyyDddHhMmSs
+    } else if d.years() >= 100 && d.days_mod() >= 10 {
+        Format::YyyDdHhMmSs
+    } else if d.years() >= 100 && d.days() >= 1 {
+        Format::YyyDHhMmSs
+    } else if d.years() >= 10 && d.days_mod() >= 100 {
+        Format::YyDddHhMmSs
+    } else if d.years() >= 10 && d.days_mod() >= 10 {
+        Format::YyDdHhMmSs
+    } else if d.years() >= 10 && d.days() >= 1 {
+        Format::YyDHhMmSs
+    } else if d.years() >= 1 && d.days_mod() >= 100 {
+        Format::YDddHhMmSs
+    } else if d.years() >= 1 && d.days_mod() >= 10 {
+        Format::YDdHhMmSs
+    } else if d.years() >= 1 && d.days() >= 1 {
+        Format::YDHhMmSs
+    } else if d.days() >= 100 {
+        Format::DddHhMmSs
+    } else if d.days() >= 10 {
+        Format::DdHhMmSs
+    } else if d.days() >= 1 {
+        Format::DHhMmSs
+    } else if d.hours() >= 10 {
+        Format::HhMmSs
+    } else if d.hours() >= 1 {
+        Format::HMmSs
+    } else if d.minutes() >= 10 {
+        Format::MmSs
+    } else if d.minutes() >= 1 {
+        Format::MSs
+    } else if d.seconds() >= 10 {
+        Format::Ss
+    } else {
+        Format::S
+    }
+}
+
 const RANGE_OF_DONE_COUNT: u64 = 4;
 const MAX_DONE_COUNT: u64 = RANGE_OF_DONE_COUNT * 5;
 
@@ -161,6 +201,10 @@ impl<T> ClockState<T> {
         } else {
             Mode::Tick
         }
+    }
+
+    pub fn get_format(&self) -> &Format {
+        &self.format
     }
 
     pub fn get_initial_value(&self) -> &DurationEx {
@@ -298,7 +342,8 @@ impl<T> ClockState<T> {
             _ => self.current_value,
         };
         self.update_format();
-        self.update_mode();
+        let updated_format = *self.get_format();
+        self.downgrade_mode_by_format(&updated_format);
     }
 
     pub fn is_edit_mode(&self) -> bool {
@@ -383,23 +428,23 @@ impl<T> ClockState<T> {
         self.update_format();
     }
 
-    fn update_mode(&mut self) {
+    fn downgrade_mode_by_format(&mut self, format: &Format) {
         let mode = self.mode.clone();
 
         // FIXME: By editing an hour from 01:00:00 down,
         // but `Editable` should be `Seconds`, but it's minutes
         // Same for others (years, days, etc.).
         self.mode = match mode {
-            Mode::Editable(Time::Years, prev) if self.format <= Format::DddHhMmSs => {
+            Mode::Editable(Time::Years, prev) if format <= &Format::DddHhMmSs => {
                 Mode::Editable(Time::Days, prev)
             }
-            Mode::Editable(Time::Days, prev) if self.format <= Format::HhMmSs => {
+            Mode::Editable(Time::Days, prev) if format <= &Format::HhMmSs => {
                 Mode::Editable(Time::Hours, prev)
             }
-            Mode::Editable(Time::Hours, prev) if self.format <= Format::MmSs => {
+            Mode::Editable(Time::Hours, prev) if format <= &Format::MmSs => {
                 Mode::Editable(Time::Minutes, prev)
             }
-            Mode::Editable(Time::Minutes, prev) if self.format <= Format::Ss => {
+            Mode::Editable(Time::Minutes, prev) if format <= &Format::Ss => {
                 Mode::Editable(Time::Seconds, prev)
             }
             _ => mode,
@@ -429,48 +474,8 @@ impl<T> ClockState<T> {
     }
 
     fn update_format(&mut self) {
-        self.format = self.get_format();
-    }
-
-    pub fn get_format(&self) -> Format {
-        let v = self.current_value;
-        if v.years() >= 100 && v.days_mod() >= 100 {
-            Format::YyyDddHhMmSs
-        } else if v.years() >= 100 && v.days_mod() >= 10 {
-            Format::YyyDdHhMmSs
-        } else if v.years() >= 100 && v.days() >= 1 {
-            Format::YyyDHhMmSs
-        } else if v.years() >= 10 && v.days_mod() >= 100 {
-            Format::YyDddHhMmSs
-        } else if v.years() >= 10 && v.days_mod() >= 10 {
-            Format::YyDdHhMmSs
-        } else if v.years() >= 10 && v.days() >= 1 {
-            Format::YyDHhMmSs
-        } else if v.years() >= 1 && v.days_mod() >= 100 {
-            Format::YDddHhMmSs
-        } else if v.years() >= 1 && v.days_mod() >= 10 {
-            Format::YDdHhMmSs
-        } else if v.years() >= 1 && v.days() >= 1 {
-            Format::YDHhMmSs
-        } else if v.days() >= 100 {
-            Format::DddHhMmSs
-        } else if v.days() >= 10 {
-            Format::DdHhMmSs
-        } else if v.days() >= 1 {
-            Format::DHhMmSs
-        } else if v.hours() >= 10 {
-            Format::HhMmSs
-        } else if v.hours() >= 1 {
-            Format::HMmSs
-        } else if v.minutes() >= 10 {
-            Format::MmSs
-        } else if v.minutes() >= 1 {
-            Format::MSs
-        } else if v.seconds() >= 10 {
-            Format::Ss
-        } else {
-            Format::S
-        }
+        let d = self.get_current_value();
+        self.format = format_by_duration(d);
     }
 
     /// Updates inner value of `done_count`.
