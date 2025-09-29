@@ -395,8 +395,8 @@ fn test_edit_up_overflow_protection() {
 #[test]
 fn test_edit_down_years_to_days() {
     let mut c = ClockState::<Timer>::new(ClockStateArgs {
-        initial_value: ONE_YEAR,
-        current_value: ONE_YEAR,
+        initial_value: ONE_YEAR + ONE_DAY,
+        current_value: ONE_YEAR + ONE_DAY,
         tick_value: ONE_DECI_SECOND,
         with_decis: false,
         app_tx: None,
@@ -414,8 +414,8 @@ fn test_edit_down_years_to_days() {
 #[test]
 fn test_edit_down_days_to_hours() {
     let mut c = ClockState::<Timer>::new(ClockStateArgs {
-        initial_value: ONE_DAY,
-        current_value: ONE_DAY,
+        initial_value: ONE_DAY + ONE_HOUR,
+        current_value: ONE_DAY + ONE_HOUR,
         tick_value: ONE_DECI_SECOND,
         with_decis: false,
         app_tx: None,
@@ -432,8 +432,8 @@ fn test_edit_down_days_to_hours() {
 #[test]
 fn test_edit_down_hours_to_minutes() {
     let mut c = ClockState::<Timer>::new(ClockStateArgs {
-        initial_value: ONE_HOUR,
-        current_value: ONE_HOUR,
+        initial_value: ONE_HOUR + ONE_MINUTE,
+        current_value: ONE_HOUR + ONE_MINUTE,
         tick_value: ONE_DECI_SECOND,
         with_decis: false,
         app_tx: None,
