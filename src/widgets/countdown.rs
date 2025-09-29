@@ -372,10 +372,11 @@ impl StatefulWidget for Countdown {
                 .to_uppercase(),
             );
             let widget = ClockWidget::new(self.style, self.blink);
+
             let area = center(
                 area,
                 Constraint::Length(max(
-                    widget.get_width(&state.clock.get_format(), state.clock.with_decis),
+                    widget.get_width(state.clock.get_format(), state.clock.with_decis),
                     label.width() as u16,
                 )),
                 Constraint::Length(widget.get_height() + 1 /* height of label */),

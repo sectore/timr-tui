@@ -250,10 +250,8 @@ impl StatefulWidget for PomodoroWidget {
         let area = center(
             area,
             Constraint::Length(max(
-                clock_widget.get_width(
-                    &state.get_clock().get_format(),
-                    state.get_clock().with_decis,
-                ),
+                clock_widget
+                    .get_width(state.get_clock().get_format(), state.get_clock().with_decis),
                 label.width() as u16,
             )),
             Constraint::Length(

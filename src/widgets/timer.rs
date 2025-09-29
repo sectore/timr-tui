@@ -107,7 +107,7 @@ impl StatefulWidget for Timer {
         let area = center(
             area,
             Constraint::Length(max(
-                clock_widget.get_width(&clock.get_format(), clock.with_decis),
+                clock_widget.get_width(clock.get_format(), clock.with_decis),
                 label.width() as u16,
             )),
             Constraint::Length(clock_widget.get_height() + 1 /* height of label */),

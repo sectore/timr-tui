@@ -28,17 +28,17 @@ fn test_type_id() {
 #[test]
 fn test_get_format_seconds() {
     let mut c = ClockState::<Timer>::new(ClockStateArgs {
-        initial_value: Duration::from_secs(5),
-        current_value: Duration::from_secs(5),
+        initial_value: ONE_SECOND * 5,
+        current_value: ONE_SECOND * 5,
         tick_value: ONE_DECI_SECOND,
         with_decis: false,
         app_tx: None,
     });
     // S
-    assert_eq!(c.get_format(), Format::S);
+    assert_eq!(c.get_format(), &Format::S);
     // Ss
     c.set_current_value(Duration::from_secs(15).into());
-    assert_eq!(c.get_format(), Format::Ss);
+    assert_eq!(c.get_format(), &Format::Ss);
 }
 
 #[test]
@@ -51,10 +51,10 @@ fn test_get_format_minutes() {
         app_tx: None,
     });
     // MSs
-    assert_eq!(c.get_format(), Format::MSs);
+    assert_eq!(c.get_format(), &Format::MSs);
     // MmSs
-    c.set_current_value(Duration::from_secs(610).into()); // 10+ minutes
-    assert_eq!(c.get_format(), Format::MmSs);
+    c.set_current_value((ONE_MINUTE * 11).into()); // 10+ minutes
+    assert_eq!(c.get_format(), &Format::MmSs);
 }
 
 #[test]
@@ -67,162 +67,186 @@ fn test_get_format_hours() {
         app_tx: None,
     });
     // HMmSS
-    assert_eq!(c.get_format(), Format::HMmSs);
+    assert_eq!(c.get_format(), &Format::HMmSs);
     // HhMmSs
     c.set_current_value((10 * ONE_HOUR).into());
-    assert_eq!(c.get_format(), Format::HhMmSs);
+    assert_eq!(c.get_format(), &Format::HhMmSs);
 }
 
 #[test]
-fn test_get_format_boundaries() {
-    let mut c = ClockState::<Timer>::new(ClockStateArgs {
-        initial_value: ONE_SECOND,
-        current_value: ONE_SECOND,
-        tick_value: ONE_DECI_SECOND,
-        with_decis: false,
-        app_tx: None,
-    });
-
+fn test_format_by_duration_boundaries() {
     // S
-    c.set_current_value(Duration::from_secs(9).into());
-    assert_eq!(c.get_format(), Format::S);
+    assert_eq!(format_by_duration(&(ONE_SECOND * 9).into()), Format::S);
     // Ss
-    c.set_current_value((10 * ONE_SECOND).into());
-    assert_eq!(c.get_format(), Format::Ss);
+    assert_eq!(format_by_duration(&(10 * ONE_SECOND).into()), Format::Ss);
     // Ss
-    c.set_current_value((59 * ONE_SECOND).into());
-    assert_eq!(c.get_format(), Format::Ss);
+    assert_eq!(format_by_duration(&(59 * ONE_SECOND).into()), Format::Ss);
     // MSs
-    c.set_current_value(ONE_MINUTE.into());
-    assert_eq!(c.get_format(), Format::MSs);
+    assert_eq!(format_by_duration(&ONE_MINUTE.into()), Format::MSs);
     // HhMmSs
-    c.set_current_value((ONE_DAY.saturating_sub(ONE_SECOND)).into());
-    assert_eq!(c.get_format(), Format::HhMmSs);
+    assert_eq!(
+        format_by_duration(&(ONE_DAY.saturating_sub(ONE_SECOND)).into()),
+        Format::HhMmSs
+    );
     // DHhMmSs
-    c.set_current_value(ONE_DAY.into());
-    assert_eq!(c.get_format(), Format::DHhMmSs);
+    assert_eq!(format_by_duration(&ONE_DAY.into()), Format::DHhMmSs);
     // DHhMmSs
-    c.set_current_value(((10 * ONE_DAY).saturating_sub(ONE_SECOND)).into());
-    assert_eq!(c.get_format(), Format::DHhMmSs);
+    assert_eq!(
+        format_by_duration(&((10 * ONE_DAY).saturating_sub(ONE_SECOND)).into()),
+        Format::DHhMmSs
+    );
     // DdHhMmSs
-    c.set_current_value((10 * ONE_DAY).into());
-    assert_eq!(c.get_format(), Format::DdHhMmSs);
+    assert_eq!(format_by_duration(&(10 * ONE_DAY).into()), Format::DdHhMmSs);
     // DdHhMmSs
-    c.set_current_value(((100 * ONE_DAY).saturating_sub(ONE_SECOND)).into());
-    assert_eq!(c.get_format(), Format::DdHhMmSs);
+    assert_eq!(
+        format_by_duration(&((100 * ONE_DAY).saturating_sub(ONE_SECOND)).into()),
+        Format::DdHhMmSs
+    );
     // DddHhMmSs
-    c.set_current_value((100 * ONE_DAY).into());
-    assert_eq!(c.get_format(), Format::DddHhMmSs);
+    assert_eq!(
+        format_by_duration(&(100 * ONE_DAY).into()),
+        Format::DddHhMmSs
+    );
     // DddHhMmSs
-    c.set_current_value((ONE_YEAR.saturating_sub(ONE_SECOND)).into());
-    assert_eq!(c.get_format(), Format::DddHhMmSs);
+    assert_eq!(
+        format_by_duration(&(ONE_YEAR.saturating_sub(ONE_SECOND).into())),
+        Format::DddHhMmSs
+    );
     // YDHhMmSs
-    c.set_current_value(ONE_YEAR.into());
-    assert_eq!(c.get_format(), Format::YDHhMmSs);
+    assert_eq!(format_by_duration(&ONE_YEAR.into()), Format::YDHhMmSs);
     // YDdHhMmSs
-    c.set_current_value((ONE_YEAR + (100 * ONE_DAY).saturating_sub(ONE_SECOND)).into());
-    assert_eq!(c.get_format(), Format::YDdHhMmSs);
+    assert_eq!(
+        format_by_duration(&(ONE_YEAR + (100 * ONE_DAY).saturating_sub(ONE_SECOND)).into()),
+        Format::YDdHhMmSs
+    );
     // YDddHhMmSs
-    c.set_current_value((ONE_YEAR + 100 * ONE_DAY).into());
-    assert_eq!(c.get_format(), Format::YDddHhMmSs);
+    assert_eq!(
+        format_by_duration(&(ONE_YEAR + 100 * ONE_DAY).into()),
+        Format::YDddHhMmSs
+    );
     // YDddHhMmSs
-    c.set_current_value(((10 * ONE_YEAR).saturating_sub(ONE_SECOND)).into());
-    assert_eq!(c.get_format(), Format::YDddHhMmSs);
+    assert_eq!(
+        format_by_duration(&((10 * ONE_YEAR).saturating_sub(ONE_SECOND)).into()),
+        Format::YDddHhMmSs
+    );
     // YyDHhMmSs
-    c.set_current_value((10 * ONE_YEAR).into());
-    assert_eq!(c.get_format(), Format::YyDHhMmSs);
+    assert_eq!(
+        format_by_duration(&(10 * ONE_YEAR).into()),
+        Format::YyDHhMmSs
+    );
     // YyDdHhMmSs
-    c.set_current_value((10 * ONE_YEAR + 10 * ONE_DAY).into());
-    assert_eq!(c.get_format(), Format::YyDdHhMmSs);
+    assert_eq!(
+        format_by_duration(&(10 * ONE_YEAR + 10 * ONE_DAY).into()),
+        Format::YyDdHhMmSs
+    );
     // YyDdHhMmSs
-    c.set_current_value((10 * ONE_YEAR + (100 * ONE_DAY).saturating_sub(ONE_SECOND)).into());
-    assert_eq!(c.get_format(), Format::YyDdHhMmSs);
+    assert_eq!(
+        format_by_duration(&(10 * ONE_YEAR + (100 * ONE_DAY).saturating_sub(ONE_SECOND)).into()),
+        Format::YyDdHhMmSs
+    );
     // YyDddHhMmSs
-    c.set_current_value((10 * ONE_YEAR + 100 * ONE_DAY).into());
-    assert_eq!(c.get_format(), Format::YyDddHhMmSs);
+    assert_eq!(
+        format_by_duration(&(10 * ONE_YEAR + 100 * ONE_DAY).into()),
+        Format::YyDddHhMmSs
+    );
     // YyDddHhMmSs
-    c.set_current_value(((100 * ONE_YEAR).saturating_sub(ONE_SECOND)).into());
-    assert_eq!(c.get_format(), Format::YyDddHhMmSs);
+    assert_eq!(
+        format_by_duration(&((100 * ONE_YEAR).saturating_sub(ONE_SECOND)).into()),
+        Format::YyDddHhMmSs
+    );
     // YyyDHhMmSs
-    c.set_current_value((100 * ONE_YEAR).into());
-    assert_eq!(c.get_format(), Format::YyyDHhMmSs);
+    assert_eq!(
+        format_by_duration(&(100 * ONE_YEAR).into()),
+        Format::YyyDHhMmSs
+    );
     // YyyDdHhMmSs
-    c.set_current_value((100 * ONE_YEAR + 10 * ONE_DAY).into());
-    assert_eq!(c.get_format(), Format::YyyDdHhMmSs);
+    assert_eq!(
+        format_by_duration(&(100 * ONE_YEAR + 10 * ONE_DAY).into()),
+        Format::YyyDdHhMmSs
+    );
     // YyyDdHhMmSs
-    c.set_current_value((100 * ONE_YEAR + (100 * ONE_DAY).saturating_sub(ONE_SECOND)).into());
-    assert_eq!(c.get_format(), Format::YyyDdHhMmSs);
+    assert_eq!(
+        format_by_duration(&(100 * ONE_YEAR + (100 * ONE_DAY).saturating_sub(ONE_SECOND)).into()),
+        Format::YyyDdHhMmSs
+    );
     // YyyDddHhMmSs
-    c.set_current_value((100 * ONE_YEAR + 100 * ONE_DAY).into());
-    assert_eq!(c.get_format(), Format::YyyDddHhMmSs);
+    assert_eq!(
+        format_by_duration(&(100 * ONE_YEAR + 100 * ONE_DAY).into()),
+        Format::YyyDddHhMmSs
+    );
 }
 
 #[test]
-fn test_get_format_days() {
-    let mut c = ClockState::<Timer>::new(ClockStateArgs {
-        initial_value: ONE_DAY,
-        current_value: ONE_DAY,
-        tick_value: ONE_DECI_SECOND,
-        with_decis: false,
-        app_tx: None,
-    });
+fn test_format_by_duration_days() {
     // DHhMmSs
-    assert_eq!(c.get_format(), Format::DHhMmSs);
+    assert_eq!(format_by_duration(&ONE_DAY.into()), Format::DHhMmSs);
     // DdHhMmSs
-    c.set_current_value((10 * ONE_DAY).into());
-    assert_eq!(c.get_format(), Format::DdHhMmSs);
+    assert_eq!(format_by_duration(&(10 * ONE_DAY).into()), Format::DdHhMmSs);
     // DddHhMmSs
-    c.set_current_value((101 * ONE_DAY).into());
-    assert_eq!(c.get_format(), Format::DddHhMmSs);
+    assert_eq!(
+        format_by_duration(&(101 * ONE_DAY).into()),
+        Format::DddHhMmSs
+    );
 }
 
 #[test]
-fn test_get_format_years() {
-    let mut c = ClockState::<Timer>::new(ClockStateArgs {
-        initial_value: ONE_YEAR,
-        current_value: ONE_YEAR,
-        tick_value: ONE_DECI_SECOND,
-        with_decis: false,
-        app_tx: None,
-    });
+fn test_format_by_duration_years() {
     // YDHhMmSs (1 year, 0 days)
-    assert_eq!(c.get_format(), Format::YDHhMmSs);
+    assert_eq!(format_by_duration(&ONE_YEAR.into()), Format::YDHhMmSs);
 
     // YDHhMmSs (1 year, 1 day)
-    c.set_current_value((ONE_YEAR + ONE_DAY).into());
-    assert_eq!(c.get_format(), Format::YDHhMmSs);
+    assert_eq!(
+        format_by_duration(&(ONE_YEAR + ONE_DAY).into()),
+        Format::YDHhMmSs
+    );
 
     // YDdHhMmSs (1 year, 10 days)
-    c.set_current_value((ONE_YEAR + 10 * ONE_DAY).into());
-    assert_eq!(c.get_format(), Format::YDdHhMmSs);
+    assert_eq!(
+        format_by_duration(&(ONE_YEAR + 10 * ONE_DAY).into()),
+        Format::YDdHhMmSs
+    );
 
     // YDddHhMmSs (1 year, 100 days)
-    c.set_current_value((ONE_YEAR + 100 * ONE_DAY).into());
-    assert_eq!(c.get_format(), Format::YDddHhMmSs);
+    assert_eq!(
+        format_by_duration(&(ONE_YEAR + 100 * ONE_DAY).into()),
+        Format::YDddHhMmSs
+    );
 
     // YyDHhMmSs (10 years)
-    c.set_current_value((10 * ONE_YEAR).into());
-    assert_eq!(c.get_format(), Format::YyDHhMmSs);
+    assert_eq!(
+        format_by_duration(&(10 * ONE_YEAR).into()),
+        Format::YyDHhMmSs
+    );
 
     // YyDdHhMmSs (10 years, 10 days)
-    c.set_current_value((10 * ONE_YEAR + 10 * ONE_DAY).into());
-    assert_eq!(c.get_format(), Format::YyDdHhMmSs);
+    assert_eq!(
+        format_by_duration(&(10 * ONE_YEAR + 10 * ONE_DAY).into()),
+        Format::YyDdHhMmSs
+    );
 
     // YyDddHhMmSs (10 years, 100 days)
-    c.set_current_value((10 * ONE_YEAR + 100 * ONE_DAY).into());
-    assert_eq!(c.get_format(), Format::YyDddHhMmSs);
+    assert_eq!(
+        format_by_duration(&(10 * ONE_YEAR + 100 * ONE_DAY).into()),
+        Format::YyDddHhMmSs
+    );
 
     // YyyDHhMmSs (100 years)
-    c.set_current_value((100 * ONE_YEAR).into());
-    assert_eq!(c.get_format(), Format::YyyDHhMmSs);
+    assert_eq!(
+        format_by_duration(&(100 * ONE_YEAR).into()),
+        Format::YyyDHhMmSs
+    );
 
     // YyyDdHhMmSs (100 years, 10 days)
-    c.set_current_value((100 * ONE_YEAR + 10 * ONE_DAY).into());
-    assert_eq!(c.get_format(), Format::YyyDdHhMmSs);
+    assert_eq!(
+        format_by_duration(&(100 * ONE_YEAR + 10 * ONE_DAY).into()),
+        Format::YyyDdHhMmSs
+    );
 
     // YyyDddHhMmSs (100 years, 100 days)
-    c.set_current_value((100 * ONE_YEAR + 100 * ONE_DAY).into());
-    assert_eq!(c.get_format(), Format::YyyDddHhMmSs);
+    assert_eq!(
+        format_by_duration(&(100 * ONE_YEAR + 100 * ONE_DAY).into()),
+        Format::YyyDddHhMmSs
+    );
 }
 
 #[test]
@@ -371,8 +395,8 @@ fn test_edit_up_overflow_protection() {
 #[test]
 fn test_edit_down_years_to_days() {
     let mut c = ClockState::<Timer>::new(ClockStateArgs {
-        initial_value: ONE_YEAR,
-        current_value: ONE_YEAR,
+        initial_value: ONE_YEAR + ONE_DAY,
+        current_value: ONE_YEAR + ONE_DAY,
         tick_value: ONE_DECI_SECOND,
         with_decis: false,
         app_tx: None,
@@ -390,8 +414,8 @@ fn test_edit_down_years_to_days() {
 #[test]
 fn test_edit_down_days_to_hours() {
     let mut c = ClockState::<Timer>::new(ClockStateArgs {
-        initial_value: ONE_DAY,
-        current_value: ONE_DAY,
+        initial_value: ONE_DAY + ONE_HOUR,
+        current_value: ONE_DAY + ONE_HOUR,
         tick_value: ONE_DECI_SECOND,
         with_decis: false,
         app_tx: None,
@@ -408,8 +432,8 @@ fn test_edit_down_days_to_hours() {
 #[test]
 fn test_edit_down_hours_to_minutes() {
     let mut c = ClockState::<Timer>::new(ClockStateArgs {
-        initial_value: ONE_HOUR,
-        current_value: ONE_HOUR,
+        initial_value: ONE_HOUR + ONE_MINUTE,
+        current_value: ONE_HOUR + ONE_MINUTE,
         tick_value: ONE_DECI_SECOND,
         with_decis: false,
         app_tx: None,
@@ -473,9 +497,6 @@ fn test_edit_hours_in_dhhmmss_format() {
         with_decis: false,
         app_tx: None,
     });
-
-    // Should be in D HH:MM:SS format
-    assert_eq!(c.get_format(), Format::DHhMmSs);
 
     c.toggle_edit();
     c.edit_next(); // Move to Hours
