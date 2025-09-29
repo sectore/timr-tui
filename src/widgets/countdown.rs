@@ -194,8 +194,14 @@ impl TuiEventHandler for CountdownState {
                 KeyCode::Left => {
                     self.clock.edit_next();
                 }
+                KeyCode::Up if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                    self.clock.edit_jump_up();
+                }
                 KeyCode::Up => {
                     self.clock.edit_up();
+                }
+                KeyCode::Down if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                    self.clock.edit_jump_down();
                 }
                 KeyCode::Down => {
                     self.clock.edit_down();

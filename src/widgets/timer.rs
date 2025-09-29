@@ -4,6 +4,7 @@ use crate::{
     utils::center,
     widgets::clock::{self, ClockState, ClockWidget},
 };
+use crossterm::event::KeyModifiers;
 use ratatui::{
     buffer::Buffer,
     crossterm::event::KeyCode,
@@ -60,11 +61,17 @@ impl TuiEventHandler for TimerState {
                 KeyCode::Right => {
                     self.clock.edit_prev();
                 }
+                KeyCode::Up if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                    self.clock.edit_jump_up();
+                }
                 // change value up
                 KeyCode::Up => {
                     self.clock.edit_up();
                 }
                 // change value down
+                KeyCode::Down if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                    self.clock.edit_jump_down();
+                }
                 KeyCode::Down => {
                     self.clock.edit_down();
                 }
