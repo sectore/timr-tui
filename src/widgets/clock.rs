@@ -269,7 +269,7 @@ impl<T> ClockState<T> {
             Mode::Editable(Time::Years, _) => {
                 if self
                     .current_value
-                    .lt(&MAX_DURATION.saturating_sub(ONE_YEAR).into())
+                    .le(&MAX_DURATION.saturating_sub(ONE_YEAR).into())
                 {
                     self.current_value.saturating_add(ONE_YEAR.into())
                 } else {

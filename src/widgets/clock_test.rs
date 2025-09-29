@@ -1,6 +1,8 @@
 use crate::{
     common::ClockTypeId,
-    duration::{ONE_DAY, ONE_DECI_SECOND, ONE_HOUR, ONE_MINUTE, ONE_SECOND, ONE_YEAR},
+    duration::{
+        MAX_DURATION, ONE_DAY, ONE_DECI_SECOND, ONE_HOUR, ONE_MINUTE, ONE_SECOND, ONE_YEAR,
+    },
     widgets::clock::*,
 };
 use std::time::Duration;
@@ -332,6 +334,38 @@ fn test_edit_up_stays_in_days() {
     c.edit_up();
     // Edit mode should stay on days
     assert!(matches!(c.get_mode(), Mode::Editable(Time::Days, _)));
+}
+
+#[test]
+fn test_edit_up_overflow_protection() {
+    let mut c = ClockState::<Timer>::new(ClockStateArgs {
+        initial_value: MAX_DURATION.saturating_sub(ONE_SECOND),
+        current_value: MAX_DURATION.saturating_sub(ONE_SECOND),
+        tick_value: ONE_DECI_SECOND,
+        with_decis: false,
+        app_tx: None,
+    });
+
+    c.toggle_edit();
+    c.edit_next(); // Hours
+    c.edit_next(); // Days
+    c.edit_next(); // Years
+    c.edit_up(); // +1y
+    assert!(Duration::from(*c.get_current_value()) <= MAX_DURATION);
+    c.edit_prev(); // Days
+    c.edit_up(); // +1d
+    assert!(Duration::from(*c.get_current_value()) <= MAX_DURATION);
+    c.edit_prev(); // Hours
+    c.edit_up(); // +1h
+    assert!(Duration::from(*c.get_current_value()) <= MAX_DURATION);
+    c.edit_prev(); // Minutes
+    c.edit_up(); // +1m
+    assert!(Duration::from(*c.get_current_value()) <= MAX_DURATION);
+    c.edit_prev(); // Sec.
+    c.edit_up(); // +1s
+    c.edit_up(); // +1s
+    c.edit_up(); // +1s
+    assert!(Duration::from(*c.get_current_value()) <= MAX_DURATION);
 }
 
 #[test]
