@@ -141,8 +141,17 @@ fn test_get_format_boundaries() {
     // YyDddHhMmSs
     c.set_current_value(((100 * ONE_YEAR).saturating_sub(ONE_SECOND)).into());
     assert_eq!(c.get_format(), Format::YyDddHhMmSs);
-    // YyyDddHhMmSs
+    // YyyDHhMmSs
     c.set_current_value((100 * ONE_YEAR).into());
+    assert_eq!(c.get_format(), Format::YyyDHhMmSs);
+    // YyyDdHhMmSs
+    c.set_current_value((100 * ONE_YEAR + 10 * ONE_DAY).into());
+    assert_eq!(c.get_format(), Format::YyyDdHhMmSs);
+    // YyyDdHhMmSs
+    c.set_current_value((100 * ONE_YEAR + (100 * ONE_DAY).saturating_sub(ONE_SECOND)).into());
+    assert_eq!(c.get_format(), Format::YyyDdHhMmSs);
+    // YyyDddHhMmSs
+    c.set_current_value((100 * ONE_YEAR + 100 * ONE_DAY).into());
     assert_eq!(c.get_format(), Format::YyyDddHhMmSs);
 }
 
@@ -201,8 +210,16 @@ fn test_get_format_years() {
     c.set_current_value((10 * ONE_YEAR + 100 * ONE_DAY).into());
     assert_eq!(c.get_format(), Format::YyDddHhMmSs);
 
-    // YyyDddHhMmSs (100 years)
+    // YyyDHhMmSs (100 years)
     c.set_current_value((100 * ONE_YEAR).into());
+    assert_eq!(c.get_format(), Format::YyyDHhMmSs);
+
+    // YyyDdHhMmSs (100 years, 10 days)
+    c.set_current_value((100 * ONE_YEAR + 10 * ONE_DAY).into());
+    assert_eq!(c.get_format(), Format::YyyDdHhMmSs);
+
+    // YyyDddHhMmSs (100 years, 100 days)
+    c.set_current_value((100 * ONE_YEAR + 100 * ONE_DAY).into());
     assert_eq!(c.get_format(), Format::YyyDddHhMmSs);
 }
 
