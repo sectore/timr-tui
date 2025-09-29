@@ -1118,7 +1118,7 @@ where
                 render_ds(ds, buf);
             }
             Format::YyyDdHhMmSs => {
-                let [y_y_y, ly, d_d, ld, h_h, c_hm, m_m] =
+                let [y_y_y, ly, d_d, ld, h_h, c_hm, m_m, c_ms, s_s] =
                     Layout::horizontal(Constraint::from_lengths(widths)).areas(area);
                 render_yyy(y_y_y, buf);
                 render_label_y(ly, buf);
@@ -1127,6 +1127,8 @@ where
                 render_hh(h_h, buf);
                 render_colon(c_hm, buf);
                 render_mm(m_m, buf);
+                render_colon(c_ms, buf);
+                render_ss(s_s, buf);
             }
             Format::YyyDHhMmSs if with_decis => {
                 let [y_y_y, ly, d, ld, h_h, c_hm, m_m, c_ms, s_s, dot, ds] =
