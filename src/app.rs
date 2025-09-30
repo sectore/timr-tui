@@ -28,7 +28,6 @@ use ratatui::{
 };
 use std::path::PathBuf;
 use std::time::Duration;
-use time::OffsetDateTime;
 use tracing::{debug, error};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -140,13 +139,6 @@ impl From<FromAppArgs> for App {
     }
 }
 
-fn get_app_time() -> AppTime {
-    match OffsetDateTime::now_local() {
-        Ok(t) => AppTime::Local(t),
-        Err(_) => AppTime::Utc(OffsetDateTime::now_utc()),
-    }
-}
-
 impl App {
     pub fn new(args: AppArgs) -> Self {
         let AppArgs {
@@ -171,7 +163,7 @@ impl App {
             app_tx,
             footer_toggle_app_time,
         } = args;
-        let app_time = get_app_time();
+        let app_time = AppTime::new();
 
         Self {
             mode: Mode::Running,
@@ -292,7 +284,7 @@ impl App {
         // Closure to handle `TuiEvent`'s
         let mut handle_tui_events = |app: &mut Self, event: events::TuiEvent| -> Result<()> {
             if matches!(event, events::TuiEvent::Tick) {
-                app.app_time = get_app_time();
+                app.app_time = AppTime::new();
                 app.countdown.set_app_time(app.app_time);
                 app.local_time.set_app_time(app.app_time);
             }
