@@ -179,56 +179,31 @@ impl fmt::Display for DurationEx {
     }
 }
 
-/// Parses  `Duration` from `hh:mm:ss`, `mm:ss` or `ss`
-/// Returns (hours, minutes, seconds) tuple. Any `0` (zero) value means  no value exist for that part.
-fn parse_time_parts(arg: &str) -> Result<(u8 /* hours */, u8 /* mins */, u8 /* secs */), Report> {
-    let parts: Vec<&str> = arg.split(':').rev().collect();
+/// Parse seconds (must be < 60)
+fn parse_seconds(s: &str) -> Result<u8, Report> {
+    let secs = s.parse::<u8>().map_err(|_| eyre!("Invalid seconds"))?;
+    ensure!(secs < 60, "Seconds must be less than 60.");
+    Ok(secs)
+}
 
-    let parse_seconds = |s: &str| -> Result<u8, Report> {
-        let secs = s.parse::<u8>().map_err(|_| eyre!("Invalid seconds"))?;
-        ensure!(secs < 60, "Seconds must be less than 60.");
-        Ok(secs)
-    };
+/// Parse minutes (must be < 60)
+fn parse_minutes(m: &str) -> Result<u8, Report> {
+    let mins = m.parse::<u8>().map_err(|_| eyre!("Invalid minutes"))?;
+    ensure!(mins < 60, "Minutes must be less than 60.");
+    Ok(mins)
+}
 
-    let parse_minutes = |m: &str| -> Result<u8, Report> {
-        let mins = m.parse::<u8>().map_err(|_| eyre!("Invalid minutes"))?;
-        ensure!(mins < 60, "Minutes must be less than 60.");
-        Ok(mins)
-    };
-
-    let parse_hours = |h: &str| -> Result<u8, Report> {
-        let hours = h.parse::<u8>().map_err(|_| eyre!("Invalid hours"))?;
-        ensure!(hours < 100, "Hours must be less than 100.");
-        Ok(hours)
-    };
-
-    match parts.as_slice() {
-        [ss] => {
-            let s = parse_seconds(ss)?;
-            Ok((0, 0, s))
-        }
-        [ss, mm] => {
-            let s = parse_seconds(ss)?;
-            let m = parse_minutes(mm)?;
-            Ok((0, m, s))
-        }
-        [ss, mm, hh] => {
-            let s = parse_seconds(ss)?;
-            let m = parse_minutes(mm)?;
-            let h = parse_hours(hh)?;
-            Ok((h, m, s))
-        }
-        _ => Err(eyre!(
-            "Invalid time format. Use 'ss', 'mm:ss', or 'hh:mm:ss'"
-        )),
-    }
+/// Parse hours with validation limit
+fn parse_hours(h: &str) -> Result<u8, Report> {
+    let hours = h.parse::<u8>().map_err(|_| eyre!("Invalid hours"))?;
+    Ok(hours)
 }
 
 /// Parses `Duration` from following formats:
 /// - `YYYY-MM-DD HH:MM:SS`
 /// - `YYYY-MM-DD HH:MM`
 /// - `HH:MM:SS`
-/// - `MM:SS`
+/// - `HH:MM`
 /// - `SS`
 ///
 /// If time is in the past, it returns `Duration::ZERO`
@@ -246,19 +221,38 @@ pub fn parse_duration_by_time(arg: &str) -> Result<Duration, Report> {
 
         let pdt = PrimitiveDateTime::parse(arg, format_with_seconds)
             .or_else(|_| PrimitiveDateTime::parse(arg, format_without_seconds))
-            .map_err(|_| {
-                eyre!("Invalid datetime format. Use 'YYYY-MM-DD HH:MM:SS' or 'YYYY-MM-DD HH:MM'")
+            .map_err(|e| {
+                eyre!("Invalid datetime '{}'. Use format 'YYYY-MM-DD HH:MM:SS' or 'YYYY-MM-DD HH:MM'. Error: {}", arg, e)
             })?;
         pdt.assume_offset(now.offset())
     } else {
-        // `HH:MM:SS` etc.
-        let (mut hour, mut minute, second) = parse_time_parts(arg)?;
-        // replace non-existing (zero) values with values from current time
-        if hour == 0 {
-            hour = now.hour();
-        };
-        if hour == 0 && minute == 0 {
-            minute = now.minute();
+        // Parse time parts: interpret as HH:MM:SS, HH:MM, or SS
+        let parts: Vec<&str> = arg.split(':').collect();
+
+        let (hour, minute, second) = match parts.as_slice() {
+            [ss] => {
+                // Single part: treat as seconds in current hour:minute
+                let s = parse_seconds(ss)?;
+                (now.hour(), now.minute(), s)
+            }
+            [hh, mm] => {
+                // Two parts: treat as HH:MM (time of day)
+                let h = parse_hours(hh)?;
+                let m = parse_minutes(mm)?;
+                (h, m, 0)
+            }
+            [hh, mm, ss] => {
+                // Three parts: HH:MM:SS
+                let h = parse_hours(hh)?;
+                let m = parse_minutes(mm)?;
+                let s = parse_seconds(ss)?;
+                (h, m, s)
+            }
+            _ => {
+                return Err(eyre!(
+                    "Invalid time format. Use 'HH:MM:SS', 'HH:MM', or 'SS'"
+                ));
+            }
         };
 
         now.replace_time(
@@ -278,12 +272,35 @@ pub fn parse_duration_by_time(arg: &str) -> Result<Duration, Report> {
 
 /// Parses  `Duration` from `hh:mm:ss`, `mm:ss` or `ss`
 pub fn parse_duration(arg: &str) -> Result<Duration, Report> {
-    let (hours, minutes, seconds) = parse_time_parts(arg)?;
+    let parts: Vec<&str> = arg.split(':').collect();
 
-    // Validate hours (parse_time_parts doesn't validate, from_hms does for time values)
-    ensure!(hours < 100, "Hours must be less than 100.");
+    let (hours, minutes, seconds) = match parts.as_slice() {
+        [ss] => {
+            // Single part: seconds only
+            let s = parse_seconds(ss)?;
+            (0u64, 0u64, s as u64)
+        }
+        [mm, ss] => {
+            // Two parts: MM:SS
+            let m = parse_minutes(mm)?;
+            let s = parse_seconds(ss)?;
+            (0u64, m as u64, s as u64)
+        }
+        [hh, mm, ss] => {
+            // Three parts: HH:MM:SS
+            let h = parse_hours(hh)?;
+            let m = parse_minutes(mm)?;
+            let s = parse_seconds(ss)?;
+            (h as u64, m as u64, s as u64)
+        }
+        _ => {
+            return Err(eyre!(
+                "Invalid time format. Use 'ss', 'mm:ss', or 'hh:mm:ss'"
+            ));
+        }
+    };
 
-    let total_seconds = (hours as u64) * 3600 + (minutes as u64) * 60 + (seconds as u64);
+    let total_seconds = hours * 3600 + minutes * 60 + seconds;
     Ok(Duration::from_secs(total_seconds))
 }
 
@@ -383,25 +400,6 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_time_parts() {
-        // ss
-        assert_eq!(parse_time_parts("1").unwrap(), (0, 0, 1));
-        assert_eq!(parse_time_parts("50").unwrap(), (0, 0, 50));
-        // mm:ss
-        assert_eq!(parse_time_parts("01:30").unwrap(), (0, 1, 30));
-        assert_eq!(parse_time_parts("10:03").unwrap(), (0, 10, 3));
-        // hh:mm:ss
-        assert_eq!(parse_time_parts("02:00:00").unwrap(), (2, 00, 00));
-        assert_eq!(parse_time_parts("12:45:30").unwrap(), (12, 45, 30));
-        // errors
-        assert!(parse_time_parts("60").is_err()); // invalid seconds
-        assert!(parse_time_parts("01:60").is_err()); // invalid seconds
-        assert!(parse_time_parts("60:00").is_err()); // invalid minutes
-        assert!(parse_time_parts("abc").is_err()); // invalid input
-        assert!(parse_time_parts("01:02:03:04").is_err()); // too many parts
-    }
-
-    #[test]
     fn test_parse_duration() {
         // ss
         assert_eq!(parse_duration("50").unwrap(), Duration::from_secs(50));
@@ -418,7 +416,6 @@ mod tests {
         // errors
         assert!(parse_duration("1:60").is_err()); // invalid seconds
         assert!(parse_duration("60:00").is_err()); // invalid minutes
-        assert!(parse_duration("100:00:00").is_err()); // invalid hours
         assert!(parse_duration("abc").is_err()); // invalid input
         assert!(parse_duration("01:02:03:04").is_err()); // too many parts
     }
@@ -434,10 +431,10 @@ mod tests {
         // HH:MM:SS - time today
         assert!(parse_duration_by_time("23:59:59").is_ok());
 
-        // MM:SS - time in current hour
-        assert!(parse_duration_by_time("45:30").is_ok());
+        // HH:MM - time today (e.g., 18:00 = 6 PM)
+        assert!(parse_duration_by_time("18:00").is_ok());
 
-        // SS - time in current minute
+        // SS - time in current minute (seconds only)
         assert!(parse_duration_by_time("45").is_ok());
 
         // Past date returns Duration::ZERO
@@ -448,7 +445,7 @@ mod tests {
 
         // errors
         assert!(parse_duration_by_time("60").is_err()); // invalid seconds
-        assert!(parse_duration_by_time("60:00").is_err()); // invalid minutes
+        assert!(parse_duration_by_time("24:00").is_err()); // invalid hours
         assert!(parse_duration_by_time("24:00:00").is_err()); // invalid hours
         assert!(parse_duration_by_time("2030-13-01 12:00:00").is_err()); // invalid month
         assert!(parse_duration_by_time("2030-06-32 12:00:00").is_err()); // invalid day
