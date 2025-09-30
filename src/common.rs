@@ -118,6 +118,7 @@ impl From<AppTime> for OffsetDateTime {
 }
 
 impl AppTime {
+    #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         match OffsetDateTime::now_local() {
             Ok(t) => AppTime::Local(t),
