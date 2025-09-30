@@ -19,9 +19,9 @@ pub struct Args {
     pub countdown: Option<Duration>,
 
     #[arg(long, value_parser = duration::parse_duration_by_time,
-        help = "Countdown until specific time. Formats: 'YYYY-MM-DD HH:MM:SS', 'YYYY-MM-DD HH:MM', 'HH:MM:SS', 'HH:MM', or 'SS'"
+        help = "Countdown target to a specific time. Formats: 'YYYY-MM-DD HH:MM:SS', 'YYYY-MM-DD HH:MM', 'HH:MM:SS', 'HH:MM', or 'SS'"
     )]
-    pub countdown_until: Option<duration::DirectedDuration>,
+    pub countdown_target: Option<duration::DirectedDuration>,
 
     #[arg(long, short, value_parser = duration::parse_duration,
         help = "Work time to count down from. Formats: 'ss', 'mm:ss', or 'hh:mm:ss'"

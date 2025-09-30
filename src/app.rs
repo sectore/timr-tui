@@ -103,7 +103,7 @@ impl From<FromAppArgs> for App {
                 None => {
                     if args.work.is_some() || args.pause.is_some() {
                         Content::Pomodoro
-                    } else if args.countdown.is_some() || args.countdown_until.is_some() {
+                    } else if args.countdown.is_some() || args.countdown_target.is_some() {
                         Content::Countdown
                     }
                     // in other case just use latest stored state
@@ -121,7 +121,7 @@ impl From<FromAppArgs> for App {
             initial_value_pause: args.pause.unwrap_or(stg.inital_value_pause),
             // invalidate `current_value_pause` if an initial value is set via args
             current_value_pause: args.pause.unwrap_or(stg.current_value_pause),
-            initial_value_countdown: match (&args.countdown, &args.countdown_until) {
+            initial_value_countdown: match (&args.countdown, &args.countdown_target) {
                 (Some(d), _) => *d,
                 (None, Some(DirectedDuration::Until(d))) => *d,
                 // reset for values from "past"
@@ -129,14 +129,14 @@ impl From<FromAppArgs> for App {
                 (None, None) => stg.inital_value_countdown,
             },
             // invalidate `current_value_countdown` if an initial value is set via args
-            current_value_countdown: match (&args.countdown, &args.countdown_until) {
+            current_value_countdown: match (&args.countdown, &args.countdown_target) {
                 (Some(d), _) => *d,
                 (None, Some(DirectedDuration::Until(d))) => *d,
                 // `zero` makes values from `past` marked as `DONE`
                 (None, Some(DirectedDuration::Since(_))) => Duration::ZERO,
                 (None, None) => stg.inital_value_countdown,
             },
-            elapsed_value_countdown: match (args.countdown, args.countdown_until) {
+            elapsed_value_countdown: match (args.countdown, args.countdown_target) {
                 // use `Since` duration
                 (_, Some(DirectedDuration::Since(d))) => d,
                 // reset values
