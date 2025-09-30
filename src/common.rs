@@ -135,6 +135,17 @@ impl AppTime {
             .unwrap_or_else(|e| e.to_string())
     }
 
+    pub fn format_date(&self) -> String {
+        format_description::parse("[year]-[month]-[day]")
+            .map_err(|_| "parse error")
+            .and_then(|fd| {
+                OffsetDateTime::from(*self)
+                    .format(&fd)
+                    .map_err(|_| "format error")
+            })
+            .unwrap_or_else(|e| e.to_string())
+    }
+
     pub fn get_period(&self) -> String {
         format_description::parse("[period]")
             .map_err(|_| "parse error")

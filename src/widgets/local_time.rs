@@ -115,6 +115,8 @@ impl StatefulWidget for LocalTimeWidget {
         let symbol = self.style.get_digit_symbol();
 
         let label = Line::raw("Local Time".to_uppercase());
+        let label_date = Line::raw(state.time.format_date().to_uppercase());
+        let mut content_width = max(label.width(), label_date.width()) as u16;
 
         let format = state.format;
         let widths = self.get_horizontal_lengths(&format);
@@ -127,14 +129,21 @@ impl StatefulWidget for LocalTimeWidget {
             widths[2] = 0; // `space`
         }
 
-        let width = widths.iter().sum();
+        content_width = max(widths.iter().sum(), content_width);
+        let v_heights = [
+            1, // empty (offset) to keep everything centered vertically comparing to "clock" widgets with one label only
+            DIGIT_HEIGHT, // local time
+            1, // label
+            1, // date
+        ];
+
         let area = center(
             area,
-            Constraint::Length(max(width, label.width() as u16)),
-            Constraint::Length(DIGIT_HEIGHT + 1 /* height of label */),
+            Constraint::Length(content_width),
+            Constraint::Length(v_heights.iter().sum()),
         );
 
-        let [v1, v2] = Layout::vertical(Constraint::from_lengths([DIGIT_HEIGHT, 1])).areas(area);
+        let [_, v1, v2, v3] = Layout::vertical(Constraint::from_lengths(v_heights)).areas(area);
 
         match state.format {
             AppTimeFormat::HhMmSs => {
@@ -181,5 +190,6 @@ impl StatefulWidget for LocalTimeWidget {
             }
         }
         label.centered().render(v2, buf);
+        label_date.centered().render(v3, buf);
     }
 }
