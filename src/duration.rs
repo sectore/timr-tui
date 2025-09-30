@@ -36,6 +36,15 @@ pub const MAX_DURATION: Duration = ONE_YEAR
     .saturating_mul(1000)
     .saturating_sub(ONE_DECI_SECOND);
 
+/// `Duration` with direction in time (past or future)
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum DirectedDuration {
+    /// Time `until` a future moment (positive `Duration`)
+    Until(Duration),
+    /// Time `since` a past moment (negative duration, but still represented as positive `Duration`)
+    Since(Duration),
+}
+
 #[derive(Debug, Clone, Copy, PartialOrd)]
 pub struct DurationEx {
     inner: Duration,
@@ -199,15 +208,15 @@ fn parse_hours(h: &str) -> Result<u8, Report> {
     Ok(hours)
 }
 
-/// Parses `Duration` from following formats:
+/// Parses `DirectedDuration` from following formats:
 /// - `YYYY-MM-DD HH:MM:SS`
 /// - `YYYY-MM-DD HH:MM`
 /// - `HH:MM:SS`
 /// - `HH:MM`
 /// - `SS`
 ///
-/// If time is in the past, it returns `Duration::ZERO`
-pub fn parse_duration_by_time(arg: &str) -> Result<Duration, Report> {
+/// Returns `DirectedDuration::Until` for future times, `DirectedDuration::Since` for past times
+pub fn parse_duration_by_time(arg: &str) -> Result<DirectedDuration, Report> {
     use time::{OffsetDateTime, PrimitiveDateTime, macros::format_description};
 
     let now: OffsetDateTime = AppTime::new().into();
@@ -260,13 +269,20 @@ pub fn parse_duration_by_time(arg: &str) -> Result<Duration, Report> {
         )
     };
 
-    let duration_secs = (target_time - now).whole_seconds();
+    let mut duration_secs = (target_time - now).whole_seconds();
 
-    // If in past, return zero
-    if duration_secs <= 0 {
-        Ok(Duration::ZERO)
-    } else {
-        Ok(Duration::from_secs(duration_secs as u64))
+    // `Since` for past times
+    if duration_secs < 0 {
+        duration_secs *= -1;
+        Ok(DirectedDuration::Since(Duration::from_secs(
+            duration_secs as u64,
+        )))
+    } else
+    // `Until` for future times,
+    {
+        Ok(DirectedDuration::Until(Duration::from_secs(
+            duration_secs as u64,
+        )))
     }
 }
 
@@ -422,26 +438,32 @@ mod tests {
 
     #[test]
     fn test_parse_duration_by_time() {
-        // YYYY-MM-DD HH:MM:SS - future date
-        assert!(parse_duration_by_time("2050-06-15 14:30:45").is_ok());
+        // YYYY-MM-DD HH:MM:SS - future
+        assert!(matches!(
+            parse_duration_by_time("2050-06-15 14:30:45"),
+            Ok(DirectedDuration::Until(_))
+        ));
 
-        // YYYY-MM-DD HH:MM - future date without seconds
-        assert!(parse_duration_by_time("2050-06-15 14:30").is_ok());
+        // YYYY-MM-DD HH:MM - future
+        assert!(matches!(
+            parse_duration_by_time("2050-06-15 14:30"),
+            Ok(DirectedDuration::Until(_))
+        ));
 
-        // HH:MM:SS - time today
-        assert!(parse_duration_by_time("23:59:59").is_ok());
+        // HH:MM:SS - past
+        assert!(matches!(
+            parse_duration_by_time("2000-01-01 23:59:59"),
+            Ok(DirectedDuration::Since(_))
+        ));
 
-        // HH:MM - time today (e.g., 18:00 = 6 PM)
+        // HH:MM - Until or Since depending on current time
         assert!(parse_duration_by_time("18:00").is_ok());
 
-        // SS - time in current minute (seconds only)
-        assert!(parse_duration_by_time("45").is_ok());
-
-        // Past date returns Duration::ZERO
-        assert_eq!(
-            parse_duration_by_time("2020-01-01 00:00:00").unwrap(),
-            Duration::ZERO
-        );
+        // SS - time in current minute returns Until
+        assert!(matches!(
+            parse_duration_by_time("45"),
+            Ok(DirectedDuration::Until(_))
+        ));
 
         // errors
         assert!(parse_duration_by_time("60").is_err()); // invalid seconds

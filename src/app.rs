@@ -2,6 +2,7 @@ use crate::{
     args::Args,
     common::{AppEditMode, AppTime, AppTimeFormat, ClockTypeId, Content, Style, Toggle},
     constants::TICK_VALUE_MS,
+    duration::DirectedDuration,
     events::{self, TuiEventHandler},
     storage::AppStorage,
     terminal::Terminal,
@@ -120,17 +121,27 @@ impl From<FromAppArgs> for App {
             initial_value_pause: args.pause.unwrap_or(stg.inital_value_pause),
             // invalidate `current_value_pause` if an initial value is set via args
             current_value_pause: args.pause.unwrap_or(stg.current_value_pause),
-            initial_value_countdown: args
-                .countdown
-                .unwrap_or(args.countdown_until.unwrap_or(stg.inital_value_countdown)),
+            initial_value_countdown: match (&args.countdown, &args.countdown_until) {
+                (Some(d), _) => *d,
+                (None, Some(DirectedDuration::Until(d))) => *d,
+                // reset for values from "past"
+                (None, Some(DirectedDuration::Since(_))) => Duration::ZERO,
+                (None, None) => stg.inital_value_countdown,
+            },
             // invalidate `current_value_countdown` if an initial value is set via args
-            current_value_countdown: args
-                .countdown
-                .unwrap_or(args.countdown_until.unwrap_or(stg.inital_value_countdown)),
+            current_value_countdown: match (&args.countdown, &args.countdown_until) {
+                (Some(d), _) => *d,
+                (None, Some(DirectedDuration::Until(d))) => *d,
+                // `zero` makes values from `past` marked as `DONE`
+                (None, Some(DirectedDuration::Since(_))) => Duration::ZERO,
+                (None, None) => stg.inital_value_countdown,
+            },
             elapsed_value_countdown: match (args.countdown, args.countdown_until) {
-                // reset value if `countdown` or `countdown_until` is set by arguments
-                (Some(_), _) => Duration::ZERO,
+                // use `Since` duration
+                (_, Some(DirectedDuration::Since(d))) => d,
+                // reset values
                 (_, Some(_)) => Duration::ZERO,
+                (Some(_), _) => Duration::ZERO,
                 (_, _) => stg.elapsed_value_countdown,
             },
             current_value_timer: stg.current_value_timer,
