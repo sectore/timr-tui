@@ -18,7 +18,7 @@ pub struct Args {
     )]
     pub countdown: Option<Duration>,
 
-    #[arg(long, short, value_parser = duration::parse_duration_by_time,
+    #[arg(long, value_parser = duration::parse_duration_by_time,
         help = "Countdown until specific time. Formats: 'YYYY-MM-DD HH:MM:SS', 'YYYY-MM-DD HH:MM', 'HH:MM:SS', 'MM:SS', or 'SS'"
     )]
     pub countdown_until: Option<Duration>,
