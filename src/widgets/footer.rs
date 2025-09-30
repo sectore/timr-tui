@@ -221,8 +221,20 @@ impl StatefulWidget for Footer {
                                     )),
                                     Span::from(SPACE),
                                     Span::from(format!(
+                                        // ctrl + ↑
+                                        "[^{}]edit up 10x",
+                                        scrollbar::VERTICAL.begin
+                                    )),
+                                    Span::from(SPACE),
+                                    Span::from(format!(
                                         // ↓
                                         "[{}]edit up",
+                                        scrollbar::VERTICAL.end
+                                    )),
+                                    Span::from(SPACE),
+                                    Span::from(format!(
+                                        // ctrl + ↓
+                                        "[^{}]edit up 10x",
                                         scrollbar::VERTICAL.end
                                     )),
                                 ],

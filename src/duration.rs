@@ -29,8 +29,10 @@ const HOURS_PER_DAY: u64 = 24;
 // ^ https://www.math.net/days-in-a-year
 const DAYS_PER_YEAR: u64 = 365; // ignore leap year of 366 days
 
-// max. 999y 364d 23:59:59 (1000 years - 1 second)
-pub const MAX_DURATION: Duration = ONE_YEAR.saturating_mul(1000).saturating_sub(ONE_SECOND);
+// max. 999y 364d 23:59:59.9 (1000 years - 1 decisecond)
+pub const MAX_DURATION: Duration = ONE_YEAR
+    .saturating_mul(1000)
+    .saturating_sub(ONE_DECI_SECOND);
 
 #[derive(Debug, Clone, Copy, PartialOrd)]
 pub struct DurationEx {

@@ -1,6 +1,6 @@
-use std::fmt;
 use std::marker::PhantomData;
 use std::time::Duration;
+use std::{fmt, ops::Mul};
 use strum::Display;
 
 use ratatui::{
@@ -148,6 +148,18 @@ pub fn time_by_format(format: &Format) -> Time {
     }
 }
 
+pub fn count_by_mode(times: u32, mode: &Mode) -> Duration {
+    match mode {
+        Mode::Editable(Time::Decis, _) => ONE_DECI_SECOND.mul(times),
+        Mode::Editable(Time::Seconds, _) => ONE_SECOND.mul(times),
+        Mode::Editable(Time::Minutes, _) => ONE_MINUTE.mul(times),
+        Mode::Editable(Time::Hours, _) => ONE_HOUR.mul(times),
+        Mode::Editable(Time::Days, _) => ONE_DAY.mul(times),
+        Mode::Editable(Time::Years, _) => ONE_YEAR.mul(times),
+        _ => Duration::ZERO,
+    }
+}
+
 const RANGE_OF_DONE_COUNT: u64 = 4;
 const MAX_DONE_COUNT: u64 = RANGE_OF_DONE_COUNT * 5;
 
@@ -276,89 +288,23 @@ impl<T> ClockState<T> {
         };
     }
 
-    pub fn edit_current_up(&mut self) {
-        self.current_value = match self.mode {
-            Mode::Editable(Time::Decis, _) => {
-                if self
-                    .current_value
-                    .le(&MAX_DURATION.saturating_sub(ONE_DECI_SECOND).into())
-                {
-                    self.current_value.saturating_add(ONE_DECI_SECOND.into())
-                } else {
-                    self.current_value
-                }
-            }
-            Mode::Editable(Time::Seconds, _) => {
-                if self
-                    .current_value
-                    .le(&MAX_DURATION.saturating_sub(ONE_SECOND).into())
-                {
-                    self.current_value.saturating_add(ONE_SECOND.into())
-                } else {
-                    self.current_value
-                }
-            }
-            Mode::Editable(Time::Minutes, _) => {
-                if self
-                    .current_value
-                    .le(&MAX_DURATION.saturating_sub(ONE_MINUTE).into())
-                {
-                    self.current_value.saturating_add(ONE_MINUTE.into())
-                } else {
-                    self.current_value
-                }
-            }
-            Mode::Editable(Time::Hours, _) => {
-                if self
-                    .current_value
-                    .le(&MAX_DURATION.saturating_sub(ONE_HOUR).into())
-                {
-                    self.current_value.saturating_add(ONE_HOUR.into())
-                } else {
-                    self.current_value
-                }
-            }
-            Mode::Editable(Time::Days, _) => {
-                if self
-                    .current_value
-                    .le(&MAX_DURATION.saturating_sub(ONE_DAY).into())
-                {
-                    self.current_value.saturating_add(ONE_DAY.into())
-                } else {
-                    self.current_value
-                }
-            }
-            Mode::Editable(Time::Years, _) => {
-                if self
-                    .current_value
-                    .le(&MAX_DURATION.saturating_sub(ONE_YEAR).into())
-                {
-                    self.current_value.saturating_add(ONE_YEAR.into())
-                } else {
-                    self.current_value
-                }
-            }
-            _ => self.current_value,
-        };
-        self.update_format();
+    fn edit_current_up(&mut self, times: u32) {
+        let count_value = count_by_mode(times, self.get_mode());
+
+        if self
+            .get_current_value()
+            .le(&MAX_DURATION.saturating_sub(count_value).into())
+        {
+            self.current_value = self.get_current_value().saturating_add(count_value.into());
+            self.update_format();
+        }
     }
 
-    pub fn edit_current_down(&mut self) {
-        self.current_value = match self.mode {
-            Mode::Editable(Time::Decis, _) => {
-                self.current_value.saturating_sub(ONE_DECI_SECOND.into())
-            }
-            Mode::Editable(Time::Seconds, _) => {
-                self.current_value.saturating_sub(ONE_SECOND.into())
-            }
-            Mode::Editable(Time::Minutes, _) => {
-                self.current_value.saturating_sub(ONE_MINUTE.into())
-            }
-            Mode::Editable(Time::Hours, _) => self.current_value.saturating_sub(ONE_HOUR.into()),
-            Mode::Editable(Time::Days, _) => self.current_value.saturating_sub(ONE_DAY.into()),
-            Mode::Editable(Time::Years, _) => self.current_value.saturating_sub(ONE_YEAR.into()),
-            _ => self.current_value,
-        };
+    fn edit_current_down(&mut self, times: u32) {
+        let count_value = count_by_mode(times, self.get_mode()).into();
+
+        self.current_value = self.get_current_value().saturating_sub(count_value);
+
         self.update_format();
         let updated_format = *self.get_format();
         self.downgrade_mode_by_format(&updated_format);
@@ -579,11 +525,19 @@ impl ClockState<Countdown> {
     }
 
     pub fn edit_up(&mut self) {
-        self.edit_current_up();
+        self.edit_current_up(1);
     }
 
     pub fn edit_down(&mut self) {
-        self.edit_current_down();
+        self.edit_current_down(1);
+    }
+
+    pub fn edit_jump_up(&mut self) {
+        self.edit_current_up(10);
+    }
+
+    pub fn edit_jump_down(&mut self) {
+        self.edit_current_down(10);
     }
 }
 
@@ -647,11 +601,19 @@ impl ClockState<Timer> {
     }
 
     pub fn edit_up(&mut self) {
-        self.edit_current_up();
+        self.edit_current_up(1);
     }
 
     pub fn edit_down(&mut self) {
-        self.edit_current_down();
+        self.edit_current_down(1);
+    }
+
+    pub fn edit_jump_up(&mut self) {
+        self.edit_current_up(10);
+    }
+
+    pub fn edit_jump_down(&mut self) {
+        self.edit_current_down(10);
     }
 }
 

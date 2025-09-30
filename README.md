@@ -142,22 +142,24 @@ Extra option (if `--features sound` is enabled by local build only):
 | <kbd>Esc</kbd> | skip changes |
 | <kbd>←</kbd> or <kbd>→</kbd> | change selection |
 | <kbd>↑</kbd> | edit to go up |
+| <kbd>ctrl+↑</kbd> | edit to go up 10x |
 | <kbd>↓</kbd> | edit to go down |
+| <kbd>ctrl+↓</kbd> | edit to go down 10x |
 
 **In `Pomodoro` screen only:**
 
 | Key | Description |
 | --- | --- |
 | <kbd>←</kbd> or <kbd>→</kbd> | switch work/pause |
-| <kbd>^r</kbd> | reset round |
-| <kbd>^s</kbd> | save initial value |
+| <kbd>ctrl+r</kbd> | reset round |
+| <kbd>ctrl+s</kbd> | save initial value |
 
 **In `Countdown` screen only:**
 
 | Key | Description |
 | --- | --- |
-| <kbd>^e</kbd> | edit by local time |
-| <kbd>^s</kbd> | save initial value |
+| <kbd>ctrl+e</kbd> | edit by local time |
+| <kbd>ctrl+s</kbd> | save initial value |
 
 ## Appearance
 
