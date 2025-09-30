@@ -202,7 +202,7 @@ fn parse_minutes(m: &str) -> Result<u8, Report> {
     Ok(mins)
 }
 
-/// Parse hours with validation limit
+/// Parse hours
 fn parse_hours(h: &str) -> Result<u8, Report> {
     let hours = h.parse::<u8>().map_err(|_| eyre!("Invalid hours"))?;
     Ok(hours)
