@@ -2,18 +2,11 @@ use color_eyre::{
     Report,
     eyre::{ensure, eyre},
 };
+use std::cmp::min;
 use std::fmt;
 use std::time::Duration;
 
 use crate::common::AppTime;
-
-pub const ONE_DECI_SECOND: Duration = Duration::from_millis(100);
-pub const ONE_SECOND: Duration = Duration::from_secs(1);
-pub const ONE_MINUTE: Duration = Duration::from_secs(SECS_PER_MINUTE);
-pub const ONE_HOUR: Duration = Duration::from_secs(MINS_PER_HOUR * SECS_PER_MINUTE);
-pub const ONE_DAY: Duration = Duration::from_secs(HOURS_PER_DAY * MINS_PER_HOUR * SECS_PER_MINUTE);
-pub const ONE_YEAR: Duration =
-    Duration::from_secs(DAYS_PER_YEAR * HOURS_PER_DAY * MINS_PER_HOUR * SECS_PER_MINUTE);
 
 // unstable
 // https://doc.rust-lang.org/src/core/time.rs.html#32
@@ -24,6 +17,14 @@ pub const MINS_PER_HOUR: u64 = 60;
 // unstable
 // https://doc.rust-lang.org/src/core/time.rs.html#36
 const HOURS_PER_DAY: u64 = 24;
+
+pub const ONE_DECI_SECOND: Duration = Duration::from_millis(100);
+pub const ONE_SECOND: Duration = Duration::from_secs(1);
+pub const ONE_MINUTE: Duration = Duration::from_secs(SECS_PER_MINUTE);
+pub const ONE_HOUR: Duration = Duration::from_secs(MINS_PER_HOUR * SECS_PER_MINUTE);
+pub const ONE_DAY: Duration = Duration::from_secs(HOURS_PER_DAY * MINS_PER_HOUR * SECS_PER_MINUTE);
+pub const ONE_YEAR: Duration =
+    Duration::from_secs(DAYS_PER_YEAR * HOURS_PER_DAY * MINS_PER_HOUR * SECS_PER_MINUTE);
 
 // Days per year
 // "There are 365 days in a year in a common year of the Gregorian calendar and 366 days in a leap year.
@@ -320,48 +321,102 @@ pub fn parse_duration(arg: &str) -> Result<Duration, Report> {
     Ok(Duration::from_secs(total_seconds))
 }
 
+/// Parses `Duration` from extended formats including years and days
+/// Supports: `Y D hh:mm:ss`, `Y hh:mm:ss`, `D mm:ss`, `ss`, etc.
+/// Examples: `10y 3d 12:10:03`, `2d 10:00`, `101y 33`, `5:30`
+pub fn parse_long_duration(arg: &str) -> Result<Duration, Report> {
+    let arg = arg.trim();
+
+    // Split by whitespace to get components
+    let parts: Vec<&str> = arg.split_whitespace().collect();
+
+    // 3 parts: years, days, time
+    ensure!(parts.len() <= 3, "Invalid format. Too many parts.");
+
+    let mut total_duration = Duration::ZERO;
+    let mut time_part: Option<&str> = None;
+
+    for part in parts {
+        if let Some(years_str) = part.strip_suffix('y') {
+            // Parse years
+            let years = years_str
+                .parse::<u64>()
+                .map_err(|_| eyre!("Invalid years value: '{}'", years_str))?;
+            total_duration = total_duration.saturating_add(ONE_YEAR.saturating_mul(years as u32));
+        } else if let Some(days_str) = part.strip_suffix('d') {
+            // Parse days
+            let days = days_str
+                .parse::<u64>()
+                .map_err(|_| eyre!("Invalid days value: '{}'", days_str))?;
+            total_duration = total_duration.saturating_add(ONE_DAY.saturating_mul(days as u32));
+        } else {
+            // Could be time format or just seconds
+            time_part = Some(part);
+        }
+    }
+
+    // Parse time part using existing parse_duration if present
+    if let Some(time) = time_part {
+        let time_duration = parse_duration(time)?;
+        total_duration = total_duration.saturating_add(time_duration);
+    }
+
+    total_duration = min(MAX_DURATION, total_duration);
+
+    Ok(total_duration)
+}
+
 #[cfg(test)]
 mod tests {
 
     use super::*;
     use std::time::Duration;
 
+    const MINUTE_IN_SECONDS: u64 = ONE_MINUTE.as_secs();
+    const HOUR_IN_SECONDS: u64 = ONE_HOUR.as_secs();
+    const DAY_IN_SECONDS: u64 = ONE_DAY.as_secs();
+    const YEAR_IN_SECONDS: u64 = ONE_YEAR.as_secs();
+
     #[test]
     fn test_fmt() {
-        const DAY_IN_SECONDS: u64 = 86400; // 24 * 60 * 60
-        const YEAR_IN_SECONDS: u64 = 31536000; // 365 * 86400
         // 1y Dd hh:mm:ss (single year)
         let ex: DurationEx =
             Duration::from_secs(YEAR_IN_SECONDS + 10 * DAY_IN_SECONDS + 36001).into();
         assert_eq!(format!("{ex}"), "1y 10d 10:00:01");
         // 5y Dd hh:mm:ss (multiple years)
-        let ex: DurationEx =
-            Duration::from_secs(5 * YEAR_IN_SECONDS + 100 * DAY_IN_SECONDS + 36001).into();
+        let ex: DurationEx = Duration::from_secs(
+            5 * YEAR_IN_SECONDS + 100 * DAY_IN_SECONDS + 10 * HOUR_IN_SECONDS + 1,
+        )
+        .into();
         assert_eq!(format!("{ex}"), "5y 100d 10:00:01");
         // 150y Dd hh:mm:ss (more than 100 years)
-        let ex: DurationEx =
-            Duration::from_secs(150 * YEAR_IN_SECONDS + 200 * DAY_IN_SECONDS + 36001).into();
+        let ex: DurationEx = Duration::from_secs(
+            150 * YEAR_IN_SECONDS + 200 * DAY_IN_SECONDS + 10 * HOUR_IN_SECONDS + 1,
+        )
+        .into();
         assert_eq!(format!("{ex}"), "150y 200d 10:00:01");
         // 366d hh:mm:ss (days more than a year)
-        let ex: DurationEx = Duration::from_secs(366 * DAY_IN_SECONDS + 36001).into();
+        let ex: DurationEx =
+            Duration::from_secs(366 * DAY_IN_SECONDS + 10 * HOUR_IN_SECONDS + 1).into();
         assert_eq!(format!("{ex}"), "1y 1d 10:00:01");
         // 1d hh:mm:ss (single day)
-        let ex: DurationEx = Duration::from_secs(DAY_IN_SECONDS + 36001).into();
+        let ex: DurationEx = Duration::from_secs(DAY_IN_SECONDS + 10 * HOUR_IN_SECONDS + 1).into();
         assert_eq!(format!("{ex}"), "1d 10:00:01");
         // 2d hh:mm:ss (multiple days)
-        let ex: DurationEx = Duration::from_secs(2 * DAY_IN_SECONDS + 36001).into();
+        let ex: DurationEx =
+            Duration::from_secs(2 * DAY_IN_SECONDS + 10 * HOUR_IN_SECONDS + 1).into();
         assert_eq!(format!("{ex}"), "2d 10:00:01");
         // hh:mm:ss
-        let ex: DurationEx = Duration::from_secs(36001).into();
+        let ex: DurationEx = Duration::from_secs(10 * HOUR_IN_SECONDS + 1).into();
         assert_eq!(format!("{ex}"), "10:00:01");
         // h:mm:ss
-        let ex: DurationEx = Duration::from_secs(3601).into();
+        let ex: DurationEx = Duration::from_secs(HOUR_IN_SECONDS + 1).into();
         assert_eq!(format!("{ex}"), "1:00:01");
         // mm:ss
-        let ex: DurationEx = Duration::from_secs(71).into();
+        let ex: DurationEx = Duration::from_secs(MINUTE_IN_SECONDS + 11).into();
         assert_eq!(format!("{ex}"), "1:11");
         // m:ss
-        let ex: DurationEx = Duration::from_secs(61).into();
+        let ex: DurationEx = Duration::from_secs(MINUTE_IN_SECONDS + 1).into();
         assert_eq!(format!("{ex}"), "1:01");
         // ss
         let ex: DurationEx = Duration::from_secs(11).into();
@@ -470,5 +525,104 @@ mod tests {
         assert!(parse_duration_by_time("2030-06-32 12:00:00").is_err()); // invalid day
         assert!(parse_duration_by_time("abc").is_err()); // invalid input
         assert!(parse_duration_by_time("01:02:03:04").is_err()); // too many parts
+    }
+
+    #[test]
+    fn test_parse_long_duration() {
+        // Years only
+        assert_eq!(
+            parse_long_duration("10y").unwrap(),
+            Duration::from_secs(10 * YEAR_IN_SECONDS)
+        );
+        assert_eq!(
+            parse_long_duration("101y").unwrap(),
+            Duration::from_secs(101 * YEAR_IN_SECONDS)
+        );
+
+        // Days only
+        assert_eq!(
+            parse_long_duration("2d").unwrap(),
+            Duration::from_secs(2 * DAY_IN_SECONDS)
+        );
+
+        // Years and days
+        assert_eq!(
+            parse_long_duration("10y 3d").unwrap(),
+            Duration::from_secs(10 * YEAR_IN_SECONDS + 3 * DAY_IN_SECONDS)
+        );
+
+        // Years, days and time (hh:mm:ss)
+        assert_eq!(
+            parse_long_duration("10y 3d 12:10:03").unwrap(),
+            Duration::from_secs(
+                10 * YEAR_IN_SECONDS
+                    + 3 * DAY_IN_SECONDS
+                    + 12 * HOUR_IN_SECONDS
+                    + 10 * MINUTE_IN_SECONDS
+                    + 3
+            )
+        );
+
+        // Days and time (mm:ss)
+        assert_eq!(
+            parse_long_duration("2d 10:00").unwrap(),
+            Duration::from_secs(2 * DAY_IN_SECONDS + 10 * 60)
+        );
+
+        // Years and seconds
+        assert_eq!(
+            parse_long_duration("101y 33").unwrap(),
+            Duration::from_secs(101 * YEAR_IN_SECONDS + 33)
+        );
+
+        // Only time formats (backward compatibility with parse_duration)
+        assert_eq!(
+            parse_long_duration("5:30").unwrap(),
+            Duration::from_secs(5 * MINUTE_IN_SECONDS + 30)
+        );
+        assert_eq!(
+            parse_long_duration("01:30:45").unwrap(),
+            Duration::from_secs(HOUR_IN_SECONDS + 30 * MINUTE_IN_SECONDS + 45)
+        );
+        assert_eq!(parse_long_duration("42").unwrap(), Duration::from_secs(42));
+
+        // Days and seconds
+        assert_eq!(
+            parse_long_duration("5d 30").unwrap(),
+            Duration::from_secs(5 * DAY_IN_SECONDS + 30)
+        );
+
+        // Years and time (hh:mm:ss)
+        assert_eq!(
+            parse_long_duration("1y 01:30:00").unwrap(),
+            Duration::from_secs(YEAR_IN_SECONDS + HOUR_IN_SECONDS + 30 * MINUTE_IN_SECONDS)
+        );
+
+        // Whitespace handling
+        assert_eq!(
+            parse_long_duration("  2d   10:00  ").unwrap(),
+            Duration::from_secs(2 * DAY_IN_SECONDS + 10 * MINUTE_IN_SECONDS)
+        );
+
+        // MAX_DURATION clamping - values exceeding MAX_DURATION are clamped
+        assert_eq!(parse_long_duration("1000y").unwrap(), MAX_DURATION);
+        assert_eq!(
+            parse_long_duration("999y 364d 23:59:59").unwrap(),
+            Duration::from_secs(
+                999 * YEAR_IN_SECONDS
+                    + 364 * DAY_IN_SECONDS
+                    + 23 * HOUR_IN_SECONDS
+                    + 59 * MINUTE_IN_SECONDS
+                    + 59
+            )
+        );
+
+        // errors
+        assert!(parse_long_duration("10x").is_err()); // invalid unit
+        assert!(parse_long_duration("abc").is_err()); // invalid input
+        assert!(parse_long_duration("10y 60:00").is_err()); // invalid minutes in time part
+        assert!(parse_long_duration("5d 1:60").is_err()); // invalid seconds in time part
+        assert!(parse_long_duration("1y 2d 3d 4:00").is_err()); // too many parts (4 parts)
+        assert!(parse_long_duration("1y 2d 3h 4m 5s").is_err()); // too many parts (5 parts)
     }
 }
