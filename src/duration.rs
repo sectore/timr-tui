@@ -209,11 +209,11 @@ fn parse_hours(h: &str) -> Result<u8, Report> {
 }
 
 /// Parses `DirectedDuration` from following formats:
-/// - `YYYY-MM-DD HH:MM:SS`
-/// - `YYYY-MM-DD HH:MM`
-/// - `HH:MM:SS`
-/// - `HH:MM`
-/// - `SS`
+/// - `yyyy-mm-dd hh:mm:ss`
+/// - `yyyy-mm-dd hh:mm`
+/// - `hh:mm:ss`
+/// - `hh:mm`
+/// - `mm`
 ///
 /// Returns `DirectedDuration::Until` for future times, `DirectedDuration::Since` for past times
 pub fn parse_duration_by_time(arg: &str) -> Result<DirectedDuration, Report> {
@@ -231,7 +231,7 @@ pub fn parse_duration_by_time(arg: &str) -> Result<DirectedDuration, Report> {
         let pdt = PrimitiveDateTime::parse(arg, format_with_seconds)
             .or_else(|_| PrimitiveDateTime::parse(arg, format_without_seconds))
             .map_err(|e| {
-                eyre!("Invalid datetime '{}'. Use format 'YYYY-MM-DD HH:MM:SS' or 'YYYY-MM-DD HH:MM'. Error: {}", arg, e)
+                eyre!("Invalid datetime '{}'. Use format 'yyyy-mm-dd hh:mm:ss' or 'yyyy-mm-dd hh:mm'. Error: {}", arg, e)
             })?;
         pdt.assume_offset(now.offset())
     } else {
@@ -239,10 +239,10 @@ pub fn parse_duration_by_time(arg: &str) -> Result<DirectedDuration, Report> {
         let parts: Vec<&str> = arg.split(':').collect();
 
         let (hour, minute, second) = match parts.as_slice() {
-            [ss] => {
-                // Single part: treat as seconds in current hour:minute
-                let s = parse_seconds(ss)?;
-                (now.hour(), now.minute(), s)
+            [mm] => {
+                // Single part: treat as minutes in current hour
+                let m = parse_minutes(mm)?;
+                (now.hour(), m, 0)
             }
             [hh, mm] => {
                 // Two parts: treat as HH:MM (time of day)
@@ -259,7 +259,7 @@ pub fn parse_duration_by_time(arg: &str) -> Result<DirectedDuration, Report> {
             }
             _ => {
                 return Err(eyre!(
-                    "Invalid time format. Use 'HH:MM:SS', 'HH:MM', or 'SS'"
+                    "Invalid time format. Use 'hh:mm:ss', 'hh:mm', or 'mm'"
                 ));
             }
         };
@@ -459,7 +459,7 @@ mod tests {
         // HH:MM - Until or Since depending on current time
         assert!(parse_duration_by_time("18:00").is_ok());
 
-        // SS - time in current minute returns Until
+        // MM - time in current hour returns Until
         assert!(matches!(
             parse_duration_by_time("45"),
             Ok(DirectedDuration::Until(_))

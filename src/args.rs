@@ -14,22 +14,22 @@ pub const LOG_DIRECTORY_DEFAULT_MISSING_VALUE: &str = " "; // empty string
 #[command(version)]
 pub struct Args {
     #[arg(long, short, value_parser = duration::parse_duration,
-        help = "Countdown time to start from. Formats: 'ss', 'mm:ss', or 'hh:mm:ss'"
+        help = "Countdown time to start from. Formats: 'ss', 'mm:ss', 'hh:mm:ss'"
     )]
     pub countdown: Option<Duration>,
 
     #[arg(long, value_parser = duration::parse_duration_by_time,
-        help = "Countdown target to a specific time. Formats: 'YYYY-MM-DD HH:MM:SS', 'YYYY-MM-DD HH:MM', 'HH:MM:SS', 'HH:MM', or 'SS'"
+        help = "Countdown targeting a specific time in the future or past. Formats: 'yyyy-mm-dd hh:mm:ss', 'yyyy-mm-dd hh:mm', 'hh:mm:ss', 'hh:mm', 'mm'"
     )]
     pub countdown_target: Option<duration::DirectedDuration>,
 
     #[arg(long, short, value_parser = duration::parse_duration,
-        help = "Work time to count down from. Formats: 'ss', 'mm:ss', or 'hh:mm:ss'"
+        help = "Work time to count down from. Formats: 'ss', 'mm:ss', 'hh:mm:ss'"
     )]
     pub work: Option<Duration>,
 
     #[arg(long, short, value_parser = duration::parse_duration,
-        help = "Pause time to count down from. Formats: 'ss', 'mm:ss', or 'hh:mm:ss'"
+        help = "Pause time to count down from. Formats: 'ss', 'mm:ss', 'hh:mm:ss'"
     )]
     pub pause: Option<Duration>,
 
@@ -42,10 +42,10 @@ pub struct Args {
     #[arg(long, short = 's', value_enum, help = "Style to display time with.")]
     pub style: Option<Style>,
 
-    #[arg(long, value_enum, help = "Open the menu.")]
+    #[arg(long, value_enum, help = "Open menu.")]
     pub menu: bool,
 
-    #[arg(long, short = 'r', help = "Reset stored values to default values.")]
+    #[arg(long, short = 'r', help = "Reset stored values to defaults.")]
     pub reset: bool,
 
     #[arg(
@@ -81,7 +81,7 @@ pub struct Args {
         // this value will be checked later in `main`
         // to use another (default) log directory instead
         default_missing_value=LOG_DIRECTORY_DEFAULT_MISSING_VALUE,
-        help = "Directory to store log file. If not set, standard application log directory is used (check README for details).",
+        help = "Directory for log file. If not set, standard application log directory is used (check README for details).",
         value_hint = clap::ValueHint::DirPath,
     )]
     pub log: Option<PathBuf>,

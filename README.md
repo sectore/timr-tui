@@ -87,19 +87,34 @@ timr-tui --help
 Usage: timr-tui [OPTIONS]
 
 Options:
-  -c, --countdown <COUNTDOWN>        Countdown time to start from. Formats: 'ss', 'mm:ss', or 'hh:mm:ss'
-  -w, --work <WORK>                  Work time to count down from. Formats: 'ss', 'mm:ss', or 'hh:mm:ss'
-  -p, --pause <PAUSE>                Pause time to count down from. Formats: 'ss', 'mm:ss', or 'hh:mm:ss'
-  -d, --decis                        Show deciseconds.
-  -m, --mode <MODE>                  Mode to start with. [possible values: countdown, timer, pomodoro, localtime]
-  -s, --style <STYLE>                Style to display time with. [possible values: full, light, medium, dark, thick, cross, braille]
-      --menu                         Open the menu.
-  -r, --reset                        Reset stored values to default values.
-  -n, --notification <NOTIFICATION>  Toggle desktop notifications. Experimental. [possible values: on, off]
-      --blink <BLINK>                Toggle blink mode to animate a clock when it reaches its finished mode. [possible values: on, off]
-      --log [<LOG>]                  Directory to store log file. If not set, standard application log directory is used (check README for details).
-  -h, --help                         Print help
-  -V, --version                      Print version
+  -c, --countdown <COUNTDOWN>
+          Countdown time to start from. Formats: 'ss', 'mm:ss', 'hh:mm:ss'
+      --countdown-target <COUNTDOWN_TARGET>
+          Countdown targeting a specific time in the future or past. Formats: 'yyyy-mm-dd hh:mm:ss', 'yyyy-mm-dd hh:mm', 'hh:mm:ss', 'hh:mm', 'mm'
+  -w, --work <WORK>
+          Work time to count down from. Formats: 'ss', 'mm:ss', 'hh:mm:ss'
+  -p, --pause <PAUSE>
+          Pause time to count down from. Formats: 'ss', 'mm:ss', 'hh:mm:ss'
+  -d, --decis
+          Show deciseconds.
+  -m, --mode <MODE>
+          Mode to start with. [possible values: countdown, timer, pomodoro, localtime]
+  -s, --style <STYLE>
+          Style to display time with. [possible values: full, light, medium, dark, thick, cross, braille]
+      --menu
+          Open menu.
+  -r, --reset
+          Reset stored values to defaults.
+  -n, --notification <NOTIFICATION>
+          Toggle desktop notifications. Experimental. [possible values: on, off]
+      --blink <BLINK>
+          Toggle blink mode to animate a clock when it reaches its finished mode. [possible values: on, off]
+      --log [<LOG>]
+          Directory for log file. If not set, standard application log directory is used (check README for details).
+  -h, --help
+          Print help
+  -V, --version
+          Print version
 ```
 
 Extra option (if `--features sound` is enabled by local build only):
