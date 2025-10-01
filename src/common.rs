@@ -118,6 +118,14 @@ impl From<AppTime> for OffsetDateTime {
 }
 
 impl AppTime {
+    #[allow(clippy::new_without_default)]
+    pub fn new() -> Self {
+        match OffsetDateTime::now_local() {
+            Ok(t) => AppTime::Local(t),
+            Err(_) => AppTime::Utc(OffsetDateTime::now_utc()),
+        }
+    }
+
     pub fn format(&self, app_format: &AppTimeFormat) -> String {
         let parse_str = match app_format {
             AppTimeFormat::HhMmSs => "[hour]:[minute]:[second]",

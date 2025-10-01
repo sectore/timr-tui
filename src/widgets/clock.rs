@@ -511,6 +511,10 @@ impl ClockState<Countdown> {
     }
 
     pub fn get_percentage_done(&self) -> u16 {
+        if Duration::is_zero(&self.initial_value.into()) {
+            return 0;
+        }
+
         let elapsed = self.initial_value.saturating_sub(self.current_value);
 
         (elapsed.millis() * 100 / self.initial_value.millis()) as u16

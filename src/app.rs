@@ -2,6 +2,7 @@ use crate::{
     args::Args,
     common::{AppEditMode, AppTime, AppTimeFormat, ClockTypeId, Content, Style, Toggle},
     constants::TICK_VALUE_MS,
+    duration::DirectedDuration,
     events::{self, TuiEventHandler},
     storage::AppStorage,
     terminal::Terminal,
@@ -28,7 +29,6 @@ use ratatui::{
 };
 use std::path::PathBuf;
 use std::time::Duration;
-use time::OffsetDateTime;
 use tracing::{debug, error};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -103,7 +103,7 @@ impl From<FromAppArgs> for App {
                 None => {
                     if args.work.is_some() || args.pause.is_some() {
                         Content::Pomodoro
-                    } else if args.countdown.is_some() {
+                    } else if args.countdown.is_some() || args.countdown_target.is_some() {
                         Content::Countdown
                     }
                     // in other case just use latest stored state
@@ -121,13 +121,28 @@ impl From<FromAppArgs> for App {
             initial_value_pause: args.pause.unwrap_or(stg.inital_value_pause),
             // invalidate `current_value_pause` if an initial value is set via args
             current_value_pause: args.pause.unwrap_or(stg.current_value_pause),
-            initial_value_countdown: args.countdown.unwrap_or(stg.inital_value_countdown),
+            initial_value_countdown: match (&args.countdown, &args.countdown_target) {
+                (Some(d), _) => *d,
+                (None, Some(DirectedDuration::Until(d))) => *d,
+                // reset for values from "past"
+                (None, Some(DirectedDuration::Since(_))) => Duration::ZERO,
+                (None, None) => stg.inital_value_countdown,
+            },
             // invalidate `current_value_countdown` if an initial value is set via args
-            current_value_countdown: args.countdown.unwrap_or(stg.current_value_countdown),
-            elapsed_value_countdown: match args.countdown {
-                // reset value if countdown is set by arguments
-                Some(_) => Duration::ZERO,
-                None => stg.elapsed_value_countdown,
+            current_value_countdown: match (&args.countdown, &args.countdown_target) {
+                (Some(d), _) => *d,
+                (None, Some(DirectedDuration::Until(d))) => *d,
+                // `zero` makes values from `past` marked as `DONE`
+                (None, Some(DirectedDuration::Since(_))) => Duration::ZERO,
+                (None, None) => stg.inital_value_countdown,
+            },
+            elapsed_value_countdown: match (args.countdown, args.countdown_target) {
+                // use `Since` duration
+                (_, Some(DirectedDuration::Since(d))) => d,
+                // reset values
+                (_, Some(_)) => Duration::ZERO,
+                (Some(_), _) => Duration::ZERO,
+                (_, _) => stg.elapsed_value_countdown,
             },
             current_value_timer: stg.current_value_timer,
             app_tx,
@@ -137,13 +152,6 @@ impl From<FromAppArgs> for App {
             sound_path: None,
             footer_toggle_app_time: stg.footer_app_time,
         })
-    }
-}
-
-fn get_app_time() -> AppTime {
-    match OffsetDateTime::now_local() {
-        Ok(t) => AppTime::Local(t),
-        Err(_) => AppTime::Utc(OffsetDateTime::now_utc()),
     }
 }
 
@@ -171,7 +179,7 @@ impl App {
             app_tx,
             footer_toggle_app_time,
         } = args;
-        let app_time = get_app_time();
+        let app_time = AppTime::new();
 
         Self {
             mode: Mode::Running,
@@ -292,7 +300,7 @@ impl App {
         // Closure to handle `TuiEvent`'s
         let mut handle_tui_events = |app: &mut Self, event: events::TuiEvent| -> Result<()> {
             if matches!(event, events::TuiEvent::Tick) {
-                app.app_time = get_app_time();
+                app.app_time = AppTime::new();
                 app.countdown.set_app_time(app.app_time);
                 app.local_time.set_app_time(app.app_time);
             }
