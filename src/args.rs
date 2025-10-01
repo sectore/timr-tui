@@ -13,8 +13,8 @@ pub const LOG_DIRECTORY_DEFAULT_MISSING_VALUE: &str = " "; // empty string
 #[derive(Parser)]
 #[command(version)]
 pub struct Args {
-    #[arg(long, short, value_parser = duration::parse_duration,
-        help = "Countdown time to start from. Formats: 'ss', 'mm:ss', 'hh:mm:ss'"
+    #[arg(long, short, value_parser = duration::parse_long_duration,
+        help = "Countdown time to start from. Formats: 'Yy Dd hh:mm:ss', 'Dd hh:mm:ss', 'Yy mm:ss', 'Dd mm:ss', 'Yy ss', 'Dd ss', 'hh:mm:ss', 'mm:ss', 'ss'. Examples: '1y 5d 10:30:00', '2d 4:00', '1d 10', '5:03'."
     )]
     pub countdown: Option<Duration>,
 
