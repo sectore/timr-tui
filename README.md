@@ -90,7 +90,7 @@ Options:
   -c, --countdown <COUNTDOWN>
           Countdown time to start from. Formats: 'ss', 'mm:ss', 'hh:mm:ss'
       --countdown-target <COUNTDOWN_TARGET>
-          Countdown targeting a specific time in the future or past. Formats: 'yyyy-mm-dd hh:mm:ss', 'yyyy-mm-dd hh:mm', 'hh:mm:ss', 'hh:mm', 'mm'
+          Countdown targeting a specific time in the future or past. Formats: 'yyyy-mm-dd hh:mm:ss', 'yyyy-mm-dd hh:mm', 'hh:mm:ss', 'hh:mm', 'mm' [aliases: --ct]
   -w, --work <WORK>
           Work time to count down from. Formats: 'ss', 'mm:ss', 'hh:mm:ss'
   -p, --pause <PAUSE>
