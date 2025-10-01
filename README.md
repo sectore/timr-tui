@@ -88,7 +88,7 @@ Usage: timr-tui [OPTIONS]
 
 Options:
   -c, --countdown <COUNTDOWN>
-          Countdown time to start from. Formats: 'Yy Dd hh:mm:ss', 'Dd mm:ss', 'mm:ss', 'ss'. Examples: '1y 5d 10:30:00', '2d 4:00', '5:03'.
+          Countdown time to start from. Formats: 'Yy Dd hh:mm:ss', 'Dd hh:mm:ss', 'Yy mm:ss', 'Dd mm:ss', 'Yy ss', 'Dd ss', 'hh:mm:ss', 'mm:ss', 'ss'. Examples: '1y 5d 10:30:00', '2d 4:00', '1d 10', '5:03'.
       --countdown-target <COUNTDOWN_TARGET>
           Countdown targeting a specific time in the future or past. Formats: 'yyyy-mm-dd hh:mm:ss', 'yyyy-mm-dd hh:mm', 'hh:mm:ss', 'hh:mm', 'mm' [aliases: --ct]
   -w, --work <WORK>
