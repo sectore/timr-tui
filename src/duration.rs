@@ -321,46 +321,48 @@ pub fn parse_duration(arg: &str) -> Result<Duration, Report> {
     Ok(Duration::from_secs(total_seconds))
 }
 
-/// Parses `Duration` from extended formats including years and days
-/// Supports: `Y D hh:mm:ss`, `Y hh:mm:ss`, `D mm:ss`, `ss`, etc.
+/// Similar to `parse_duration`, but it parses `years` and `days` in addition
+/// Formats: `Yy Dd`, `Yy` or `Dd` in any combination to other time formats
 /// Examples: `10y 3d 12:10:03`, `2d 10:00`, `101y 33`, `5:30`
 pub fn parse_long_duration(arg: &str) -> Result<Duration, Report> {
     let arg = arg.trim();
 
-    // Split by whitespace to get components
-    let parts: Vec<&str> = arg.split_whitespace().collect();
-
+    // parts are separated by whitespaces:
     // 3 parts: years, days, time
+    let parts: Vec<&str> = arg.split_whitespace().collect();
     ensure!(parts.len() <= 3, "Invalid format. Too many parts.");
 
     let mut total_duration = Duration::ZERO;
     let mut time_part: Option<&str> = None;
 
     for part in parts {
+        // years
         if let Some(years_str) = part.strip_suffix('y') {
-            // Parse years
             let years = years_str
                 .parse::<u64>()
                 .map_err(|_| eyre!("Invalid years value: '{}'", years_str))?;
             total_duration = total_duration.saturating_add(ONE_YEAR.saturating_mul(years as u32));
-        } else if let Some(days_str) = part.strip_suffix('d') {
-            // Parse days
+        }
+        // days
+        else if let Some(days_str) = part.strip_suffix('d') {
             let days = days_str
                 .parse::<u64>()
                 .map_err(|_| eyre!("Invalid days value: '{}'", days_str))?;
             total_duration = total_duration.saturating_add(ONE_DAY.saturating_mul(days as u32));
-        } else {
-            // Could be time format or just seconds
+        }
+        // possible time format
+        else {
             time_part = Some(part);
         }
     }
 
-    // Parse time part using existing parse_duration if present
+    // time format
     if let Some(time) = time_part {
         let time_duration = parse_duration(time)?;
         total_duration = total_duration.saturating_add(time_duration);
     }
 
+    // avoid overflow
     total_duration = min(MAX_DURATION, total_duration);
 
     Ok(total_duration)
@@ -529,7 +531,7 @@ mod tests {
 
     #[test]
     fn test_parse_long_duration() {
-        // Years only
+        // `Yy`
         assert_eq!(
             parse_long_duration("10y").unwrap(),
             Duration::from_secs(10 * YEAR_IN_SECONDS)
@@ -539,19 +541,19 @@ mod tests {
             Duration::from_secs(101 * YEAR_IN_SECONDS)
         );
 
-        // Days only
+        // `Dd`
         assert_eq!(
             parse_long_duration("2d").unwrap(),
             Duration::from_secs(2 * DAY_IN_SECONDS)
         );
 
-        // Years and days
+        // `Yy Dd`
         assert_eq!(
             parse_long_duration("10y 3d").unwrap(),
             Duration::from_secs(10 * YEAR_IN_SECONDS + 3 * DAY_IN_SECONDS)
         );
 
-        // Years, days and time (hh:mm:ss)
+        // `Yy Dd hh:mm:ss`
         assert_eq!(
             parse_long_duration("10y 3d 12:10:03").unwrap(),
             Duration::from_secs(
@@ -563,19 +565,19 @@ mod tests {
             )
         );
 
-        // Days and time (mm:ss)
+        // `Dd hh:mm`
         assert_eq!(
             parse_long_duration("2d 10:00").unwrap(),
             Duration::from_secs(2 * DAY_IN_SECONDS + 10 * 60)
         );
 
-        // Years and seconds
+        // `Yy ss`
         assert_eq!(
             parse_long_duration("101y 33").unwrap(),
             Duration::from_secs(101 * YEAR_IN_SECONDS + 33)
         );
 
-        // Only time formats (backward compatibility with parse_duration)
+        // time formats (backward compatibility with `parse_duration`)
         assert_eq!(
             parse_long_duration("5:30").unwrap(),
             Duration::from_secs(5 * MINUTE_IN_SECONDS + 30)
@@ -586,13 +588,13 @@ mod tests {
         );
         assert_eq!(parse_long_duration("42").unwrap(), Duration::from_secs(42));
 
-        // Days and seconds
+        // `Dd ss`
         assert_eq!(
             parse_long_duration("5d 30").unwrap(),
             Duration::from_secs(5 * DAY_IN_SECONDS + 30)
         );
 
-        // Years and time (hh:mm:ss)
+        // `Yy hh:mm:ss`
         assert_eq!(
             parse_long_duration("1y 01:30:00").unwrap(),
             Duration::from_secs(YEAR_IN_SECONDS + HOUR_IN_SECONDS + 30 * MINUTE_IN_SECONDS)
@@ -604,7 +606,7 @@ mod tests {
             Duration::from_secs(2 * DAY_IN_SECONDS + 10 * MINUTE_IN_SECONDS)
         );
 
-        // MAX_DURATION clamping - values exceeding MAX_DURATION are clamped
+        // MAX_DURATION clamping
         assert_eq!(parse_long_duration("1000y").unwrap(), MAX_DURATION);
         assert_eq!(
             parse_long_duration("999y 364d 23:59:59").unwrap(),
