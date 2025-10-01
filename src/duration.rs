@@ -459,14 +459,11 @@ mod tests {
         // HH:MM - Until or Since depending on current time
         assert!(parse_duration_by_time("18:00").is_ok());
 
-        // MM - time in current hour returns Until
-        assert!(matches!(
-            parse_duration_by_time("45"),
-            Ok(DirectedDuration::Until(_))
-        ));
+        // MM - Until or Since depending on current time
+        assert!(parse_duration_by_time("45").is_ok());
 
         // errors
-        assert!(parse_duration_by_time("60").is_err()); // invalid seconds
+        assert!(parse_duration_by_time("60").is_err()); // invalid minutes
         assert!(parse_duration_by_time("24:00").is_err()); // invalid hours
         assert!(parse_duration_by_time("24:00:00").is_err()); // invalid hours
         assert!(parse_duration_by_time("2030-13-01 12:00:00").is_err()); // invalid month
