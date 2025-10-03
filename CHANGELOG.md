@@ -1,16 +1,33 @@
 # Changelog
 
-## [unreleased]
+## v1.5.0 - 2025-10-03
+
+### Features
+
+- (cli) Accept `years` and `days` for `--countdown` argument [#114](https://github.com/sectore/timr-tui/pull/114)
+- (cli) New `--countdown-target` argument to parse `countdown` values by given time in the future or past [#112](https://github.com/sectore/timr-tui/pull/112)
+- (localtime) Show `date` [#111](https://github.com/sectore/timr-tui/pull/111)
+- (edit) Change any value by `10x` up or down [#110](https://github.com/sectore/timr-tui/pull/110)
+- (timer/countdown): Support `days` and `years` up to `999y 364d 23:59:59` [#96](https://github.com/sectore/timr-tui/pull/96)
+
+
+### Fix
+
+- (edit) Auto jump to next possible value while decreasing, but ignoring `zero` values [#109](https://github.com/sectore/timr-tui/pull/109)
+- (format) Improve format handling + fix `days` (no zero-padding) [#107](https://github.com/sectore/timr-tui/pull/107)
+
 
 ### Misc.
 
+- (deps) Upgrade dependencies [#113](https://github.com/sectore/timr-tui/pull/113)
 - (deps) Rust 1.90.0 [#95](https://github.com/sectore/timr-tui/pull/95)
+- (guide) Add contributing guidelines [#94](https://github.com/sectore/timr-tui/pull/94)
 
 ## v1.4.0 - 2025-09-02
 
 ### Features
 
-- (screen): Local Time [#89](https://github.com/sectore/timr-tui/pull/89), [#90](https://github.com/sectore/timr-tui/pull/90), [#91](https://github.com/sectore/timr-tui/pull/91)
+- (screen) Local Time [#89](https://github.com/sectore/timr-tui/pull/89), [#90](https://github.com/sectore/timr-tui/pull/90), [#91](https://github.com/sectore/timr-tui/pull/91)
 
 ### Misc.
 
