@@ -6,6 +6,7 @@ pub mod clock_elements_test;
 pub mod clock_test;
 pub mod countdown;
 pub mod edit_time;
+pub mod event;
 pub mod footer;
 pub mod header;
 pub mod local_time;
