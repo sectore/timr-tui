@@ -35,7 +35,7 @@ tracing = "0.1.41"
 tracing-subscriber = { version = "0.3.20", features = ["env-filter"] }
 directories = "5.0.1"
 clap = { version = "4.5.48", features = ["derive"] }
-time = { version = "0.3.44", features = ["formatting", "local-offset", "parsing", "macros"] }
+time = { version = "0.3.44", features = ["formatting", "local-offset", "parsing", "macros", "serde"] }
 notify-rust = "4.11.7"
 rodio = { version = "0.20.1", features = [
     "symphonia-mp3",

@@ -65,6 +65,7 @@ pub struct AppArgs {
     pub content: Content,
     pub pomodoro_mode: PomodoroMode,
     pub pomodoro_round: u64,
+    pub pomodoro_label: String,
     pub initial_value_work: Duration,
     pub current_value_work: Duration,
     pub initial_value_pause: Duration,
@@ -115,6 +116,7 @@ impl From<FromAppArgs> for App {
             style: args.style.unwrap_or(stg.style),
             pomodoro_mode: stg.pomodoro_mode,
             pomodoro_round: stg.pomodoro_count,
+            pomodoro_label: stg.pomodoro_label,
             initial_value_work: args.work.unwrap_or(stg.inital_value_work),
             // invalidate `current_value_work` if an initial value is set via args
             current_value_work: args.work.unwrap_or(stg.current_value_work),
@@ -173,6 +175,7 @@ impl App {
             with_decis,
             pomodoro_mode,
             pomodoro_round,
+            pomodoro_label,
             notification,
             blink,
             sound_path,
@@ -217,6 +220,7 @@ impl App {
                 current_value_pause,
                 with_decis,
                 round: pomodoro_round,
+                label: pomodoro_label,
                 app_tx: app_tx.clone(),
             }),
             local_time: LocalTimeState::new(LocalTimeStateArgs {
@@ -397,6 +401,8 @@ impl App {
             Content::Pomodoro => {
                 if self.pomodoro.get_clock().is_edit_mode() {
                     AppEditMode::Clock
+                } else if self.pomodoro.is_label_edit_mode() {
+                    AppEditMode::Time // Reusing Time mode to indicate text editing
                 } else {
                     AppEditMode::None
                 }
@@ -442,6 +448,7 @@ impl App {
             with_decis: self.with_decis,
             pomodoro_mode: self.pomodoro.get_mode().clone(),
             pomodoro_count: self.pomodoro.get_round(),
+            pomodoro_label: self.pomodoro.get_label().to_string(),
             inital_value_work: Duration::from(*self.pomodoro.get_clock_work().get_initial_value()),
             current_value_work: Duration::from(*self.pomodoro.get_clock_work().get_current_value()),
             inital_value_pause: Duration::from(
@@ -457,6 +464,7 @@ impl App {
             elapsed_value_countdown: Duration::from(*self.countdown.get_elapsed_value()),
             current_value_timer: Duration::from(*self.timer.get_clock().get_current_value()),
             footer_app_time: self.footer.app_time_format().is_some().into(),
+            pomodoro_history: Vec::new(), // History is loaded from storage, not generated here
         }
     }
 }
