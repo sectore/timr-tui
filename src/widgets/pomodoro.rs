@@ -46,6 +46,8 @@ pub struct PomodoroState {
     mode: Mode,
     clock_map: ClockMap,
     round: u64,
+    label: String,
+    label_edit_mode: bool,
 }
 
 pub struct PomodoroStateArgs {
@@ -57,6 +59,7 @@ pub struct PomodoroStateArgs {
     pub with_decis: bool,
     pub app_tx: AppEventTx,
     pub round: u64,
+    pub label: String,
 }
 
 impl PomodoroState {
@@ -70,6 +73,7 @@ impl PomodoroState {
             with_decis,
             app_tx,
             round,
+            label,
         } = args;
         Self {
             mode,
@@ -92,6 +96,8 @@ impl PomodoroState {
                 .with_name("Pause".to_owned()),
             },
             round,
+            label,
+            label_edit_mode: false,
         }
     }
 
@@ -127,6 +133,22 @@ impl PomodoroState {
         self.round
     }
 
+    pub fn get_label(&self) -> &str {
+        &self.label
+    }
+
+    pub fn set_label(&mut self, label: String) {
+        self.label = label;
+    }
+
+    pub fn is_label_edit_mode(&self) -> bool {
+        self.label_edit_mode
+    }
+
+    pub fn toggle_label_edit_mode(&mut self) {
+        self.label_edit_mode = !self.label_edit_mode;
+    }
+
     pub fn set_with_decis(&mut self, with_decis: bool) {
         self.clock_map.work.with_decis = with_decis;
         self.clock_map.pause.with_decis = with_decis;
@@ -143,12 +165,26 @@ impl PomodoroState {
 impl TuiEventHandler for PomodoroState {
     fn update(&mut self, event: TuiEvent) -> Option<TuiEvent> {
         let edit_mode = self.get_clock().is_edit_mode();
+        let label_edit_mode = self.is_label_edit_mode();
         match event {
             TuiEvent::Tick => {
                 self.get_clock_mut().tick();
                 self.get_clock_mut().update_done_count();
             }
-            // EDIT mode
+            // LABEL EDIT mode
+            TuiEvent::Key(key) if label_edit_mode => match key.code {
+                KeyCode::Enter | KeyCode::Esc => {
+                    self.toggle_label_edit_mode();
+                }
+                KeyCode::Char(c) => {
+                    self.label.push(c);
+                }
+                KeyCode::Backspace => {
+                    self.label.pop();
+                }
+                _ => return Some(event),
+            },
+            // CLOCK EDIT mode
             TuiEvent::Key(key) if edit_mode => match key.code {
                 // Skip changes
                 KeyCode::Esc => {
@@ -196,6 +232,10 @@ impl TuiEventHandler for PomodoroState {
                 // Enter edit mode
                 KeyCode::Char('e') => {
                     self.get_clock_mut().toggle_edit();
+                }
+                // Enter label edit mode
+                KeyCode::Char('n') => {
+                    self.toggle_label_edit_mode();
                 }
                 // toggle WORK/PAUSE
                 KeyCode::Left => {
@@ -247,22 +287,35 @@ impl StatefulWidget for PomodoroWidget {
         );
         let label_round = Line::raw((format!("round {}", state.get_round(),)).to_uppercase());
 
+        // Display label with edit indicator if in edit mode
+        let label_task = if state.is_label_edit_mode() {
+            Line::raw(format!("Task: {}█", state.get_label()))
+        } else if !state.get_label().is_empty() {
+            Line::raw(format!("Task: {}", state.get_label()))
+        } else {
+            Line::raw("")
+        };
+
         let area = center(
             area,
             Constraint::Length(max(
-                clock_widget
-                    .get_width(state.get_clock().get_format(), state.get_clock().with_decis),
-                label.width() as u16,
+                max(
+                    clock_widget
+                        .get_width(state.get_clock().get_format(), state.get_clock().with_decis),
+                    label.width() as u16,
+                ),
+                label_task.width() as u16,
             )),
             Constraint::Length(
-                // empty label + height of `label` + `label_round`
-                clock_widget.get_height() + 3,
+                // empty label + height of `label` + `label_round` + `label_task`
+                clock_widget.get_height() + 4,
             ),
         );
 
-        let [v1, v2, v3, v4] = Layout::vertical(Constraint::from_lengths([
+        let [v1, v2, v3, v4, v5] = Layout::vertical(Constraint::from_lengths([
             1,
             clock_widget.get_height(),
+            1,
             1,
             1,
         ]))
@@ -274,5 +327,129 @@ impl StatefulWidget for PomodoroWidget {
         clock_widget.render(v2, buf, state.get_clock_mut());
         label.centered().render(v3, buf);
         label_round.centered().render(v4, buf);
+        label_task.centered().render(v5, buf);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::events::AppEventTx;
+    use tokio::sync::mpsc;
+
+    fn default_pomodoro_args() -> PomodoroStateArgs {
+        let (app_tx, _rx) = mpsc::unbounded_channel();
+        PomodoroStateArgs {
+            mode: Mode::Work,
+            initial_value_work: Duration::from_secs(60 * 25),
+            current_value_work: Duration::from_secs(60 * 25),
+            initial_value_pause: Duration::from_secs(60 * 5),
+            current_value_pause: Duration::from_secs(60 * 5),
+            with_decis: false,
+            app_tx,
+            round: 1,
+            label: String::new(),
+        }
+    }
+
+    #[test]
+    fn test_label_starts_empty() {
+        let state = PomodoroState::new(default_pomodoro_args());
+        assert_eq!(state.get_label(), "");
+    }
+
+    #[test]
+    fn test_label_initialization() {
+        let (app_tx, _rx) = mpsc::unbounded_channel();
+        let args = PomodoroStateArgs {
+            label: "Test task".to_string(),
+            app_tx,
+            ..default_pomodoro_args()
+        };
+        let state = PomodoroState::new(args);
+        assert_eq!(state.get_label(), "Test task");
+    }
+
+    #[test]
+    fn test_label_edit_mode_toggle() {
+        let mut state = PomodoroState::new(default_pomodoro_args());
+        assert!(!state.is_label_edit_mode());
+
+        state.toggle_label_edit_mode();
+        assert!(state.is_label_edit_mode());
+
+        state.toggle_label_edit_mode();
+        assert!(!state.is_label_edit_mode());
+    }
+
+    #[test]
+    fn test_label_editing_via_events() {
+        let mut state = PomodoroState::new(default_pomodoro_args());
+
+        // Enter label edit mode
+        state.toggle_label_edit_mode();
+        assert!(state.is_label_edit_mode());
+
+        // Type some characters
+        state.update(TuiEvent::Key(crossterm::event::KeyEvent::from(
+            crossterm::event::KeyCode::Char('t')
+        )));
+        state.update(TuiEvent::Key(crossterm::event::KeyEvent::from(
+            crossterm::event::KeyCode::Char('e')
+        )));
+        state.update(TuiEvent::Key(crossterm::event::KeyEvent::from(
+            crossterm::event::KeyCode::Char('s')
+        )));
+        state.update(TuiEvent::Key(crossterm::event::KeyEvent::from(
+            crossterm::event::KeyCode::Char('t')
+        )));
+
+        assert_eq!(state.get_label(), "test");
+
+        // Exit edit mode
+        state.update(TuiEvent::Key(crossterm::event::KeyEvent::from(
+            crossterm::event::KeyCode::Enter
+        )));
+        assert!(!state.is_label_edit_mode());
+        assert_eq!(state.get_label(), "test");
+    }
+
+    #[test]
+    fn test_label_backspace() {
+        let mut state = PomodoroState::new(default_pomodoro_args());
+
+        state.toggle_label_edit_mode();
+
+        // Type "hello"
+        for c in ['h', 'e', 'l', 'l', 'o'] {
+            state.update(TuiEvent::Key(crossterm::event::KeyEvent::from(
+                crossterm::event::KeyCode::Char(c)
+            )));
+        }
+        assert_eq!(state.get_label(), "hello");
+
+        // Backspace twice
+        state.update(TuiEvent::Key(crossterm::event::KeyEvent::from(
+            crossterm::event::KeyCode::Backspace
+        )));
+        state.update(TuiEvent::Key(crossterm::event::KeyEvent::from(
+            crossterm::event::KeyCode::Backspace
+        )));
+
+        assert_eq!(state.get_label(), "hel");
+    }
+
+    #[test]
+    fn test_label_escape_exits_edit_mode() {
+        let mut state = PomodoroState::new(default_pomodoro_args());
+
+        state.toggle_label_edit_mode();
+        assert!(state.is_label_edit_mode());
+
+        state.update(TuiEvent::Key(crossterm::event::KeyEvent::from(
+            crossterm::event::KeyCode::Esc
+        )));
+
+        assert!(!state.is_label_edit_mode());
     }
 }
