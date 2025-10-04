@@ -7,6 +7,7 @@ use serde::{Deserialize, Deserializer, Serialize};
 use std::fs;
 use std::path::PathBuf;
 use std::time::Duration;
+use time::OffsetDateTime;
 
 fn deserialize_app_time_format<'de, D>(deserializer: D) -> Result<AppTimeFormat, D::Error>
 where
@@ -18,6 +19,15 @@ where
         "Hidden" => Ok(AppTimeFormat::default()),
         _ => s.parse().map_err(serde::de::Error::custom),
     }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PomodoroRecord {
+    pub label: String,
+    pub mode: PomodoroMode,
+    pub duration: Duration,
+    #[serde(with = "time::serde::rfc3339")]
+    pub completed_at: OffsetDateTime,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -46,6 +56,10 @@ pub struct AppStorage {
     pub current_value_timer: Duration,
     // footer
     pub footer_app_time: Toggle,
+    // pomodoro label and history
+    pub pomodoro_label: String,
+    #[serde(default)]
+    pub pomodoro_history: Vec<PomodoroRecord>,
 }
 
 impl Default for AppStorage {
@@ -77,6 +91,9 @@ impl Default for AppStorage {
             current_value_timer: Duration::ZERO,
             // footer
             footer_app_time: Toggle::Off,
+            // pomodoro label and history
+            pomodoro_label: String::new(),
+            pomodoro_history: Vec::new(),
         }
     }
 }

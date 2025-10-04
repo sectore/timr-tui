@@ -169,25 +169,41 @@ impl StatefulWidget for Footer {
                                         spans.extend_from_slice(&[
                                             Span::from(SPACE),
                                             Span::from("[^r]eset clocks+rounds"),
+                                            Span::from(SPACE),
+                                            Span::from("[n]label task"),
                                         ]);
                                     }
                                     spans
                                 }
                                 _ => {
-                                    let mut spans = vec![Span::from("[s]ave changes")];
-                                    if self.selected_content == Content::Countdown
-                                        || self.selected_content == Content::Pomodoro
-                                    {
+                                    // Check if we're in label edit mode for Pomodoro
+                                    if matches!(self.app_edit_mode, AppEditMode::Time)
+                                        && self.selected_content == Content::Pomodoro {
+                                        vec![
+                                            Span::from("[type to edit label]"),
+                                            Span::from(SPACE),
+                                            Span::from("[backspace]delete"),
+                                            Span::from(SPACE),
+                                            Span::from("[enter]save"),
+                                            Span::from(SPACE),
+                                            Span::from("[esc]cancel"),
+                                        ]
+                                    } else {
+                                        let mut spans = vec![Span::from("[s]ave changes")];
+                                        if self.selected_content == Content::Countdown
+                                            || self.selected_content == Content::Pomodoro
+                                        {
+                                            spans.extend_from_slice(&[
+                                                Span::from(SPACE),
+                                                Span::from("[^s]ave initial value"),
+                                            ]);
+                                        }
                                         spans.extend_from_slice(&[
                                             Span::from(SPACE),
-                                            Span::from("[^s]ave initial value"),
+                                            Span::from("[esc]skip changes"),
                                         ]);
+                                        spans
                                     }
-                                    spans.extend_from_slice(&[
-                                        Span::from(SPACE),
-                                        Span::from("[esc]skip changes"),
-                                    ]);
-                                    spans
                                 }
                             }
                         })),
@@ -206,38 +222,46 @@ impl StatefulWidget for Footer {
                                     }
                                     spans
                                 }
-                                _ => vec![
-                                    Span::from(format!(
-                                        // ← →,
-                                        "[{} {}]change selection",
-                                        scrollbar::HORIZONTAL.begin,
-                                        scrollbar::HORIZONTAL.end
-                                    )),
-                                    Span::from(SPACE),
-                                    Span::from(format!(
-                                        // ↑
-                                        "[{}]edit up",
-                                        scrollbar::VERTICAL.begin
-                                    )),
-                                    Span::from(SPACE),
-                                    Span::from(format!(
-                                        // ctrl + ↑
-                                        "[^{}]edit up 10x",
-                                        scrollbar::VERTICAL.begin
-                                    )),
-                                    Span::from(SPACE),
-                                    Span::from(format!(
-                                        // ↓
-                                        "[{}]edit up",
-                                        scrollbar::VERTICAL.end
-                                    )),
-                                    Span::from(SPACE),
-                                    Span::from(format!(
-                                        // ctrl + ↓
-                                        "[^{}]edit up 10x",
-                                        scrollbar::VERTICAL.end
-                                    )),
-                                ],
+                                _ => {
+                                    // Don't show arrow instructions in label edit mode
+                                    if matches!(self.app_edit_mode, AppEditMode::Time)
+                                        && self.selected_content == Content::Pomodoro {
+                                        vec![]
+                                    } else {
+                                        vec![
+                                            Span::from(format!(
+                                                // ← →,
+                                                "[{} {}]change selection",
+                                                scrollbar::HORIZONTAL.begin,
+                                                scrollbar::HORIZONTAL.end
+                                            )),
+                                            Span::from(SPACE),
+                                            Span::from(format!(
+                                                // ↑
+                                                "[{}]edit up",
+                                                scrollbar::VERTICAL.begin
+                                            )),
+                                            Span::from(SPACE),
+                                            Span::from(format!(
+                                                // ctrl + ↑
+                                                "[^{}]edit up 10x",
+                                                scrollbar::VERTICAL.begin
+                                            )),
+                                            Span::from(SPACE),
+                                            Span::from(format!(
+                                                // ↓
+                                                "[{}]edit up",
+                                                scrollbar::VERTICAL.end
+                                            )),
+                                            Span::from(SPACE),
+                                            Span::from(format!(
+                                                // ctrl + ↓
+                                                "[^{}]edit up 10x",
+                                                scrollbar::VERTICAL.end
+                                            )),
+                                        ]
+                                    }
+                                },
                             }
                         })),
                     ]),
