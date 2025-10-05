@@ -9,6 +9,7 @@ use time::{OffsetDateTime, macros::format_description};
 use crate::{
     common::{AppTime, Style},
     constants::TICK_VALUE_MS,
+    duration::DirectedDuration,
     events::{AppEventTx, TuiEvent, TuiEventHandler},
     utils::center,
     widgets::clock::{self, ClockState, ClockStateArgs, ClockWidget},
@@ -18,9 +19,9 @@ use std::{cmp::max, time::Duration};
 /// State for `EventWidget`
 pub struct EventState {
     title: String,
-    event_time: time::PrimitiveDateTime,
-    // TODO(#105) `Timer` or `Countdown`
+    event_time: OffsetDateTime,
     clock: ClockState<clock::Countdown>,
+    directed_duration: DirectedDuration,
 }
 
 pub struct EventStateArgs {
@@ -41,21 +42,15 @@ impl EventState {
             app_tx,
         } = args;
 
-        let t = event_time.time();
-        // TODO(#105) Extract into `ExDuration` ??
-        let initial_value = Duration::new(
-            t.hour() as u64 * 3600 + t.minute() as u64 * 60 + t.second() as u64,
-            t.nanosecond(),
-        );
         let app_datetime = OffsetDateTime::from(app_time);
-        // assume `offset` as same as `app_time`
+        // assume event has as same `offset` as `app_time`
         let event_offset = event_time.assume_offset(app_datetime.offset());
+        let directed_duration =
+            DirectedDuration::from_offset_date_times(event_offset, app_datetime);
+        let current_value = directed_duration.into();
 
-        let current_value = (event_offset - app_datetime).unsigned_abs();
-
-        // TODO(#105) `Timer` or `Countdown`
         let clock = ClockState::<clock::Countdown>::new(ClockStateArgs {
-            initial_value,
+            initial_value: current_value,
             current_value,
             tick_value: Duration::from_millis(TICK_VALUE_MS),
             with_decis,
@@ -64,13 +59,35 @@ impl EventState {
 
         Self {
             title: event_title,
-            event_time,
+            event_time: event_offset,
+            directed_duration,
             clock,
         }
     }
 
     pub fn get_clock(&self) -> &ClockState<clock::Countdown> {
         &self.clock
+    }
+
+    pub fn set_app_time(&mut self, app_time: AppTime) {
+        // update `directed_duration`
+        let app_datetime = OffsetDateTime::from(app_time);
+        self.directed_duration =
+            DirectedDuration::from_offset_date_times(self.event_time, app_datetime);
+        // update clock
+        let duration: Duration = self.directed_duration.into();
+        self.clock.set_current_value(duration.into());
+    }
+
+    pub fn set_with_decis(&mut self, with_decis: bool) {
+        self.clock.with_decis = with_decis;
+    }
+
+    pub fn get_percentage_done(&self) -> u16 {
+        match self.directed_duration {
+            DirectedDuration::Since(_) => 100,
+            DirectedDuration::Until(_) => self.clock.get_percentage_done(),
+        }
     }
 }
 
@@ -98,7 +115,22 @@ impl StatefulWidget for EventWidget {
                 "[year]-[month]-[day] [hour]:[minute]:[second]"
             ))
             .unwrap_or_else(|e| format!("time format error: {}", e));
-        let label_time = Line::raw(time_str.to_uppercase());
+        let time_prefix = match state.directed_duration {
+            DirectedDuration::Since(d) => {
+                // Show `done` for a short of time (1 sec.)
+                if d < Duration::from_secs(1) {
+                    "Done"
+                } else {
+                    "Since"
+                }
+            }
+            DirectedDuration::Until(_) => "Until",
+        };
+        let label_time = Line::raw(format!(
+            "{} {}",
+            time_prefix.to_uppercase(),
+            time_str.to_uppercase()
+        ));
         let max_label_width = max(label_event.width(), label_time.width()) as u16;
 
         let area = center(

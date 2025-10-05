@@ -308,6 +308,7 @@ impl App {
                     app.timer.set_with_decis(app.with_decis);
                     app.countdown.set_with_decis(app.with_decis);
                     app.pomodoro.set_with_decis(app.with_decis);
+                    app.event.set_with_decis(app.with_decis);
                 }
                 KeyCode::Up => app.footer.set_show_menu(true),
                 KeyCode::Down => app.footer.set_show_menu(false),
@@ -320,6 +321,7 @@ impl App {
                 app.app_time = AppTime::new();
                 app.countdown.set_app_time(app.app_time);
                 app.local_time.set_app_time(app.app_time);
+                app.event.set_app_time(app.app_time);
             }
 
             // Pipe events into subviews and handle only 'unhandled' events afterwards
@@ -440,9 +442,7 @@ impl App {
             Content::Countdown => Some(self.countdown.get_clock().get_percentage_done()),
             Content::Timer => None,
             Content::Pomodoro => Some(self.pomodoro.get_clock().get_percentage_done()),
-            // TODO(#105) Don't get `get_percentage_done` from `clock`.
-            // It needs to be returned by `event` to handle for internal `Since` and `Until` states
-            Content::Event => Some(self.event.get_clock().get_percentage_done()),
+            Content::Event => Some(self.event.get_percentage_done()),
             Content::LocalTime => None,
         }
     }
