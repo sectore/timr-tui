@@ -15,6 +15,8 @@ pub enum Content {
     Timer,
     #[value(name = "pomodoro", alias = "p")]
     Pomodoro,
+    #[value(name = "event", alias = "e")]
+    Event,
     #[value(name = "localtime", alias = "l")]
     LocalTime,
 }

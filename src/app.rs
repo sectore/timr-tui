@@ -9,6 +9,7 @@ use crate::{
     widgets::{
         clock::{self, ClockState, ClockStateArgs},
         countdown::{Countdown, CountdownState, CountdownStateArgs},
+        event::{EventState, EventStateArgs, EventWidget},
         footer::{Footer, FooterState},
         header::Header,
         local_time::{LocalTimeState, LocalTimeStateArgs, LocalTimeWidget},
@@ -29,6 +30,7 @@ use ratatui::{
 };
 use std::path::PathBuf;
 use std::time::Duration;
+use time::macros::format_description;
 use tracing::{debug, error};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -49,6 +51,7 @@ pub struct App {
     countdown: CountdownState,
     timer: TimerState,
     pomodoro: PomodoroState,
+    event: EventState,
     local_time: LocalTimeState,
     style: Style,
     with_decis: bool,
@@ -223,6 +226,17 @@ impl App {
                 app_time,
                 app_time_format,
             }),
+            event: EventState::new(EventStateArgs {
+                app_time,
+                event_time: time::PrimitiveDateTime::parse(
+                    "2030-10-03 15:00:00",
+                    format_description!("[year]-[month]-[day] [hour]:[minute]:[second]"),
+                )
+                .unwrap(),
+                event_title: "My event".to_owned(),
+                with_decis,
+                app_tx: app_tx.clone(),
+            }),
             footer: FooterState::new(
                 show_menu,
                 if footer_toggle_app_time == Toggle::On {
@@ -247,6 +261,9 @@ impl App {
                 KeyCode::Char('c') => app.content = Content::Countdown,
                 KeyCode::Char('t') => app.content = Content::Timer,
                 KeyCode::Char('p') => app.content = Content::Pomodoro,
+                // TODO(#102) Before we can use `e` here
+                // we do need to change keybindings for editing.
+                KeyCode::Char('z') => app.content = Content::Event,
                 KeyCode::Char('l') => app.content = Content::LocalTime,
                 // toogle app time format
                 KeyCode::Char(':') => {
@@ -291,6 +308,7 @@ impl App {
                     app.timer.set_with_decis(app.with_decis);
                     app.countdown.set_with_decis(app.with_decis);
                     app.pomodoro.set_with_decis(app.with_decis);
+                    app.event.set_with_decis(app.with_decis);
                 }
                 KeyCode::Up => app.footer.set_show_menu(true),
                 KeyCode::Down => app.footer.set_show_menu(false),
@@ -303,6 +321,7 @@ impl App {
                 app.app_time = AppTime::new();
                 app.countdown.set_app_time(app.app_time);
                 app.local_time.set_app_time(app.app_time);
+                app.event.set_app_time(app.app_time);
             }
 
             // Pipe events into subviews and handle only 'unhandled' events afterwards
@@ -310,6 +329,7 @@ impl App {
                 Content::Countdown => app.countdown.update(event.clone()),
                 Content::Timer => app.timer.update(event.clone()),
                 Content::Pomodoro => app.pomodoro.update(event.clone()),
+                Content::Event => app.event.update(event.clone()),
                 Content::LocalTime => app.local_time.update(event.clone()),
             } {
                 match unhandled {
@@ -401,6 +421,7 @@ impl App {
                     AppEditMode::None
                 }
             }
+            Content::Event => AppEditMode::None,
             Content::LocalTime => AppEditMode::None,
         }
     }
@@ -410,6 +431,7 @@ impl App {
             Content::Countdown => self.countdown.is_running(),
             Content::Timer => self.timer.get_clock().is_running(),
             Content::Pomodoro => self.pomodoro.get_clock().is_running(),
+            Content::Event => self.event.get_clock().is_running(),
             // `LocalTime` does not use a `Clock`
             Content::LocalTime => false,
         }
@@ -420,6 +442,7 @@ impl App {
             Content::Countdown => Some(self.countdown.get_clock().get_percentage_done()),
             Content::Timer => None,
             Content::Pomodoro => Some(self.pomodoro.get_clock().get_percentage_done()),
+            Content::Event => Some(self.event.get_percentage_done()),
             Content::LocalTime => None,
         }
     }
@@ -483,6 +506,11 @@ impl AppWidget {
                 blink: state.blink == Toggle::On,
             }
             .render(area, buf, &mut state.pomodoro),
+            Content::Event => EventWidget {
+                style: state.style,
+                blink: state.blink == Toggle::On,
+            }
+            .render(area, buf, &mut state.event),
             Content::LocalTime => {
                 LocalTimeWidget { style: state.style }.render(area, buf, &mut state.local_time);
             }

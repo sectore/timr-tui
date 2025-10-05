@@ -5,6 +5,7 @@ use color_eyre::{
 use std::cmp::min;
 use std::fmt;
 use std::time::Duration;
+use time::OffsetDateTime;
 
 use crate::common::AppTime;
 
@@ -44,6 +45,29 @@ pub enum DirectedDuration {
     Until(Duration),
     /// Time `since` a past moment (negative duration, but still represented as positive `Duration`)
     Since(Duration),
+}
+
+impl From<DirectedDuration> for Duration {
+    fn from(directed: DirectedDuration) -> Self {
+        match directed {
+            DirectedDuration::Until(d) => d,
+            DirectedDuration::Since(d) => d,
+        }
+    }
+}
+
+impl DirectedDuration {
+    pub fn from_offset_date_times(value_a: OffsetDateTime, value_b: OffsetDateTime) -> Self {
+        let diff = value_a - value_b;
+
+        if diff.is_negative() {
+            Self::Since(Duration::from_millis(
+                diff.whole_milliseconds().unsigned_abs() as u64,
+            ))
+        } else {
+            Self::Until(Duration::from_millis(diff.whole_milliseconds() as u64))
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialOrd)]
@@ -470,6 +494,31 @@ mod tests {
         let ex: DurationEx = ONE_HOUR.saturating_mul(1).into();
         let result = ex.hours_mod_12();
         assert_eq!(result, 1);
+    }
+
+    #[test]
+    fn test_from_offset_date_times() {
+        use time::macros::datetime;
+
+        // Future time (Until)
+        let now = datetime!(2024-01-01 12:00:00).assume_utc();
+        let future = datetime!(2024-01-01 13:00:00).assume_utc();
+        assert!(matches!(
+            DirectedDuration::from_offset_date_times(future, now),
+            DirectedDuration::Until(_)
+        ));
+
+        // Past time (Since)
+        assert!(matches!(
+            DirectedDuration::from_offset_date_times(now, future),
+            DirectedDuration::Since(_)
+        ));
+
+        // Same time (Until with 0 duration)
+        assert!(matches!(
+            DirectedDuration::from_offset_date_times(now, now),
+            DirectedDuration::Until(_)
+        ));
     }
 
     #[test]
