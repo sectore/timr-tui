@@ -8,7 +8,7 @@ use ratatui::{
 
 use crate::{
     common::{AppTime, AppTimeFormat, Style as DigitStyle},
-    duration::DurationEx,
+    duration::{ClockDuration, DurationEx},
     events::{TuiEvent, TuiEventHandler},
     utils::center,
     widgets::clock_elements::{

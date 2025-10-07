@@ -14,8 +14,8 @@ use ratatui::{
 use crate::{
     common::{ClockTypeId, Style as DigitStyle},
     duration::{
-        DurationEx, MAX_DURATION, ONE_DAY, ONE_DECI_SECOND, ONE_HOUR, ONE_MINUTE, ONE_SECOND,
-        ONE_YEAR,
+        ClockDuration, DurationEx, MAX_DURATION, ONE_DAY, ONE_DECI_SECOND, ONE_HOUR, ONE_MINUTE,
+        ONE_SECOND, ONE_YEAR,
     },
     events::{AppEvent, AppEventTx},
     utils::center_horizontal,
