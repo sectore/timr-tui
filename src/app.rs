@@ -431,7 +431,8 @@ impl App {
             Content::Countdown => self.countdown.is_running(),
             Content::Timer => self.timer.get_clock().is_running(),
             Content::Pomodoro => self.pomodoro.get_clock().is_running(),
-            Content::Event => self.event.get_clock().is_running(),
+            // Event clock runs forever
+            Content::Event => true,
             // `LocalTime` does not use a `Clock`
             Content::LocalTime => false,
         }
