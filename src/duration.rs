@@ -241,6 +241,7 @@ fn parse_hours(h: &str) -> Result<u8, Report> {
 /// - `mm`
 ///
 /// Returns `DirectedDuration::Until` for future times, `DirectedDuration::Since` for past times
+#[allow(dead_code)]
 pub fn parse_duration_by_time(arg: &str) -> Result<DirectedDuration, Report> {
     use time::{OffsetDateTime, PrimitiveDateTime, macros::format_description};
 
