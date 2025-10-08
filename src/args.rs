@@ -18,11 +18,6 @@ pub struct Args {
     )]
     pub countdown: Option<Duration>,
 
-    #[arg(long, visible_alias = "ct", value_parser = duration::parse_duration_by_time,
-        help = "Countdown targeting a specific time in the future or past. Formats: 'yyyy-mm-dd hh:mm:ss', 'yyyy-mm-dd hh:mm', 'hh:mm:ss', 'hh:mm', 'mm'"
-    )]
-    pub countdown_target: Option<duration::DirectedDuration>,
-
     #[arg(long, short, value_parser = duration::parse_duration,
         help = "Work time to count down from. Formats: 'ss', 'mm:ss', 'hh:mm:ss'"
     )]

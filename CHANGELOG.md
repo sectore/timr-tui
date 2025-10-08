@@ -1,5 +1,12 @@
 # Changelog
 
+## [unreleased]
+
+### Breaking change
+
+- (cli)! Remove `--countdown-target` argument [#121](https://github.com/sectore/timr-tui/pull/121)
+
+
 ## v1.5.0 - 2025-10-03
 
 ### Features
