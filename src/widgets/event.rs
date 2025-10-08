@@ -161,8 +161,7 @@ impl StatefulWidget for EventWidget {
         let render_clock_state = clock::RenderClockState {
             with_decis,
             duration,
-            // TODO: Should we track other modes (e.g. DONE)?
-            mode: &clock::Mode::Tick,
+            editable_time: None,
             format: clock_format,
             symbol,
             widths: clock_widths,

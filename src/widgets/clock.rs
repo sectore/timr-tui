@@ -895,7 +895,7 @@ pub fn clock_horizontal_lengths(format: &Format, with_decis: bool) -> Vec<u16> {
 // State to render a clock
 pub struct RenderClockState<'a, D: ClockDuration> {
     pub format: Format,
-    pub mode: &'a Mode,
+    pub editable_time: Option<Time>,
     pub with_decis: bool,
     pub symbol: &'a str,
     pub widths: Vec<u16>,
@@ -909,19 +909,19 @@ pub fn render_clock<D: ClockDuration>(area: Rect, buf: &mut Buffer, state: Rende
         with_decis,
         symbol,
         widths,
-        mode,
+        editable_time,
         duration,
     } = state;
 
     let width = widths.iter().sum();
     let area = center_horizontal(area, Constraint::Length(width));
 
-    let edit_years = matches!(mode, Mode::Editable(Time::Years, _));
-    let edit_days = matches!(mode, Mode::Editable(Time::Days, _));
-    let edit_hours = matches!(mode, Mode::Editable(Time::Hours, _));
-    let edit_minutes = matches!(mode, Mode::Editable(Time::Minutes, _));
-    let edit_secs = matches!(mode, Mode::Editable(Time::Seconds, _));
-    let edit_decis = matches!(mode, Mode::Editable(Time::Decis, _));
+    let edit_years = matches!(editable_time, Some(Time::Years));
+    let edit_days = matches!(editable_time, Some(Time::Days));
+    let edit_hours = matches!(editable_time, Some(Time::Hours));
+    let edit_minutes = matches!(editable_time, Some(Time::Minutes));
+    let edit_secs = matches!(editable_time, Some(Time::Seconds));
+    let edit_decis = matches!(editable_time, Some(Time::Decis));
 
     let render_three_digits = |d1, d2, d3, editable, area, buf: &mut Buffer| {
         let [a1, a2, a3] = Layout::horizontal(Constraint::from_lengths([
@@ -1505,7 +1505,10 @@ where
         let render_state = RenderClockState {
             with_decis,
             duration: state.current_value,
-            mode: state.get_mode(),
+            editable_time: match state.get_mode() {
+                Mode::Editable(time, _) => Some(*time),
+                _ => None,
+            },
             format,
             symbol,
             widths,
