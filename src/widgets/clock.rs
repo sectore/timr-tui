@@ -898,7 +898,6 @@ pub struct RenderClockState<'a, D: ClockDuration> {
     pub mode: &'a Mode,
     pub with_decis: bool,
     pub symbol: &'a str,
-    pub should_blink: bool,
     pub widths: Vec<u16>,
     pub duration: D,
 }
@@ -908,18 +907,11 @@ pub fn render_clock<D: ClockDuration>(area: Rect, buf: &mut Buffer, state: Rende
     let RenderClockState {
         format,
         with_decis,
-        mut symbol,
-        should_blink,
+        symbol,
         widths,
         mode,
         duration,
     } = state;
-
-    // to simulate a blink effect, just use an "empty" symbol (string)
-    // to "empty" all digits and to have an "empty" render area
-    if should_blink {
-        symbol = " ";
-    }
 
     let width = widths.iter().sum();
     let area = center_horizontal(area, Constraint::Length(width));
@@ -1502,13 +1494,20 @@ where
         let format = state.format;
         let widths = clock_horizontal_lengths(&format, with_decis);
 
+        // to simulate a blink effect, just use an "empty" symbol (string)
+        // to "empty" all digits and to have an "empty" render area
+        let symbol = if self.blink && self.should_blink(&state.done_count) {
+            " "
+        } else {
+            self.style.get_digit_symbol()
+        };
+
         let render_state = RenderClockState {
             with_decis,
             duration: state.current_value,
             mode: state.get_mode(),
             format,
-            symbol: self.style.get_digit_symbol(),
-            should_blink: self.blink && self.should_blink(&state.done_count),
+            symbol,
             widths,
         };
         render_clock(area, buf, render_state);

@@ -151,15 +151,20 @@ impl StatefulWidget for EventWidget {
         ]))
         .areas(area);
 
+        // TODO: Add logic to handle blink in `DONE` mode, similar to `ClockWidget<T>::should_blink`
+        let symbol = if self.blink {
+            " "
+        } else {
+            self.style.get_digit_symbol()
+        };
+
         let render_clock_state = clock::RenderClockState {
             with_decis,
             duration,
             // TODO: Should we track other modes (e.g. DONE)?
             mode: &clock::Mode::Tick,
             format: clock_format,
-            symbol: self.style.get_digit_symbol(),
-            // TODO: Add logic to handle blink in `DONE` mode, similar to `ClockWidget<T>::should_blink`
-            should_blink: self.blink,
+            symbol,
             widths: clock_widths,
         };
 
