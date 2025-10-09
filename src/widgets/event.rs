@@ -20,6 +20,7 @@ pub struct EventState {
     title: String,
     event_time: OffsetDateTime,
     app_time: OffsetDateTime,
+    start_time: OffsetDateTime,
     with_decis: bool,
 }
 
@@ -51,6 +52,7 @@ impl EventState {
             title: event_title,
             event_time: event_offset,
             app_time: app_datetime,
+            start_time: app_datetime,
             with_decis,
         }
     }
@@ -63,12 +65,33 @@ impl EventState {
     pub fn set_with_decis(&mut self, with_decis: bool) {
         self.with_decis = with_decis;
     }
+
+    pub fn get_percentage_done(&self) -> u16 {
+        get_percentage(self.start_time, self.event_time, self.app_time)
+    }
 }
 
 impl TuiEventHandler for EventState {
     fn update(&mut self, event: TuiEvent) -> Option<TuiEvent> {
         Some(event)
     }
+}
+
+fn get_percentage(start: OffsetDateTime, end: OffsetDateTime, current: OffsetDateTime) -> u16 {
+    let total_millis = (end - start).whole_milliseconds();
+
+    if total_millis <= 0 {
+        return 100;
+    }
+
+    let elapsed_millis = (current - start).whole_milliseconds();
+
+    if elapsed_millis <= 0 {
+        return 0;
+    }
+
+    let percentage = (elapsed_millis * 100 / total_millis).min(100);
+    percentage as u16
 }
 
 #[derive(Debug)]
@@ -146,5 +169,47 @@ impl StatefulWidget for EventWidget {
         clock::render_clock(v1, buf, render_clock_state);
         label_time.centered().render(v2, buf);
         label_event.centered().render(v3, buf);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use time::macros::datetime;
+
+    #[test]
+    fn test_get_percentage() {
+        let start = datetime!(2024-01-01 10:00:00 UTC);
+        let end = datetime!(2024-01-01 20:00:00 UTC);
+
+        // current == start: 0%
+        assert_eq!(get_percentage(start, end, start), 0);
+
+        // current == end: 100%
+        assert_eq!(get_percentage(start, end, end), 100);
+
+        // current halfway: 50%
+        let halfway = datetime!(2024-01-01 15:00:00 UTC);
+        assert_eq!(get_percentage(start, end, halfway), 50);
+
+        // current 25%
+        let quarter = datetime!(2024-01-01 12:30:00 UTC);
+        assert_eq!(get_percentage(start, end, quarter), 25);
+
+        // current 75%
+        let three_quarters = datetime!(2024-01-01 17:30:00 UTC);
+        assert_eq!(get_percentage(start, end, three_quarters), 75);
+
+        // current > end: clamped to 100%
+        let after = datetime!(2024-01-01 22:00:00 UTC);
+        assert_eq!(get_percentage(start, end, after), 100);
+
+        // current < start: 0%
+        let before = datetime!(2024-01-01 08:00:00 UTC);
+        assert_eq!(get_percentage(start, end, before), 0);
+
+        // end <= start: 100%
+        assert_eq!(get_percentage(end, start, halfway), 100);
+        assert_eq!(get_percentage(start, start, start), 100);
     }
 }
