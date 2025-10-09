@@ -250,8 +250,6 @@ impl From<DurationEx> for Duration {
     }
 }
 
-// TODO: Question: Should we call `DurationEx::anything` here or move all of those
-// functions into this `impl`?
 impl ClockDuration for DurationEx {
     fn years(&self) -> u64 {
         self.days() / DAYS_PER_YEAR
@@ -475,7 +473,7 @@ pub fn parse_long_duration(arg: &str) -> Result<Duration, Report> {
 #[cfg(test)]
 mod tests {
 
-    use super::ClockDuration; // Import trait for DurationEx methods
+    use super::ClockDuration;
     use super::*;
     use std::time::Duration;
 

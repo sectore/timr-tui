@@ -663,7 +663,7 @@ where
 }
 
 // Helper to get horizontal lengths of a clock
-// depending of given `Format` and `with_decis` params
+// depending on given `Format` and `with_decis` params
 pub fn clock_horizontal_lengths(format: &Format, with_decis: bool) -> Vec<u16> {
     let add_decis = |mut lengths: Vec<u16>, with_decis: bool| -> Vec<u16> {
         if with_decis {
