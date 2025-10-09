@@ -427,7 +427,7 @@ impl App {
             Content::Countdown => Some(self.countdown.get_clock().get_percentage_done()),
             Content::Timer => None,
             Content::Pomodoro => Some(self.pomodoro.get_clock().get_percentage_done()),
-            Content::Event => Some(self.event.get_percentage_done()),
+            Content::Event => None,
             Content::LocalTime => None,
         }
     }

@@ -119,28 +119,60 @@ impl DirectedDuration {
 /// years and days based on actual calendar dates, properly handling leap years.
 ///
 /// All calculations are performed on-demand from the stored dates.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct CalendarDuration {
     earlier: OffsetDateTime,
     later: OffsetDateTime,
+    direction: CalendarDurationDirection,
+}
+
+#[derive(PartialEq, Debug, Clone)]
+pub enum CalendarDurationDirection {
+    Since,
+    Until,
 }
 
 impl CalendarDuration {
-    /// Create a new CalendarDuration between two dates.
+    /// Create a new CalendarDuration by given two `OffsetDateTime`.
     ///
-    /// The order of arguments doesn't matter - the struct will automatically
-    /// determine which is earlier and which is later.
-    pub fn between(a: OffsetDateTime, b: OffsetDateTime) -> Self {
-        if a <= b {
+    /// The order of arguments matters:
+    /// First: `start_time` - `OffsetDateTime` to start from
+    /// Second: `end_time` - `OffsetDateTime` for expected end
+    pub fn from_start_end_times(start_time: OffsetDateTime, end_time: OffsetDateTime) -> Self {
+        // To avoid negative values by calculating differences of `start` and `end` times,
+        // we might switch those values internally by storing it as `earlier` and `later` values
+        // It simplifies all calculations in `ClockDuration` trait later.
+        // And `direction` will still help to still get original `start` and `end` times later.
+        if start_time <= end_time {
             Self {
-                earlier: a,
-                later: b,
+                earlier: start_time,
+                later: end_time,
+                direction: CalendarDurationDirection::Since,
             }
         } else {
             Self {
-                earlier: b,
-                later: a,
+                earlier: end_time,
+                later: start_time,
+                direction: CalendarDurationDirection::Until,
             }
+        }
+    }
+
+    pub fn direction(&self) -> &CalendarDurationDirection {
+        &self.direction
+    }
+
+    pub fn start_time(&self) -> &OffsetDateTime {
+        match self.direction {
+            CalendarDurationDirection::Since => &self.earlier,
+            CalendarDurationDirection::Until => &self.later,
+        }
+    }
+
+    pub fn end_time(&self) -> &OffsetDateTime {
+        match self.direction {
+            CalendarDurationDirection::Since => &self.later,
+            CalendarDurationDirection::Until => &self.earlier,
         }
     }
 }
@@ -846,7 +878,7 @@ mod tests {
         // 2024 is a leap year (366 days)
         let start = datetime!(2024-01-01 00:00:00 UTC);
         let end = datetime!(2025-01-01 00:00:00 UTC);
-        let cal_dur = CalendarDuration::between(start, end);
+        let cal_dur = CalendarDuration::from_start_end_times(start, end);
 
         assert_eq!(cal_dur.years(), 1, "Should be exactly 1 year");
         assert_eq!(cal_dur.days_mod(), 0, "Should be 0 remaining days");
@@ -860,7 +892,7 @@ mod tests {
         // 2023 is not a leap year (365 days)
         let start = datetime!(2023-01-01 00:00:00 UTC);
         let end = datetime!(2024-01-01 00:00:00 UTC);
-        let cal_dur = CalendarDuration::between(start, end);
+        let cal_dur = CalendarDuration::from_start_end_times(start, end);
 
         assert_eq!(cal_dur.years(), 1, "Should be exactly 1 year");
         assert_eq!(cal_dur.days_mod(), 0, "Should be 0 remaining days");
@@ -874,7 +906,7 @@ mod tests {
         // Span including Feb 29, 2024
         let start = datetime!(2024-02-01 00:00:00 UTC);
         let end = datetime!(2024-03-15 00:00:00 UTC);
-        let cal_dur = CalendarDuration::between(start, end);
+        let cal_dur = CalendarDuration::from_start_end_times(start, end);
 
         assert_eq!(cal_dur.years(), 0, "Should be 0 years");
         // Feb 2024 has 29 days, so: 29 days (rest of Feb) + 15 days (March) = 44 days
@@ -892,7 +924,7 @@ mod tests {
         // Same dates but in 2023 (non-leap year)
         let start = datetime!(2023-02-01 00:00:00 UTC);
         let end = datetime!(2023-03-15 00:00:00 UTC);
-        let cal_dur = CalendarDuration::between(start, end);
+        let cal_dur = CalendarDuration::from_start_end_times(start, end);
 
         assert_eq!(cal_dur.years(), 0, "Should be 0 years");
         // Feb 2023 has 28 days, so: 28 days (rest of Feb) + 15 days (March) = 43 days
@@ -910,7 +942,7 @@ mod tests {
         // From 2023 (non-leap) through 2024 (leap) to 2025
         let start = datetime!(2023-03-01 10:00:00 UTC);
         let end = datetime!(2025-03-01 10:00:00 UTC);
-        let cal_dur = CalendarDuration::between(start, end);
+        let cal_dur = CalendarDuration::from_start_end_times(start, end);
 
         assert_eq!(cal_dur.years(), 2, "Should be exactly 2 years");
         assert_eq!(cal_dur.days_mod(), 0, "Should be 0 remaining days");
@@ -926,7 +958,7 @@ mod tests {
         // Test incomplete year - just before year boundary
         let start = datetime!(2024-01-01 00:00:00 UTC);
         let end = datetime!(2024-12-31 23:59:59 UTC);
-        let cal_dur = CalendarDuration::between(start, end);
+        let cal_dur = CalendarDuration::from_start_end_times(start, end);
 
         assert_eq!(cal_dur.years(), 0, "Should be 0 years (not complete)");
         assert_eq!(cal_dur.days(), 365, "Should be 365 days");
@@ -938,7 +970,7 @@ mod tests {
 
         let start = datetime!(2024-01-01 10:30:45 UTC);
         let end = datetime!(2024-01-02 14:25:50 UTC);
-        let cal_dur = CalendarDuration::between(start, end);
+        let cal_dur = CalendarDuration::from_start_end_times(start, end);
 
         assert_eq!(cal_dur.years(), 0);
         assert_eq!(cal_dur.days(), 1);
@@ -954,7 +986,7 @@ mod tests {
         // CalendarDuration::between should handle reversed order
         let later = datetime!(2025-01-01 00:00:00 UTC);
         let earlier = datetime!(2024-01-01 00:00:00 UTC);
-        let cal_dur = CalendarDuration::between(later, earlier);
+        let cal_dur = CalendarDuration::from_start_end_times(later, earlier);
 
         assert_eq!(cal_dur.years(), 1, "Should still calculate 1 year");
         assert_eq!(cal_dur.days(), 366, "Should still be 366 days");
@@ -965,7 +997,7 @@ mod tests {
         use time::macros::datetime;
 
         let date = datetime!(2024-06-15 12:00:00 UTC);
-        let cal_dur = CalendarDuration::between(date, date);
+        let cal_dur = CalendarDuration::from_start_end_times(date, date);
 
         assert_eq!(cal_dur.years(), 0);
         assert_eq!(cal_dur.days(), 0);
@@ -980,7 +1012,7 @@ mod tests {
 
         let start = datetime!(2024-01-01 00:00:00.000 UTC);
         let end = datetime!(2024-01-01 00:00:00.750 UTC);
-        let cal_dur = CalendarDuration::between(start, end);
+        let cal_dur = CalendarDuration::from_start_end_times(start, end);
 
         assert_eq!(
             cal_dur.decis(),

@@ -8,11 +8,10 @@ use time::{OffsetDateTime, macros::format_description};
 
 use crate::{
     common::{AppTime, Style},
-    duration::{CalendarDuration, DirectedDuration},
+    duration::{CalendarDuration, CalendarDurationDirection},
     events::{AppEventTx, TuiEvent, TuiEventHandler},
     utils::center,
-    widgets::clock,
-    widgets::clock_elements::DIGIT_HEIGHT,
+    widgets::{clock, clock_elements::DIGIT_HEIGHT},
 };
 use std::{cmp::max, time::Duration};
 
@@ -21,8 +20,6 @@ pub struct EventState {
     title: String,
     event_time: OffsetDateTime,
     app_time: OffsetDateTime,
-    calendar_duration: CalendarDuration,
-    directed_duration: DirectedDuration,
     with_decis: bool,
 }
 
@@ -50,19 +47,10 @@ impl EventState {
         // assume event has as same `offset` as `app_time`
         let event_offset = event_time.assume_offset(app_datetime.offset());
 
-        // Create calendar-aware duration (accounts for leap years!)
-        let calendar_duration = CalendarDuration::between(event_offset, app_datetime);
-
-        // Also keep DirectedDuration for "Since" vs "Until" logic
-        let directed_duration =
-            DirectedDuration::from_offset_date_times(event_offset, app_datetime);
-
         Self {
             title: event_title,
             event_time: event_offset,
             app_time: app_datetime,
-            calendar_duration,
-            directed_duration,
             with_decis,
         }
     }
@@ -70,25 +58,10 @@ impl EventState {
     pub fn set_app_time(&mut self, app_time: AppTime) {
         let app_datetime = OffsetDateTime::from(app_time);
         self.app_time = app_datetime;
-
-        // Update calendar-aware duration (accounts for leap years!)
-        self.calendar_duration = CalendarDuration::between(self.event_time, app_datetime);
-
-        // Update directed duration for "Since" vs "Until" logic
-        self.directed_duration =
-            DirectedDuration::from_offset_date_times(self.event_time, app_datetime);
     }
 
     pub fn set_with_decis(&mut self, with_decis: bool) {
         self.with_decis = with_decis;
-    }
-
-    pub fn get_percentage_done(&self) -> u16 {
-        match self.directed_duration {
-            DirectedDuration::Since(_) => 100,
-            // TODO: get percentage
-            DirectedDuration::Until(_) => 22,
-        }
     }
 }
 
@@ -108,8 +81,9 @@ impl StatefulWidget for EventWidget {
     type State = EventState;
     fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
         let with_decis = state.with_decis;
-        let duration = state.calendar_duration;
-        let clock_format = clock::format_by_duration(&duration);
+        let clock_duration =
+            CalendarDuration::from_start_end_times(state.event_time, state.app_time);
+        let clock_format = clock::format_by_duration(&clock_duration);
         let clock_widths = clock::clock_horizontal_lengths(&clock_format, with_decis);
         let clock_width = clock_widths.iter().sum();
 
@@ -120,17 +94,19 @@ impl StatefulWidget for EventWidget {
                 "[year]-[month]-[day] [hour]:[minute]:[second]"
             ))
             .unwrap_or_else(|e| format!("time format error: {}", e));
-        let time_prefix = match state.directed_duration {
-            DirectedDuration::Since(d) => {
-                // Show `done` for a short of time (1 sec.)
-                if d < Duration::from_secs(1) {
-                    "Done"
-                } else {
-                    "Since"
-                }
+
+        let time_prefix = if clock_duration.direction() == &CalendarDurationDirection::Since {
+            let duration: Duration = clock_duration.clone().into();
+            // Show `done` for a short of time (1 sec)
+            if duration < Duration::from_secs(1) {
+                "Done"
+            } else {
+                "Since"
             }
-            DirectedDuration::Until(_) => "Until",
+        } else {
+            "Until"
         };
+
         let label_time = Line::raw(format!(
             "{} {}",
             time_prefix.to_uppercase(),
@@ -160,7 +136,7 @@ impl StatefulWidget for EventWidget {
 
         let render_clock_state = clock::RenderClockState {
             with_decis,
-            duration,
+            duration: clock_duration,
             editable_time: None,
             format: clock_format,
             symbol,
