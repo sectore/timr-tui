@@ -213,7 +213,7 @@ impl App {
             event: EventState::new(EventStateArgs {
                 app_time,
                 event_time: time::PrimitiveDateTime::parse(
-                    "2030-10-03 15:00:00",
+                    "2025-10-09 19:54:29",
                     format_description!("[year]-[month]-[day] [hour]:[minute]:[second]"),
                 )
                 .unwrap(),
@@ -427,7 +427,7 @@ impl App {
             Content::Countdown => Some(self.countdown.get_clock().get_percentage_done()),
             Content::Timer => None,
             Content::Pomodoro => Some(self.pomodoro.get_clock().get_percentage_done()),
-            Content::Event => None,
+            Content::Event => Some(self.event.get_percentage_done()),
             Content::LocalTime => None,
         }
     }
