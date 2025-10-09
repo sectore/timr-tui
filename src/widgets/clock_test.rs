@@ -1,7 +1,8 @@
 use crate::{
     common::ClockTypeId,
     duration::{
-        MAX_DURATION, ONE_DAY, ONE_DECI_SECOND, ONE_HOUR, ONE_MINUTE, ONE_SECOND, ONE_YEAR,
+        DurationEx, MAX_DURATION, ONE_DAY, ONE_DECI_SECOND, ONE_HOUR, ONE_MINUTE, ONE_SECOND,
+        ONE_YEAR,
     },
     widgets::clock::*,
 };
@@ -76,102 +77,129 @@ fn test_get_format_hours() {
 #[test]
 fn test_format_by_duration_boundaries() {
     // S
-    assert_eq!(format_by_duration(&(ONE_SECOND * 9).into()), Format::S);
+    assert_eq!(
+        format_by_duration::<DurationEx>(&(ONE_SECOND * 9).into()),
+        Format::S
+    );
     // Ss
-    assert_eq!(format_by_duration(&(10 * ONE_SECOND).into()), Format::Ss);
+    assert_eq!(
+        format_by_duration::<DurationEx>(&(10 * ONE_SECOND).into()),
+        Format::Ss
+    );
     // Ss
-    assert_eq!(format_by_duration(&(59 * ONE_SECOND).into()), Format::Ss);
+    assert_eq!(
+        format_by_duration::<DurationEx>(&(59 * ONE_SECOND).into()),
+        Format::Ss
+    );
     // MSs
-    assert_eq!(format_by_duration(&ONE_MINUTE.into()), Format::MSs);
+    assert_eq!(
+        format_by_duration::<DurationEx>(&ONE_MINUTE.into()),
+        Format::MSs
+    );
     // HhMmSs
     assert_eq!(
-        format_by_duration(&(ONE_DAY.saturating_sub(ONE_SECOND)).into()),
+        format_by_duration::<DurationEx>(&(ONE_DAY.saturating_sub(ONE_SECOND)).into()),
         Format::HhMmSs
     );
     // DHhMmSs
-    assert_eq!(format_by_duration(&ONE_DAY.into()), Format::DHhMmSs);
+    assert_eq!(
+        format_by_duration::<DurationEx>(&ONE_DAY.into()),
+        Format::DHhMmSs
+    );
     // DHhMmSs
     assert_eq!(
-        format_by_duration(&((10 * ONE_DAY).saturating_sub(ONE_SECOND)).into()),
+        format_by_duration::<DurationEx>(&((10 * ONE_DAY).saturating_sub(ONE_SECOND)).into()),
         Format::DHhMmSs
     );
     // DdHhMmSs
-    assert_eq!(format_by_duration(&(10 * ONE_DAY).into()), Format::DdHhMmSs);
+    assert_eq!(
+        format_by_duration::<DurationEx>(&(10 * ONE_DAY).into()),
+        Format::DdHhMmSs
+    );
     // DdHhMmSs
     assert_eq!(
-        format_by_duration(&((100 * ONE_DAY).saturating_sub(ONE_SECOND)).into()),
+        format_by_duration::<DurationEx>(&((100 * ONE_DAY).saturating_sub(ONE_SECOND)).into()),
         Format::DdHhMmSs
     );
     // DddHhMmSs
     assert_eq!(
-        format_by_duration(&(100 * ONE_DAY).into()),
+        format_by_duration::<DurationEx>(&(100 * ONE_DAY).into()),
         Format::DddHhMmSs
     );
     // DddHhMmSs
     assert_eq!(
-        format_by_duration(&(ONE_YEAR.saturating_sub(ONE_SECOND).into())),
+        format_by_duration::<DurationEx>(&(ONE_YEAR.saturating_sub(ONE_SECOND).into())),
         Format::DddHhMmSs
     );
     // YDHhMmSs
-    assert_eq!(format_by_duration(&ONE_YEAR.into()), Format::YDHhMmSs);
+    assert_eq!(
+        format_by_duration::<DurationEx>(&ONE_YEAR.into()),
+        Format::YDHhMmSs
+    );
     // YDdHhMmSs
     assert_eq!(
-        format_by_duration(&(ONE_YEAR + (100 * ONE_DAY).saturating_sub(ONE_SECOND)).into()),
+        format_by_duration::<DurationEx>(
+            &(ONE_YEAR + (100 * ONE_DAY).saturating_sub(ONE_SECOND)).into()
+        ),
         Format::YDdHhMmSs
     );
     // YDddHhMmSs
     assert_eq!(
-        format_by_duration(&(ONE_YEAR + 100 * ONE_DAY).into()),
+        format_by_duration::<DurationEx>(&(ONE_YEAR + 100 * ONE_DAY).into()),
         Format::YDddHhMmSs
     );
     // YDddHhMmSs
     assert_eq!(
-        format_by_duration(&((10 * ONE_YEAR).saturating_sub(ONE_SECOND)).into()),
+        format_by_duration::<DurationEx>(&((10 * ONE_YEAR).saturating_sub(ONE_SECOND)).into()),
         Format::YDddHhMmSs
     );
     // YyDHhMmSs
     assert_eq!(
-        format_by_duration(&(10 * ONE_YEAR).into()),
+        format_by_duration::<DurationEx>(&(10 * ONE_YEAR).into()),
         Format::YyDHhMmSs
     );
     // YyDdHhMmSs
     assert_eq!(
-        format_by_duration(&(10 * ONE_YEAR + 10 * ONE_DAY).into()),
+        format_by_duration::<DurationEx>(&(10 * ONE_YEAR + 10 * ONE_DAY).into()),
         Format::YyDdHhMmSs
     );
     // YyDdHhMmSs
     assert_eq!(
-        format_by_duration(&(10 * ONE_YEAR + (100 * ONE_DAY).saturating_sub(ONE_SECOND)).into()),
+        format_by_duration::<DurationEx>(
+            &(10 * ONE_YEAR + (100 * ONE_DAY).saturating_sub(ONE_SECOND)).into()
+        ),
         Format::YyDdHhMmSs
     );
     // YyDddHhMmSs
     assert_eq!(
-        format_by_duration(&(10 * ONE_YEAR + 100 * ONE_DAY).into()),
+        format_by_duration::<DurationEx>(&(10 * ONE_YEAR + 100 * ONE_DAY).into()),
         Format::YyDddHhMmSs
     );
     // YyDddHhMmSs
     assert_eq!(
-        format_by_duration(&((100 * ONE_YEAR).saturating_sub(ONE_SECOND)).into()),
+        format_by_duration::<DurationEx>(&((100 * ONE_YEAR).saturating_sub(ONE_SECOND)).into()),
         Format::YyDddHhMmSs
     );
     // YyyDHhMmSs
     assert_eq!(
-        format_by_duration(&(100 * ONE_YEAR).into()),
+        format_by_duration::<DurationEx>(&(100 * ONE_YEAR).into()),
         Format::YyyDHhMmSs
     );
     // YyyDdHhMmSs
     assert_eq!(
-        format_by_duration(&(100 * ONE_YEAR + 10 * ONE_DAY).into()),
+        format_by_duration::<DurationEx>(&(100 * ONE_YEAR + 10 * ONE_DAY).into()),
         Format::YyyDdHhMmSs
     );
     // YyyDdHhMmSs
     assert_eq!(
-        format_by_duration(&(100 * ONE_YEAR + (100 * ONE_DAY).saturating_sub(ONE_SECOND)).into()),
+        format_by_duration::<DurationEx>(
+            &(100 * ONE_YEAR + (100 * ONE_DAY).saturating_sub(ONE_SECOND)).into()
+        ),
         Format::YyyDdHhMmSs
     );
     // YyyDddHhMmSs
     assert_eq!(
-        format_by_duration(&(100 * ONE_YEAR + 100 * ONE_DAY).into()),
+        format_by_duration::<DurationEx>(&(100 * ONE_YEAR + 100 * ONE_DAY).into()),
         Format::YyyDddHhMmSs
     );
 }
@@ -179,12 +207,18 @@ fn test_format_by_duration_boundaries() {
 #[test]
 fn test_format_by_duration_days() {
     // DHhMmSs
-    assert_eq!(format_by_duration(&ONE_DAY.into()), Format::DHhMmSs);
+    assert_eq!(
+        format_by_duration::<DurationEx>(&ONE_DAY.into()),
+        Format::DHhMmSs
+    );
     // DdHhMmSs
-    assert_eq!(format_by_duration(&(10 * ONE_DAY).into()), Format::DdHhMmSs);
+    assert_eq!(
+        format_by_duration::<DurationEx>(&(10 * ONE_DAY).into()),
+        Format::DdHhMmSs
+    );
     // DddHhMmSs
     assert_eq!(
-        format_by_duration(&(101 * ONE_DAY).into()),
+        format_by_duration::<DurationEx>(&(101 * ONE_DAY).into()),
         Format::DddHhMmSs
     );
 }
@@ -192,59 +226,62 @@ fn test_format_by_duration_days() {
 #[test]
 fn test_format_by_duration_years() {
     // YDHhMmSs (1 year, 0 days)
-    assert_eq!(format_by_duration(&ONE_YEAR.into()), Format::YDHhMmSs);
+    assert_eq!(
+        format_by_duration::<DurationEx>(&ONE_YEAR.into()),
+        Format::YDHhMmSs
+    );
 
     // YDHhMmSs (1 year, 1 day)
     assert_eq!(
-        format_by_duration(&(ONE_YEAR + ONE_DAY).into()),
+        format_by_duration::<DurationEx>(&(ONE_YEAR + ONE_DAY).into()),
         Format::YDHhMmSs
     );
 
     // YDdHhMmSs (1 year, 10 days)
     assert_eq!(
-        format_by_duration(&(ONE_YEAR + 10 * ONE_DAY).into()),
+        format_by_duration::<DurationEx>(&(ONE_YEAR + 10 * ONE_DAY).into()),
         Format::YDdHhMmSs
     );
 
     // YDddHhMmSs (1 year, 100 days)
     assert_eq!(
-        format_by_duration(&(ONE_YEAR + 100 * ONE_DAY).into()),
+        format_by_duration::<DurationEx>(&(ONE_YEAR + 100 * ONE_DAY).into()),
         Format::YDddHhMmSs
     );
 
     // YyDHhMmSs (10 years)
     assert_eq!(
-        format_by_duration(&(10 * ONE_YEAR).into()),
+        format_by_duration::<DurationEx>(&(10 * ONE_YEAR).into()),
         Format::YyDHhMmSs
     );
 
     // YyDdHhMmSs (10 years, 10 days)
     assert_eq!(
-        format_by_duration(&(10 * ONE_YEAR + 10 * ONE_DAY).into()),
+        format_by_duration::<DurationEx>(&(10 * ONE_YEAR + 10 * ONE_DAY).into()),
         Format::YyDdHhMmSs
     );
 
     // YyDddHhMmSs (10 years, 100 days)
     assert_eq!(
-        format_by_duration(&(10 * ONE_YEAR + 100 * ONE_DAY).into()),
+        format_by_duration::<DurationEx>(&(10 * ONE_YEAR + 100 * ONE_DAY).into()),
         Format::YyDddHhMmSs
     );
 
     // YyyDHhMmSs (100 years)
     assert_eq!(
-        format_by_duration(&(100 * ONE_YEAR).into()),
+        format_by_duration::<DurationEx>(&(100 * ONE_YEAR).into()),
         Format::YyyDHhMmSs
     );
 
     // YyyDdHhMmSs (100 years, 10 days)
     assert_eq!(
-        format_by_duration(&(100 * ONE_YEAR + 10 * ONE_DAY).into()),
+        format_by_duration::<DurationEx>(&(100 * ONE_YEAR + 10 * ONE_DAY).into()),
         Format::YyyDdHhMmSs
     );
 
     // YyyDddHhMmSs (100 years, 100 days)
     assert_eq!(
-        format_by_duration(&(100 * ONE_YEAR + 100 * ONE_DAY).into()),
+        format_by_duration::<DurationEx>(&(100 * ONE_YEAR + 100 * ONE_DAY).into()),
         Format::YyyDddHhMmSs
     );
 }

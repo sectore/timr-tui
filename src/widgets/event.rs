@@ -8,11 +8,10 @@ use time::{OffsetDateTime, macros::format_description};
 
 use crate::{
     common::{AppTime, Style},
-    constants::TICK_VALUE_MS,
-    duration::DirectedDuration,
+    duration::{CalendarDuration, CalendarDurationDirection},
     events::{AppEventTx, TuiEvent, TuiEventHandler},
     utils::center,
-    widgets::clock::{self, ClockState, ClockStateArgs, ClockWidget},
+    widgets::{clock, clock_elements::DIGIT_HEIGHT},
 };
 use std::{cmp::max, time::Duration};
 
@@ -20,8 +19,8 @@ use std::{cmp::max, time::Duration};
 pub struct EventState {
     title: String,
     event_time: OffsetDateTime,
-    clock: ClockState<clock::Countdown>,
-    directed_duration: DirectedDuration,
+    app_time: OffsetDateTime,
+    with_decis: bool,
 }
 
 pub struct EventStateArgs {
@@ -42,52 +41,27 @@ impl EventState {
             app_tx,
         } = args;
 
+        // TODO: Handle app Events
+        let _ = app_tx;
         let app_datetime = OffsetDateTime::from(app_time);
         // assume event has as same `offset` as `app_time`
         let event_offset = event_time.assume_offset(app_datetime.offset());
-        let directed_duration =
-            DirectedDuration::from_offset_date_times(event_offset, app_datetime);
-        let current_value = directed_duration.into();
-
-        let clock = ClockState::<clock::Countdown>::new(ClockStateArgs {
-            initial_value: current_value,
-            current_value,
-            tick_value: Duration::from_millis(TICK_VALUE_MS),
-            with_decis,
-            app_tx: Some(app_tx.clone()),
-        });
 
         Self {
             title: event_title,
             event_time: event_offset,
-            directed_duration,
-            clock,
+            app_time: app_datetime,
+            with_decis,
         }
-    }
-
-    pub fn get_clock(&self) -> &ClockState<clock::Countdown> {
-        &self.clock
     }
 
     pub fn set_app_time(&mut self, app_time: AppTime) {
-        // update `directed_duration`
         let app_datetime = OffsetDateTime::from(app_time);
-        self.directed_duration =
-            DirectedDuration::from_offset_date_times(self.event_time, app_datetime);
-        // update clock
-        let duration: Duration = self.directed_duration.into();
-        self.clock.set_current_value(duration.into());
+        self.app_time = app_datetime;
     }
 
     pub fn set_with_decis(&mut self, with_decis: bool) {
-        self.clock.with_decis = with_decis;
-    }
-
-    pub fn get_percentage_done(&self) -> u16 {
-        match self.directed_duration {
-            DirectedDuration::Since(_) => 100,
-            DirectedDuration::Until(_) => self.clock.get_percentage_done(),
-        }
+        self.with_decis = with_decis;
     }
 }
 
@@ -106,8 +80,13 @@ pub struct EventWidget {
 impl StatefulWidget for EventWidget {
     type State = EventState;
     fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
-        let clock = &mut state.clock;
-        let clock_widget = ClockWidget::new(self.style, self.blink);
+        let with_decis = state.with_decis;
+        let clock_duration =
+            CalendarDuration::from_start_end_times(state.event_time, state.app_time);
+        let clock_format = clock::format_by_duration(&clock_duration);
+        let clock_widths = clock::clock_horizontal_lengths(&clock_format, with_decis);
+        let clock_width = clock_widths.iter().sum();
+
         let label_event = Line::raw(state.title.to_uppercase());
         let time_str = state
             .event_time
@@ -115,17 +94,19 @@ impl StatefulWidget for EventWidget {
                 "[year]-[month]-[day] [hour]:[minute]:[second]"
             ))
             .unwrap_or_else(|e| format!("time format error: {}", e));
-        let time_prefix = match state.directed_duration {
-            DirectedDuration::Since(d) => {
-                // Show `done` for a short of time (1 sec.)
-                if d < Duration::from_secs(1) {
-                    "Done"
-                } else {
-                    "Since"
-                }
+
+        let time_prefix = if clock_duration.direction() == &CalendarDurationDirection::Since {
+            let duration: Duration = clock_duration.clone().into();
+            // Show `done` for a short of time (1 sec)
+            if duration < Duration::from_secs(1) {
+                "Done"
+            } else {
+                "Since"
             }
-            DirectedDuration::Until(_) => "Until",
+        } else {
+            "Until"
         };
+
         let label_time = Line::raw(format!(
             "{} {}",
             time_prefix.to_uppercase(),
@@ -135,21 +116,34 @@ impl StatefulWidget for EventWidget {
 
         let area = center(
             area,
-            Constraint::Length(max(
-                clock_widget.get_width(clock.get_format(), clock.with_decis),
-                max_label_width,
-            )),
-            Constraint::Length(clock_widget.get_height() + 3 /* height of label */),
+            Constraint::Length(max(clock_width, max_label_width)),
+            Constraint::Length(DIGIT_HEIGHT + 3 /* height of label */),
         );
         let [_, v1, v2, v3] = Layout::vertical(Constraint::from_lengths([
             1, // empty (offset) to keep everything centered vertically comparing to "clock" widgets with one label only
-            clock_widget.get_height(),
+            DIGIT_HEIGHT,
             1, // event date
             1, // event title
         ]))
         .areas(area);
 
-        clock_widget.render(v1, buf, clock);
+        // TODO: Add logic to handle blink in `DONE` mode, similar to `ClockWidget<T>::should_blink`
+        let symbol = if self.blink {
+            " "
+        } else {
+            self.style.get_digit_symbol()
+        };
+
+        let render_clock_state = clock::RenderClockState {
+            with_decis,
+            duration: clock_duration,
+            editable_time: None,
+            format: clock_format,
+            symbol,
+            widths: clock_widths,
+        };
+
+        clock::render_clock(v1, buf, render_clock_state);
         label_time.centered().render(v2, buf);
         label_event.centered().render(v3, buf);
     }
