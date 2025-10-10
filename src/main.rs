@@ -2,6 +2,7 @@ mod app;
 mod common;
 mod config;
 mod constants;
+mod event;
 mod events;
 mod logging;
 
