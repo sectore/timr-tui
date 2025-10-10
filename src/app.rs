@@ -213,7 +213,7 @@ impl App {
             event: EventState::new(EventStateArgs {
                 app_time,
                 event_time: time::PrimitiveDateTime::parse(
-                    "2025-10-09 21:32:30",
+                    "2025-10-10 10:30:30",
                     format_description!("[year]-[month]-[day] [hour]:[minute]:[second]"),
                 )
                 .unwrap(),
