@@ -25,6 +25,7 @@ pub enum Content {
 pub enum ClockTypeId {
     Countdown,
     Timer,
+    Event,
 }
 
 #[derive(Debug, Copy, Clone, ValueEnum, Default, Serialize, Deserialize)]

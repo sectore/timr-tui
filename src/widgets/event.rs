@@ -7,9 +7,9 @@ use ratatui::{
 use time::{OffsetDateTime, macros::format_description};
 
 use crate::{
-    common::{AppTime, Style},
+    common::{AppTime, ClockTypeId, Style},
     duration::CalendarDuration,
-    events::{AppEventTx, TuiEvent, TuiEventHandler},
+    events::{AppEvent, AppEventTx, TuiEvent, TuiEventHandler},
     utils::center,
     widgets::{clock, clock_elements::DIGIT_HEIGHT},
 };
@@ -25,6 +25,7 @@ pub struct EventState {
     /// counter to simulate `DONE` state
     /// Default value: `None`
     done_count: Option<u64>,
+    app_tx: AppEventTx,
 }
 
 pub struct EventStateArgs {
@@ -45,8 +46,6 @@ impl EventState {
             app_tx,
         } = args;
 
-        // TODO: Handle app Events
-        let _ = app_tx;
         let app_datetime = OffsetDateTime::from(app_time);
         // assume event has as same `offset` as `app_time`
         let event_offset = event_time.assume_offset(app_datetime.offset());
@@ -58,6 +57,7 @@ impl EventState {
             start_time: app_datetime,
             with_decis,
             done_count: None,
+            app_tx,
         }
     }
 
@@ -91,6 +91,10 @@ impl EventState {
             if duration < Duration::from_millis(100) {
                 // reset `done_count`
                 self.done_count = Some(clock::MAX_DONE_COUNT);
+                // send notification
+                _ = self
+                    .app_tx
+                    .send(AppEvent::ClockDone(ClockTypeId::Event, self.title.clone()));
             }
             // count (possible) `done`
             self.done_count = clock::count_clock_done(self.done_count);
