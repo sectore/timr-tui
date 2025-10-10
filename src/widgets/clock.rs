@@ -161,7 +161,7 @@ pub fn count_by_mode(times: u32, mode: &Mode) -> Duration {
 }
 
 const RANGE_OF_DONE_COUNT: u64 = 4;
-const MAX_DONE_COUNT: u64 = RANGE_OF_DONE_COUNT * 5;
+pub const MAX_DONE_COUNT: u64 = RANGE_OF_DONE_COUNT * 5;
 
 pub struct ClockState<T> {
     type_id: ClockTypeId,
@@ -447,16 +447,15 @@ impl<T> ClockState<T> {
     /// `tick` won't be called again after `Mode::Done` event (e.g. in `widget::Countdown`).
     /// That's why `update_done_count` is called from "outside".
     pub fn update_done_count(&mut self) {
-        if let Some(count) = self.done_count {
-            if count > 0 {
-                let value = count - 1;
-                self.done_count = Some(value)
-            } else {
-                // None means we are done and no counting anymore.
-                self.done_count = None
-            }
-        }
+        self.done_count = count_clock_done(self.done_count);
     }
+}
+
+/// Safe way to count a possible `done` value
+pub fn count_clock_done(value: Option<u64>) -> Option<u64> {
+    // Safe substraction for `Some(value > 1)`
+    // `None` means `done` == no counting anymore.
+    value.and_then(|count| count.checked_sub(1))
 }
 
 #[derive(Debug, Clone)]
@@ -649,17 +648,17 @@ where
     pub fn get_height(&self) -> u16 {
         DIGIT_HEIGHT
     }
+}
 
-    /// Checks whether to blink the clock while rendering.
-    /// Its logic is based on a given `count` value.
-    fn should_blink(&self, count_value: &Option<u64>) -> bool {
-        // Example:
-        // if `RANGE_OF_DONE_COUNT` is 4
-        // then for ranges `0..4`, `8..12` etc. it will return `true`
-        count_value
-            .map(|b| (b % (RANGE_OF_DONE_COUNT * 2)) < RANGE_OF_DONE_COUNT)
-            .unwrap_or(false)
-    }
+/// Helper to check whether to blink the clock while rendering.
+/// Its logic is based on a given `count` value.
+pub fn should_blink(count_value: Option<u64>) -> bool {
+    // Example:
+    // if `RANGE_OF_DONE_COUNT` is 4
+    // then for ranges `0..4`, `8..12` etc. it will return `true`
+    count_value
+        .map(|b| (b % (RANGE_OF_DONE_COUNT * 2)) < RANGE_OF_DONE_COUNT)
+        .unwrap_or(false)
 }
 
 // Helper to get horizontal lengths of a clock
@@ -1494,9 +1493,9 @@ where
         let format = state.format;
         let widths = clock_horizontal_lengths(&format, with_decis);
 
-        // to simulate a blink effect, just use an "empty" symbol (string)
-        // to "empty" all digits and to have an "empty" render area
-        let symbol = if self.blink && self.should_blink(&state.done_count) {
+        // To simulate a blink effect, just use an "empty" symbol (string)
+        // It's "empty" all digits and creates an "empty" render area
+        let symbol = if self.blink && should_blink(state.done_count) {
             " "
         } else {
             self.style.get_digit_symbol()

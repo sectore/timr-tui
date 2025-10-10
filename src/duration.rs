@@ -92,7 +92,7 @@ pub struct CalendarDuration {
     direction: CalendarDurationDirection,
 }
 
-#[derive(PartialEq, Debug, Clone)]
+#[derive(PartialEq, Debug, Clone, Copy)]
 pub enum CalendarDurationDirection {
     Since,
     Until,
@@ -124,8 +124,12 @@ impl CalendarDuration {
         }
     }
 
-    pub fn direction(&self) -> &CalendarDurationDirection {
-        &self.direction
+    pub fn direction(&self) -> CalendarDurationDirection {
+        self.direction
+    }
+
+    pub fn is_since(&self) -> bool {
+        self.direction == CalendarDurationDirection::Since
     }
 
     pub fn start_time(&self) -> &OffsetDateTime {

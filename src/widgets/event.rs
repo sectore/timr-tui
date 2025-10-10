@@ -8,7 +8,7 @@ use time::{OffsetDateTime, macros::format_description};
 
 use crate::{
     common::{AppTime, Style},
-    duration::{CalendarDuration, CalendarDurationDirection},
+    duration::CalendarDuration,
     events::{AppEventTx, TuiEvent, TuiEventHandler},
     utils::center,
     widgets::{clock, clock_elements::DIGIT_HEIGHT},
@@ -22,6 +22,9 @@ pub struct EventState {
     app_time: OffsetDateTime,
     start_time: OffsetDateTime,
     with_decis: bool,
+    /// counter to simulate `DONE` state
+    /// Default value: `None`
+    done_count: Option<u64>,
 }
 
 pub struct EventStateArgs {
@@ -54,12 +57,17 @@ impl EventState {
             app_time: app_datetime,
             start_time: app_datetime,
             with_decis,
+            done_count: None,
         }
     }
 
+    // Sets `app_time`
     pub fn set_app_time(&mut self, app_time: AppTime) {
         let app_datetime = OffsetDateTime::from(app_time);
         self.app_time = app_datetime;
+
+        // Since updating `app_time` is like a `Tick`, we check `done` state here
+        self.check_done();
     }
 
     pub fn set_with_decis(&mut self, with_decis: bool) {
@@ -68,6 +76,25 @@ impl EventState {
 
     pub fn get_percentage_done(&self) -> u16 {
         get_percentage(self.start_time, self.event_time, self.app_time)
+    }
+
+    pub fn get_duration(&mut self) -> CalendarDuration {
+        CalendarDuration::from_start_end_times(self.event_time, self.app_time)
+    }
+
+    fn check_done(&mut self) {
+        let clock_duration = self.get_duration();
+        if clock_duration.is_since() {
+            let duration: Duration = clock_duration.into();
+            // give some offset to make sure we are around `Duration::ZERO`
+            // Without that we might miss it, because the app runs on its own FPS
+            if duration < Duration::from_millis(100) {
+                // reset `done_count`
+                self.done_count = Some(clock::MAX_DONE_COUNT);
+            }
+            // count (possible) `done`
+            self.done_count = clock::count_clock_done(self.done_count);
+        }
     }
 }
 
@@ -104,8 +131,7 @@ impl StatefulWidget for EventWidget {
     type State = EventState;
     fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
         let with_decis = state.with_decis;
-        let clock_duration =
-            CalendarDuration::from_start_end_times(state.event_time, state.app_time);
+        let clock_duration = state.get_duration();
         let clock_format = clock::format_by_duration(&clock_duration);
         let clock_widths = clock::clock_horizontal_lengths(&clock_format, with_decis);
         let clock_width = clock_widths.iter().sum();
@@ -117,8 +143,7 @@ impl StatefulWidget for EventWidget {
                 "[year]-[month]-[day] [hour]:[minute]:[second]"
             ))
             .unwrap_or_else(|e| format!("time format error: {}", e));
-
-        let time_prefix = if clock_duration.direction() == &CalendarDurationDirection::Since {
+        let time_prefix = if clock_duration.is_since() {
             let duration: Duration = clock_duration.clone().into();
             // Show `done` for a short of time (1 sec)
             if duration < Duration::from_secs(1) {
@@ -150,8 +175,9 @@ impl StatefulWidget for EventWidget {
         ]))
         .areas(area);
 
-        // TODO: Add logic to handle blink in `DONE` mode, similar to `ClockWidget<T>::should_blink`
-        let symbol = if self.blink {
+        // To simulate a blink effect, just use an "empty" symbol (string)
+        // It's "empty" all digits and creates an "empty" render area
+        let symbol = if self.blink && clock::should_blink(state.done_count) {
             " "
         } else {
             self.style.get_digit_symbol()
