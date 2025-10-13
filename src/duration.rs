@@ -31,9 +31,9 @@ pub const ONE_YEAR: Duration =
 // ^ https://www.math.net/days-in-a-year
 const DAYS_PER_YEAR: u64 = 365; // ignore leap year of 366 days
 
-// max. 999y 364d 23:59:59.9 (1000 years - 1 decisecond)
+// max. 9999y 364d 23:59:59.9 (10k years - 1 decisecond)
 pub const MAX_DURATION: Duration = ONE_YEAR
-    .saturating_mul(1000)
+    .saturating_mul(10000)
     .saturating_sub(ONE_DECI_SECOND);
 
 /// Trait for duration types that can be displayed in clock widgets.
@@ -678,11 +678,11 @@ mod tests {
         );
 
         // MAX_DURATION clamping
-        assert_eq!(parse_long_duration("1000y").unwrap(), MAX_DURATION);
+        assert_eq!(parse_long_duration("10000y").unwrap(), MAX_DURATION);
         assert_eq!(
-            parse_long_duration("999y 364d 23:59:59").unwrap(),
+            parse_long_duration("9999y 364d 23:59:59").unwrap(),
             Duration::from_secs(
-                999 * YEAR_IN_SECONDS
+                9999 * YEAR_IN_SECONDS
                     + 364 * DAY_IN_SECONDS
                     + 23 * HOUR_IN_SECONDS
                     + 59 * MINUTE_IN_SECONDS
