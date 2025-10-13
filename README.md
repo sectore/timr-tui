@@ -121,10 +121,11 @@ Extra option (if `--features sound` is enabled by local build only):
 
 | Key | Description |
 | --- | --- |
-| <kbd>p</kbd> | Pomodoro |
-| <kbd>c</kbd> | Countdown |
-| <kbd>t</kbd> | Timer |
-| <kbd>l</kbd> | Local Time |
+| <kbd>1</kbd> | Pomodoro |
+| <kbd>2</kbd> | Countdown |
+| <kbd>3</kbd> | Timer |
+| <kbd>4</kbd> | Event |
+| <kbd>0</kbd> | Local Time |
 
 ## Controls
 
