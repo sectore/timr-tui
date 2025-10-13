@@ -108,6 +108,8 @@ impl From<FromAppArgs> for App {
                         Content::Pomodoro
                     } else if args.countdown.is_some() {
                         Content::Countdown
+                    } else if args.event.is_some() {
+                        Content::Event
                     }
                     // in other case just use latest stored state
                     else {
