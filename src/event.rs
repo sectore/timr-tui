@@ -9,13 +9,13 @@ pub struct Event {
 pub fn get_default_event() -> Event {
     Event {
         date_time: time::PrimitiveDateTime::parse(
-            // First (initial) commit of `timr-tui`
-            // https://github.com/sectore/timr-tui/pull/1/commits/49c59bc2769faa1e31f8cb980a87c4caaa5149b3
-            "2024-11-27 20:55",
+            // Mario Bros "...entered mass production in Japan on June 21" 1983
+            // https://en.wikipedia.org/wiki/Mario_Bros.#Release
+            "1983-06-21 00:00",
             format_description!("[year]-[month]-[day] [hour]:[minute]"),
         )
         .unwrap(),
-        title: Some("first (initial) commit".into()),
+        title: Some("Release date of Mario Bros in Japan".into()),
     }
 }
 
