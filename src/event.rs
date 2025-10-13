@@ -1,6 +1,7 @@
+use serde::{Deserialize, Serialize};
 use time::macros::format_description;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Event {
     pub date_time: time::PrimitiveDateTime,
     pub title: Option<String>,

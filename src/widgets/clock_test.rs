@@ -203,7 +203,7 @@ fn test_format_by_duration_boundaries() {
         Format::YyyDddHhMmSs
     );
 
-    // YyyDdHhMmSs
+    // YyyyDdHhMmSs
     assert_eq!(
         format_by_duration::<DurationEx>(&(1000 * ONE_YEAR + 10 * ONE_DAY).into()),
         Format::YyyyDdHhMmSs

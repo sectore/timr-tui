@@ -1,5 +1,6 @@
 use crate::{
     common::{AppTimeFormat, Content, Style, Toggle},
+    event::{Event, get_default_event},
     widgets::pomodoro::Mode as PomodoroMode,
 };
 use color_eyre::eyre::Result;
@@ -44,6 +45,8 @@ pub struct AppStorage {
     pub elapsed_value_countdown: Duration,
     // timer
     pub current_value_timer: Duration,
+    // event
+    pub event: Event,
     // footer
     pub footer_app_time: Toggle,
 }
@@ -75,6 +78,8 @@ impl Default for AppStorage {
             elapsed_value_countdown: Duration::ZERO,
             // timer
             current_value_timer: Duration::ZERO,
+            // event
+            event: get_default_event(),
             // footer
             footer_app_time: Toggle::Off,
         }
