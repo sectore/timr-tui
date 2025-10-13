@@ -53,10 +53,11 @@ impl StatefulWidget for Footer {
     type State = FooterState;
     fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
         let content_labels: BTreeMap<Content, &str> = BTreeMap::from([
-            (Content::Countdown, "[c]ountdown"),
-            (Content::Timer, "[t]imer"),
-            (Content::Pomodoro, "[p]omodoro"),
-            (Content::LocalTime, "[l]ocal time"),
+            (Content::Countdown, "[1]countdown"),
+            (Content::Timer, "[2]timer"),
+            (Content::Pomodoro, "[3]pomodoro"),
+            (Content::Event, "[4]event"),
+            (Content::LocalTime, "[0]local time"),
         ]);
 
         let [_, area] =
