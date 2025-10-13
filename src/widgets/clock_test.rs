@@ -202,6 +202,24 @@ fn test_format_by_duration_boundaries() {
         format_by_duration::<DurationEx>(&(100 * ONE_YEAR + 100 * ONE_DAY).into()),
         Format::YyyDddHhMmSs
     );
+
+    // YyyDdHhMmSs
+    assert_eq!(
+        format_by_duration::<DurationEx>(&(1000 * ONE_YEAR + 10 * ONE_DAY).into()),
+        Format::YyyyDdHhMmSs
+    );
+    // YyyyDdHhMmSs
+    assert_eq!(
+        format_by_duration::<DurationEx>(
+            &(1000 * ONE_YEAR + (100 * ONE_DAY).saturating_sub(ONE_SECOND)).into()
+        ),
+        Format::YyyyDdHhMmSs
+    );
+    // YyyyDddHhMmSs
+    assert_eq!(
+        format_by_duration::<DurationEx>(&(1000 * ONE_YEAR + 100 * ONE_DAY).into()),
+        Format::YyyyDddHhMmSs
+    );
 }
 
 #[test]
