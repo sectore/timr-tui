@@ -276,4 +276,48 @@ mod tests {
             "local"
         );
     }
+
+    #[test]
+    fn test_content_next() {
+        let start = Content::Countdown;
+        let mut current = start;
+
+        // Cycle through: Countdown -> Timer -> Pomodoro -> Event -> LocalTime -> Countdown
+        current = current.next();
+        assert_eq!(current, Content::Timer);
+
+        current = current.next();
+        assert_eq!(current, Content::Pomodoro);
+
+        current = current.next();
+        assert_eq!(current, Content::Event);
+
+        current = current.next();
+        assert_eq!(current, Content::LocalTime);
+
+        current = current.next();
+        assert_eq!(current, start, "Should cycle back to start");
+    }
+
+    #[test]
+    fn test_content_prev() {
+        let start = Content::Countdown;
+        let mut current = start;
+
+        // Cycle backwards: Countdown -> LocalTime -> Event -> Pomodoro -> Timer -> Countdown
+        current = current.prev();
+        assert_eq!(current, Content::LocalTime);
+
+        current = current.prev();
+        assert_eq!(current, Content::Event);
+
+        current = current.prev();
+        assert_eq!(current, Content::Pomodoro);
+
+        current = current.prev();
+        assert_eq!(current, Content::Timer);
+
+        current = current.prev();
+        assert_eq!(current, start, "Should cycle back to start");
+    }
 }
