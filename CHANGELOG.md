@@ -2,8 +2,14 @@
 
 ## [unreleased]
 
+### Features
+
+- (event) New `event` screen to count custom date times in the future or past. [#117](https://github.com/sectore/timr-tui/pull/117), [#120](https://github.com/sectore/timr-tui/pull/120), [#122](https://github.com/sectore/timr-tui/pull/122), [#123](https://github.com/sectore/timr-tui/pull/123), [#124](https://github.com/sectore/timr-tui/pull/124), [#125](https://github.com/sectore/timr-tui/pull/125)
+- (screens) switch by `←` or `→` keys [#127](https://github.com/sectore/timr-tui/pull/127)
+
 ### Breaking change
 
+- (pomodoro)! new keybindings `ctrl+←` or `ctrl+→` to switch `work`/`pause` [#127](https://github.com/sectore/timr-tui/pull/127)
 - (keybindings)! change keys for `screens` [#126](https://github.com/sectore/timr-tui/pull/126)
 - (cli)! Remove `--countdown-target` argument [#121](https://github.com/sectore/timr-tui/pull/121)
 
