@@ -1,6 +1,6 @@
 use crate::{
     common::{AppTimeFormat, Content, Style, Toggle},
-    event::{Event, get_default_event},
+    event::Event,
     widgets::pomodoro::Mode as PomodoroMode,
 };
 use color_eyre::eyre::Result;
@@ -79,7 +79,7 @@ impl Default for AppStorage {
             // timer
             current_value_timer: Duration::ZERO,
             // event
-            event: get_default_event(),
+            event: Event::default(),
             // footer
             footer_app_time: Toggle::Off,
         }
