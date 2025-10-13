@@ -4,6 +4,7 @@
 
 ### Breaking change
 
+- (keybindings)! change keys for `screens` [#126](https://github.com/sectore/timr-tui/pull/126)
 - (cli)! Remove `--countdown-target` argument [#121](https://github.com/sectore/timr-tui/pull/121)
 
 

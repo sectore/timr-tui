@@ -9,13 +9,13 @@ pub struct Event {
 pub fn get_default_event() -> Event {
     Event {
         date_time: time::PrimitiveDateTime::parse(
-            // Mario Bros "...entered mass production in Japan on June 21" 1983
+            // Mario Bros. "...entered mass production in Japan on June 21" 1983
             // https://en.wikipedia.org/wiki/Mario_Bros.#Release
             "1983-06-21 00:00",
             format_description!("[year]-[month]-[day] [hour]:[minute]"),
         )
         .unwrap(),
-        title: Some("Release date of Mario Bros in Japan".into()),
+        title: Some("Release date of Mario Bros. in Japan".into()),
     }
 }
 
