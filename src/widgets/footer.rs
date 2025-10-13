@@ -85,7 +85,7 @@ impl StatefulWidget for Footer {
             .render(border_area, buf);
         // show menu
         if state.show_menu {
-            let content_labels: Vec<Span> = content_labels
+            let mut content_labels: Vec<Span> = content_labels
                 .iter()
                 .enumerate()
                 .map(|(index, (content, label))| {
@@ -102,6 +102,13 @@ impl StatefulWidget for Footer {
                     Span::styled(label, style)
                 })
                 .collect();
+
+            content_labels.extend_from_slice(&[
+                Span::from(SPACE),
+                Span::from("[→]next"),
+                Span::from(SPACE),
+                Span::from("[←]prev."),
+            ]);
 
             const SPACE: &str = "  "; // 2 empty spaces
             let widths = [Constraint::Length(12), Constraint::Percentage(100)];
@@ -136,7 +143,10 @@ impl StatefulWidget for Footer {
                 ]),
             ];
 
-            if self.selected_content != Content::LocalTime {
+            // Controls (except for `localtime` and `event`)
+            if self.selected_content != Content::LocalTime
+                && self.selected_content != Content::Event
+            {
                 table_rows.extend_from_slice(&[
                     // controls - 1. row
                     Row::new(vec![
@@ -202,7 +212,7 @@ impl StatefulWidget for Footer {
                                     let mut spans = vec![];
                                     if self.selected_content == Content::Pomodoro {
                                         spans.extend_from_slice(&[Span::from(
-                                            "[← →]switch work/pause",
+                                            "[^←] or [^→] switch work/pause",
                                         )]);
                                     }
                                     spans
