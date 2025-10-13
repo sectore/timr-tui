@@ -2,6 +2,7 @@ use crate::{
     args::Args,
     common::{AppEditMode, AppTime, AppTimeFormat, ClockTypeId, Content, Style, Toggle},
     constants::TICK_VALUE_MS,
+    event::{Event, get_default_event},
     events::{self, TuiEventHandler},
     storage::AppStorage,
     terminal::Terminal,
@@ -29,7 +30,6 @@ use ratatui::{
 };
 use std::path::PathBuf;
 use std::time::Duration;
-use time::macros::format_description;
 use tracing::{debug, error};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -75,6 +75,7 @@ pub struct AppArgs {
     pub current_value_countdown: Duration,
     pub elapsed_value_countdown: Duration,
     pub current_value_timer: Duration,
+    pub event: Event,
     pub app_tx: events::AppEventTx,
     pub sound_path: Option<PathBuf>,
     pub footer_toggle_app_time: Toggle,
@@ -107,6 +108,8 @@ impl From<FromAppArgs> for App {
                         Content::Pomodoro
                     } else if args.countdown.is_some() {
                         Content::Countdown
+                    } else if args.event.is_some() {
+                        Content::Event
                     }
                     // in other case just use latest stored state
                     else {
@@ -132,6 +135,7 @@ impl From<FromAppArgs> for App {
                 None => stg.elapsed_value_countdown,
             },
             current_value_timer: stg.current_value_timer,
+            event: args.event.unwrap_or_else(get_default_event),
             app_tx,
             #[cfg(feature = "sound")]
             sound_path: args.sound,
@@ -160,6 +164,7 @@ impl App {
             with_decis,
             pomodoro_mode,
             pomodoro_round,
+            event,
             notification,
             blink,
             sound_path,
@@ -212,12 +217,7 @@ impl App {
             }),
             event: EventState::new(EventStateArgs {
                 app_time,
-                event_time: time::PrimitiveDateTime::parse(
-                    "2025-10-10 10:30:30",
-                    format_description!("[year]-[month]-[day] [hour]:[minute]:[second]"),
-                )
-                .unwrap(),
-                event_title: "My event".to_owned(),
+                event,
                 with_decis,
                 app_tx: app_tx.clone(),
             }),

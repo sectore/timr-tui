@@ -9,6 +9,7 @@ use time::{OffsetDateTime, macros::format_description};
 use crate::{
     common::{AppTime, ClockTypeId, Style},
     duration::CalendarDuration,
+    event::Event,
     events::{AppEvent, AppEventTx, TuiEvent, TuiEventHandler},
     utils::center,
     widgets::{clock, clock_elements::DIGIT_HEIGHT},
@@ -17,7 +18,7 @@ use std::{cmp::max, time::Duration};
 
 /// State for `EventWidget`
 pub struct EventState {
-    title: String,
+    title: Option<String>,
     event_time: OffsetDateTime,
     app_time: OffsetDateTime,
     start_time: OffsetDateTime,
@@ -30,8 +31,7 @@ pub struct EventState {
 
 pub struct EventStateArgs {
     pub app_time: AppTime,
-    pub event_time: time::PrimitiveDateTime,
-    pub event_title: String,
+    pub event: Event,
     pub with_decis: bool,
     pub app_tx: AppEventTx,
 }
@@ -40,18 +40,17 @@ impl EventState {
     pub fn new(args: EventStateArgs) -> Self {
         let EventStateArgs {
             app_time,
-            event_time,
-            event_title,
+            event,
             with_decis,
             app_tx,
         } = args;
 
         let app_datetime = OffsetDateTime::from(app_time);
         // assume event has as same `offset` as `app_time`
-        let event_offset = event_time.assume_offset(app_datetime.offset());
+        let event_offset = event.date_time.assume_offset(app_datetime.offset());
 
         Self {
-            title: event_title,
+            title: event.title,
             event_time: event_offset,
             app_time: app_datetime,
             start_time: app_datetime,
@@ -92,9 +91,10 @@ impl EventState {
                 // reset `done_count`
                 self.done_count = Some(clock::MAX_DONE_COUNT);
                 // send notification
-                _ = self
-                    .app_tx
-                    .send(AppEvent::ClockDone(ClockTypeId::Event, self.title.clone()));
+                _ = self.app_tx.send(AppEvent::ClockDone(
+                    ClockTypeId::Event,
+                    self.title.clone().unwrap_or("".into()),
+                ));
             }
             // count (possible) `done`
             self.done_count = clock::count_clock_done(self.done_count);
@@ -140,7 +140,7 @@ impl StatefulWidget for EventWidget {
         let clock_widths = clock::clock_horizontal_lengths(&clock_format, with_decis);
         let clock_width = clock_widths.iter().sum();
 
-        let label_event = Line::raw(state.title.to_uppercase());
+        let label_event = Line::raw(state.title.clone().unwrap_or("".into()).to_uppercase());
         let time_str = state
             .event_time
             .format(&format_description!(

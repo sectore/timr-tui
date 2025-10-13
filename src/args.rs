@@ -1,6 +1,7 @@
 use crate::{
     common::{Content, Style, Toggle},
     duration,
+    event::{Event, parse_event},
 };
 #[cfg(feature = "sound")]
 use crate::{sound, sound::SoundError};
@@ -27,6 +28,14 @@ pub struct Args {
         help = "Pause time to count down from. Formats: 'ss', 'mm:ss', 'hh:mm:ss'"
     )]
     pub pause: Option<Duration>,
+
+    #[arg(
+        long,
+        short = 'e',
+        value_parser = parse_event,
+        help = "Event date time and title (optional). Format: 'YYYY-MM-DD HH:MM:SS' or 'time=YYYY-MM-DD HH:MM:SS[,title=...]'. Examples: '2025-10-10 14:30:00' or 'time=2025-10-10 14:30:00,title=My Event'."
+    )]
+    pub event: Option<Event>,
 
     #[arg(long, short = 'd', help = "Show deciseconds.")]
     pub decis: bool,
