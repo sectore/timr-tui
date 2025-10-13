@@ -33,7 +33,7 @@ pub struct Args {
         long,
         short = 'e',
         value_parser = parse_event,
-        help = "Event date time and title (optional). Format: 'YYYY-MM-DD HH:MM:SS' or 'time=YYYY-MM-DD HH:MM:SS[,title=...]'. Examples: '2025-10-10 14:30:00', 'time=2025-10-10 14:30:00,title=My Event'."
+        help = "Event date time and title (optional). Format: 'YYYY-MM-DD HH:MM:SS' or 'time=YYYY-MM-DD HH:MM:SS[,title=...]'. Examples: '2025-10-10 14:30:00' or 'time=2025-10-10 14:30:00,title=My Event'."
     )]
     pub event: Option<Event>,
 
