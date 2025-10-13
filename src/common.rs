@@ -21,6 +21,28 @@ pub enum Content {
     LocalTime,
 }
 
+impl Content {
+    pub fn next(&self) -> Self {
+        match self {
+            Content::Countdown => Content::Timer,
+            Content::Timer => Content::Pomodoro,
+            Content::Pomodoro => Content::Event,
+            Content::Event => Content::LocalTime,
+            Content::LocalTime => Content::Countdown,
+        }
+    }
+
+    pub fn prev(&self) -> Self {
+        match self {
+            Content::Countdown => Content::LocalTime,
+            Content::Timer => Content::Countdown,
+            Content::Pomodoro => Content::Timer,
+            Content::Event => Content::Pomodoro,
+            Content::LocalTime => Content::Event,
+        }
+    }
+}
+
 #[derive(Clone, Debug)]
 pub enum ClockTypeId {
     Countdown,

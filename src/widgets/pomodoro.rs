@@ -198,12 +198,12 @@ impl TuiEventHandler for PomodoroState {
                     self.get_clock_mut().toggle_edit();
                 }
                 // toggle WORK/PAUSE
-                KeyCode::Left => {
+                KeyCode::Left if key.modifiers.contains(KeyModifiers::CONTROL) => {
                     // `next` is acting as same as a "prev" function we don't have
                     self.next();
                 }
                 // toggle WORK/PAUSE
-                KeyCode::Right => {
+                KeyCode::Right if key.modifiers.contains(KeyModifiers::CONTROL) => {
                     self.next();
                 }
                 // reset rounds AND clocks

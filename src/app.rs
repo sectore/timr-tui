@@ -242,11 +242,19 @@ impl App {
             debug!("Received key {:?}", key.code);
             match key.code {
                 KeyCode::Char('q') => app.mode = Mode::Quit,
-                KeyCode::Char('1') | KeyCode::Char('c') /* TODO: deprecated, remove it in next verson */ => app.content = Content::Countdown,
-                KeyCode::Char('2') | KeyCode::Char('t') /* TODO: deprecated, remove it in next verson */ => app.content = Content::Timer,
-                KeyCode::Char('3') | KeyCode::Char('p') /* TODO: deprecated, remove it in next verson */ => app.content = Content::Pomodoro,
+                KeyCode::Char('1') | KeyCode::Char('c') /* TODO: deprecated, remove it in next version */ => app.content = Content::Countdown,
+                KeyCode::Char('2') | KeyCode::Char('t') /* TODO: deprecated, remove it in next version */ => app.content = Content::Timer,
+                KeyCode::Char('3') | KeyCode::Char('p') /* TODO: deprecated, remove it in next version */ => app.content = Content::Pomodoro,
                 KeyCode::Char('4') => app.content = Content::Event,
-                KeyCode::Char('0') | KeyCode::Char('l') /* TODO: deprecated, remove it in next verson */ => app.content = Content::LocalTime,
+                // toogle app time format
+                KeyCode::Char('0') | KeyCode::Char('l') /* TODO: deprecated, remove it in next version */ => app.content = Content::LocalTime,
+                // switch `screens`
+                KeyCode::Right => {
+                    app.content = app.content.next();
+                }
+                KeyCode::Left => {
+                    app.content = app.content.prev();
+                }
                 // toogle app time format
                 KeyCode::Char(':') => {
                     if app.content == Content::LocalTime {

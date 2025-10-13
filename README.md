@@ -126,6 +126,8 @@ Extra option (if `--features sound` is enabled by local build only):
 | <kbd>3</kbd> | Timer |
 | <kbd>4</kbd> | Event |
 | <kbd>0</kbd> | Local Time |
+| <kbd>→</kbd> | next screen |
+| <kbd>←</kbd> | previous screen |
 
 ## Controls
 
@@ -152,7 +154,7 @@ Extra option (if `--features sound` is enabled by local build only):
 
 | Key | Description |
 | --- | --- |
-| <kbd>←</kbd> or <kbd>→</kbd> | switch work/pause |
+| <kbd>ctrl+←</kbd> or <kbd>ctrl+→</kbd> | switch work/pause |
 | <kbd>ctrl+r</kbd> | reset round |
 | <kbd>ctrl+s</kbd> | save initial value |
 
