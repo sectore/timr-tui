@@ -209,6 +209,7 @@ pub enum AppEditMode {
     None,
     Clock,
     Time,
+    Event,
 }
 
 #[derive(Debug, Clone, Copy, ValueEnum, PartialEq, Eq, Default, Serialize, Deserialize)]

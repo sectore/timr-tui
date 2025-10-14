@@ -1,13 +1,17 @@
+use crossterm::event::{KeyCode, KeyModifiers};
 use ratatui::{
+    Frame,
     buffer::Buffer,
     layout::{Constraint, Layout, Rect},
+    style::{Color, Style, Stylize},
     text::Line,
-    widgets::{StatefulWidget, Widget},
+    widgets::{Paragraph, StatefulWidget, Widget},
 };
 use time::{OffsetDateTime, macros::format_description};
+use tui_input::Input;
 
 use crate::{
-    common::{AppTime, ClockTypeId, Style},
+    common::{AppTime, ClockTypeId, Style as DigitStyle},
     duration::CalendarDuration,
     event::Event,
     events::{AppEvent, AppEventTx, TuiEvent, TuiEventHandler},
@@ -15,6 +19,34 @@ use crate::{
     widgets::{clock, clock_elements::DIGIT_HEIGHT},
 };
 use std::{cmp::max, time::Duration};
+
+#[derive(PartialEq)]
+enum Editable {
+    DateTime,
+    Title,
+}
+
+impl Editable {
+    pub fn next(&self) -> Self {
+        match self {
+            Editable::DateTime => Editable::Title,
+            Editable::Title => Editable::DateTime,
+        }
+    }
+
+    pub fn prev(&self) -> Self {
+        match self {
+            Editable::DateTime => Editable::Title,
+            Editable::Title => Editable::DateTime,
+        }
+    }
+}
+
+#[derive(PartialEq)]
+enum EditMode {
+    None,
+    Editing,
+}
 
 /// State for `EventWidget`
 pub struct EventState {
@@ -27,6 +59,11 @@ pub struct EventState {
     /// Default value: `None`
     done_count: Option<u64>,
     app_tx: AppEventTx,
+    // inputs
+    input_datetime: Input,
+    input_title: Input,
+    edit_mode: EditMode,
+    editable: Editable,
 }
 
 pub struct EventStateArgs {
@@ -57,6 +94,10 @@ impl EventState {
             with_decis,
             done_count: None,
             app_tx,
+            input_datetime: Input::default(),
+            input_title: Input::default(),
+            edit_mode: EditMode::None,
+            editable: Editable::DateTime,
         }
     }
 
@@ -111,7 +152,32 @@ impl EventState {
 
 impl TuiEventHandler for EventState {
     fn update(&mut self, event: TuiEvent) -> Option<TuiEvent> {
-        Some(event)
+        let edit_mode = self.edit_mode != EditMode::None;
+        match event {
+            // EDIT mode
+            TuiEvent::Key(key) if edit_mode => match key.code {
+                // Skip changes
+                KeyCode::Esc => {
+                    self.edit_mode = EditMode::None;
+                }
+                KeyCode::Tab if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                    self.editable = self.editable.prev()
+                }
+                KeyCode::Tab => self.editable = self.editable.next(),
+                _ => return Some(event),
+            },
+            // default mode
+            TuiEvent::Key(key) => match key.code {
+                // Enter edit mode
+                KeyCode::Char('e') => {
+                    self.edit_mode = EditMode::Editing;
+                }
+                _ => return Some(event),
+            },
+            _ => return Some(event),
+        }
+
+        None
     }
 }
 
@@ -134,8 +200,31 @@ fn get_percentage(start: OffsetDateTime, end: OffsetDateTime, current: OffsetDat
 
 #[derive(Debug)]
 pub struct EventWidget {
-    pub style: Style,
+    pub style: DigitStyle,
     pub blink: bool,
+}
+
+impl EventWidget {
+    fn render_input(&self, input: Input, edit_mode: EditMode, frame: &mut Frame, area: Rect) {
+        // keep 2 for borders and 1 for cursor
+        let width = area.width.max(3) - 3;
+        let scroll = input.visual_scroll(width as usize);
+        let style = match edit_mode {
+            EditMode::None => Style::default(),
+            EditMode::Editing => Color::Yellow.into(),
+        };
+        let input_widget = Paragraph::new(input.value())
+            .style(style)
+            .scroll((0, scroll as u16));
+        frame.render_widget(input_widget, area);
+
+        if edit_mode == EditMode::Editing {
+            // Ratatui hides the cursor unless it's explicitly set. Position the  cursor past the
+            // end of the input text and one line down from the border to the input line
+            let x = input.visual_cursor().max(scroll) - scroll;
+            frame.set_cursor_position((area.x + x as u16, area.y))
+        }
+    }
 }
 
 impl StatefulWidget for EventWidget {
@@ -204,6 +293,7 @@ impl StatefulWidget for EventWidget {
         };
 
         clock::render_clock(v1, buf, render_clock_state);
+        self.render_input(state.input_datetime, state.edit_mode, frame, v2);
         label_time.centered().render(v2, buf);
         label_event.centered().render(v3, buf);
     }
