@@ -73,6 +73,13 @@ impl EventState {
         self.with_decis = with_decis;
     }
 
+    pub fn get_event(&self) -> Event {
+        Event {
+            title: self.title.clone(),
+            date_time: time::PrimitiveDateTime::new(self.event_time.date(), self.event_time.time()),
+        }
+    }
+
     pub fn get_percentage_done(&self) -> u16 {
         get_percentage(self.start_time, self.event_time, self.app_time)
     }

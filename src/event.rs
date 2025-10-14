@@ -1,21 +1,20 @@
-use time::macros::format_description;
+use serde::{Deserialize, Serialize};
+use time::macros::{datetime, format_description};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Event {
     pub date_time: time::PrimitiveDateTime,
     pub title: Option<String>,
 }
 
-pub fn get_default_event() -> Event {
-    Event {
-        date_time: time::PrimitiveDateTime::parse(
+impl Default for Event {
+    fn default() -> Self {
+        Self {
             // Mario Bros. "...entered mass production in Japan on June 21" 1983
             // https://en.wikipedia.org/wiki/Mario_Bros.#Release
-            "1983-06-21 00:00",
-            format_description!("[year]-[month]-[day] [hour]:[minute]"),
-        )
-        .unwrap(),
-        title: Some("Release date of Mario Bros. in Japan".into()),
+            date_time: datetime!(1983-06-21 00:00),
+            title: Some("Release date of Mario Bros. in Japan".into()),
+        }
     }
 }
 

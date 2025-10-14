@@ -2,7 +2,7 @@ use crate::{
     args::Args,
     common::{AppEditMode, AppTime, AppTimeFormat, ClockTypeId, Content, Style, Toggle},
     constants::TICK_VALUE_MS,
-    event::{Event, get_default_event},
+    event::Event,
     events::{self, TuiEventHandler},
     storage::AppStorage,
     terminal::Terminal,
@@ -135,7 +135,7 @@ impl From<FromAppArgs> for App {
                 None => stg.elapsed_value_countdown,
             },
             current_value_timer: stg.current_value_timer,
-            event: args.event.unwrap_or_else(get_default_event),
+            event: args.event.unwrap_or(stg.event),
             app_tx,
             #[cfg(feature = "sound")]
             sound_path: args.sound,
@@ -470,6 +470,7 @@ impl App {
             ),
             elapsed_value_countdown: Duration::from(*self.countdown.get_elapsed_value()),
             current_value_timer: Duration::from(*self.timer.get_clock().get_current_value()),
+            event: self.event.get_event(),
             footer_app_time: self.footer.app_time_format().is_some().into(),
         }
     }
