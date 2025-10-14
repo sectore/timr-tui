@@ -18,6 +18,8 @@ use crate::{
     },
 };
 
+use crossterm::event::Event as CrosstermEvent;
+
 #[cfg(feature = "sound")]
 use crate::sound::Sound;
 
@@ -25,7 +27,7 @@ use color_eyre::Result;
 use ratatui::{
     buffer::Buffer,
     crossterm::event::{KeyCode, KeyEvent},
-    layout::{Constraint, Layout, Rect},
+    layout::{Constraint, Layout, Position, Rect},
     widgets::{StatefulWidget, Widget},
 };
 use std::path::PathBuf;
@@ -55,6 +57,7 @@ pub struct App {
     style: Style,
     with_decis: bool,
     footer: FooterState,
+    cursor_position: Option<Position>,
 }
 
 pub struct AppArgs {
@@ -229,6 +232,7 @@ impl App {
                     None
                 },
             ),
+            cursor_position: None,
         }
     }
 
@@ -323,10 +327,13 @@ impl App {
                 Content::LocalTime => app.local_time.update(event.clone()),
             } {
                 match unhandled {
-                    events::TuiEvent::Render | events::TuiEvent::Resize => {
+                    events::TuiEvent::Render
+                    | events::TuiEvent::Crossterm(crossterm::event::Event::Resize(_, _)) => {
                         app.draw(terminal)?;
                     }
-                    events::TuiEvent::Key(key) => handle_key_event(app, key),
+                    events::TuiEvent::Crossterm(CrosstermEvent::Key(key)) => {
+                        handle_key_event(app, key)
+                    }
                     _ => {}
                 }
             }
@@ -365,6 +372,9 @@ impl App {
                             },
                         );
                     }
+                }
+                events::AppEvent::SetCursor(position) => {
+                    app.cursor_position = position;
                 }
             }
             Ok(())
@@ -441,6 +451,11 @@ impl App {
     fn draw(&mut self, terminal: &mut Terminal) -> Result<()> {
         terminal.draw(|frame| {
             frame.render_stateful_widget(AppWidget, frame.area(), self);
+
+            // Set cursor position if requested
+            if let Some(position) = self.cursor_position {
+                frame.set_cursor_position(position);
+            }
         })?;
         Ok(())
     }

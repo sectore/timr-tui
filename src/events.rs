@@ -1,5 +1,6 @@
-use crossterm::event::{Event as CrosstermEvent, EventStream, KeyEvent, KeyEventKind};
+use crossterm::event::{Event as CrosstermEvent, EventStream};
 use futures::{Stream, StreamExt};
+use ratatui::layout::Position;
 use std::{pin::Pin, time::Duration};
 use tokio::sync::mpsc;
 use tokio::time::interval;
@@ -20,13 +21,13 @@ pub enum TuiEvent {
     Error,
     Tick,
     Render,
-    Key(KeyEvent),
-    Resize,
+    Crossterm(CrosstermEvent),
 }
 
 #[derive(Clone, Debug)]
 pub enum AppEvent {
     ClockDone(ClockTypeId, String),
+    SetCursor(Option<Position>),
 }
 
 pub type AppEventTx = mpsc::UnboundedSender<AppEvent>;
@@ -89,14 +90,10 @@ fn crossterm_stream() -> Pin<Box<dyn Stream<Item = TuiEvent>>> {
         EventStream::new()
             .fuse()
             // we are not interested in all events
-            .filter_map(|event| async move {
-                match event {
-                    Ok(CrosstermEvent::Key(key)) if key.kind == KeyEventKind::Press => {
-                        Some(TuiEvent::Key(key))
-                    }
-                    Ok(CrosstermEvent::Resize(_, _)) => Some(TuiEvent::Resize),
+            .filter_map(|result| async move {
+                match result {
+                    Ok(event) => Some(TuiEvent::Crossterm(event)),
                     Err(_) => Some(TuiEvent::Error),
-                    _ => None,
                 }
             }),
     )

@@ -5,7 +5,7 @@ use crate::{
     utils::center,
     widgets::clock::{ClockState, ClockStateArgs, ClockWidget, Countdown},
 };
-use crossterm::event::{KeyCode, KeyModifiers};
+use crossterm::event::{Event as CrosstermEvent, KeyCode, KeyModifiers};
 use ratatui::{
     buffer::Buffer,
     layout::{Constraint, Layout, Rect},
@@ -149,7 +149,7 @@ impl TuiEventHandler for PomodoroState {
                 self.get_clock_mut().update_done_count();
             }
             // EDIT mode
-            TuiEvent::Key(key) if edit_mode => match key.code {
+            TuiEvent::Crossterm(CrosstermEvent::Key(key)) if edit_mode => match key.code {
                 // Skip changes
                 KeyCode::Esc => {
                     let clock = self.get_clock_mut();
@@ -188,7 +188,7 @@ impl TuiEventHandler for PomodoroState {
                 _ => return Some(event),
             },
             // default mode
-            TuiEvent::Key(key) => match key.code {
+            TuiEvent::Crossterm(CrosstermEvent::Key(key)) => match key.code {
                 // Toggle run/pause
                 KeyCode::Char('s') => {
                     self.get_clock_mut().toggle_pause();

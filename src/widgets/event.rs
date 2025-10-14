@@ -1,14 +1,15 @@
-use crossterm::event::{KeyCode, KeyModifiers};
+use color_eyre::{Report, eyre::eyre};
+use crossterm::event::{Event as CrosstermEvent, KeyCode, KeyModifiers};
 use ratatui::{
-    Frame,
     buffer::Buffer,
-    layout::{Constraint, Layout, Rect},
-    style::{Color, Style, Stylize},
+    layout::{Constraint, Layout, Position, Rect},
+    style::{Color, Style},
     text::Line,
     widgets::{Paragraph, StatefulWidget, Widget},
 };
 use time::{OffsetDateTime, macros::format_description};
 use tui_input::Input;
+use tui_input::backend::crossterm::EventHandler;
 
 use crate::{
     common::{AppTime, ClockTypeId, Style as DigitStyle},
@@ -42,7 +43,7 @@ impl Editable {
     }
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone, Copy)]
 enum EditMode {
     None,
     Editing,
@@ -61,7 +62,9 @@ pub struct EventState {
     app_tx: AppEventTx,
     // inputs
     input_datetime: Input,
+    input_datetime_error: Option<Report>,
     input_title: Input,
+    input_title_error: Option<Report>,
     edit_mode: EditMode,
     editable: Editable,
 }
@@ -85,17 +88,21 @@ impl EventState {
         let app_datetime = OffsetDateTime::from(app_time);
         // assume event has as same `offset` as `app_time`
         let event_offset = event.date_time.assume_offset(app_datetime.offset());
+        let input_datetime_value = format_offsetdatetime(&event_offset);
+        let input_title_value = event.title.clone().unwrap_or("".into());
 
         Self {
-            title: event.title,
+            title: event.title.clone(),
             event_time: event_offset,
             app_time: app_datetime,
             start_time: app_datetime,
             with_decis,
             done_count: None,
             app_tx,
-            input_datetime: Input::default(),
-            input_title: Input::default(),
+            input_datetime: Input::default().with_value(input_datetime_value),
+            input_datetime_error: None,
+            input_title: Input::default().with_value(input_title_value),
+            input_title_error: None,
             edit_mode: EditMode::None,
             editable: Editable::DateTime,
         }
@@ -150,24 +157,83 @@ impl EventState {
     }
 }
 
+fn validate_datetime(value: &str) -> Result<time::PrimitiveDateTime, Report> {
+    time::PrimitiveDateTime::parse(
+        value,
+        format_description!("[year]-[month]-[day] [hour]:[minute]:[second]"),
+    )
+    .map_err(|_| eyre!("Invalid format. Expected format: 'YYYY-MM-DD HH:MM:SS'"))
+}
+
+fn validate_title(value: &str) -> Result<&str, Report> {
+    if value.len() > 10 {
+        return Err(eyre!("Title should be less than 20 characters"));
+    }
+    Ok(value)
+}
+
 impl TuiEventHandler for EventState {
     fn update(&mut self, event: TuiEvent) -> Option<TuiEvent> {
         let edit_mode = self.edit_mode != EditMode::None;
         match event {
             // EDIT mode
-            TuiEvent::Key(key) if edit_mode => match key.code {
-                // Skip changes
-                KeyCode::Esc => {
-                    self.edit_mode = EditMode::None;
+            TuiEvent::Crossterm(crossterm_event @ CrosstermEvent::Key(key)) if edit_mode => {
+                match key.code {
+                    // Skip changes
+                    KeyCode::Esc => {
+                        // reset inputs with default values
+                        self.input_datetime =
+                            Input::default().with_value(format_offsetdatetime(&self.event_time));
+
+                        self.edit_mode = EditMode::None;
+                    }
+                    KeyCode::Tab if key.modifiers.contains(KeyModifiers::SHIFT) => {
+                        self.editable = self.editable.prev()
+                    }
+                    KeyCode::Tab => self.editable = self.editable.next(),
+                    KeyCode::Enter => match self.editable {
+                        Editable::DateTime => {
+                            // validate
+                            if let Ok(date_time) = validate_datetime(self.input_datetime.value()) {
+                                // apply offset
+                                self.event_time = date_time.assume_offset(self.app_time.offset());
+                            } else {
+                                // reset with default value
+                                self.input_datetime = Input::default()
+                                    .with_value(format_offsetdatetime(&self.event_time));
+                            }
+                            self.edit_mode = EditMode::None;
+                        }
+                        Editable::Title => {
+                            self.title = validate_title(self.input_title.value())
+                                .ok()
+                                .filter(|v| !v.is_empty())
+                                .map(str::to_string);
+                            self.edit_mode = EditMode::None;
+                        }
+                    },
+                    _ => match self.editable {
+                        Editable::DateTime => {
+                            self.input_datetime.handle_event(&crossterm_event);
+                            if let Err(e) = validate_datetime(self.input_datetime.value()) {
+                                self.input_datetime_error = Some(e);
+                            } else {
+                                self.input_datetime_error = None;
+                            }
+                        }
+                        Editable::Title => {
+                            self.input_title.handle_event(&crossterm_event);
+                            if let Err(e) = validate_title(self.input_title.value()) {
+                                self.input_title_error = Some(e);
+                            } else {
+                                self.input_title_error = None;
+                            }
+                        }
+                    },
                 }
-                KeyCode::Tab if key.modifiers.contains(KeyModifiers::CONTROL) => {
-                    self.editable = self.editable.prev()
-                }
-                KeyCode::Tab => self.editable = self.editable.next(),
-                _ => return Some(event),
-            },
+            }
             // default mode
-            TuiEvent::Key(key) => match key.code {
+            TuiEvent::Crossterm(CrosstermEvent::Key(key)) => match key.code {
                 // Enter edit mode
                 KeyCode::Char('e') => {
                     self.edit_mode = EditMode::Editing;
@@ -198,33 +264,17 @@ fn get_percentage(start: OffsetDateTime, end: OffsetDateTime, current: OffsetDat
     percentage as u16
 }
 
+fn format_offsetdatetime(dt: &OffsetDateTime) -> String {
+    dt.format(&format_description!(
+        "[year]-[month]-[day] [hour]:[minute]:[second]"
+    ))
+    .unwrap_or_else(|e| format!("time format error: {}", e))
+}
+
 #[derive(Debug)]
 pub struct EventWidget {
     pub style: DigitStyle,
     pub blink: bool,
-}
-
-impl EventWidget {
-    fn render_input(&self, input: Input, edit_mode: EditMode, frame: &mut Frame, area: Rect) {
-        // keep 2 for borders and 1 for cursor
-        let width = area.width.max(3) - 3;
-        let scroll = input.visual_scroll(width as usize);
-        let style = match edit_mode {
-            EditMode::None => Style::default(),
-            EditMode::Editing => Color::Yellow.into(),
-        };
-        let input_widget = Paragraph::new(input.value())
-            .style(style)
-            .scroll((0, scroll as u16));
-        frame.render_widget(input_widget, area);
-
-        if edit_mode == EditMode::Editing {
-            // Ratatui hides the cursor unless it's explicitly set. Position the  cursor past the
-            // end of the input text and one line down from the border to the input line
-            let x = input.visual_cursor().max(scroll) - scroll;
-            frame.set_cursor_position((area.x + x as u16, area.y))
-        }
-    }
 }
 
 impl StatefulWidget for EventWidget {
@@ -237,12 +287,7 @@ impl StatefulWidget for EventWidget {
         let clock_width = clock_widths.iter().sum();
 
         let label_event = Line::raw(state.title.clone().unwrap_or("".into()).to_uppercase());
-        let time_str = state
-            .event_time
-            .format(&format_description!(
-                "[year]-[month]-[day] [hour]:[minute]:[second]"
-            ))
-            .unwrap_or_else(|e| format!("time format error: {}", e));
+        let time_str = format_offsetdatetime(&state.event_time);
         let time_prefix = if clock_duration.is_since() {
             let duration: Duration = clock_duration.clone().into();
             // Show `done` for a short of time (1 sec)
@@ -293,9 +338,62 @@ impl StatefulWidget for EventWidget {
         };
 
         clock::render_clock(v1, buf, render_clock_state);
-        self.render_input(state.input_datetime, state.edit_mode, frame, v2);
-        label_time.centered().render(v2, buf);
-        label_event.centered().render(v3, buf);
+
+        // Helper to calculate centered area and cursor x position
+        let centered_input = |input: &Input, area: Rect| -> (Rect, u16) {
+            let text_width = input.value().len() as u16;
+            let offset_x = (area.width.saturating_sub(text_width)) / 2;
+            let centered_area = Rect {
+                x: area.x + offset_x,
+                y: area.y,
+                width: text_width.min(area.width),
+                height: area.height,
+            };
+            let cursor_x = area.x + offset_x + input.visual_cursor() as u16;
+            (centered_area, cursor_x)
+        };
+
+        fn input_style(edit_mode: EditMode, editable: bool, error: bool) -> Style {
+            match edit_mode {
+                EditMode::Editing if editable && error => Color::Red.into(),
+                _ => Style::default(),
+            }
+        }
+
+        // Calculate centered areas and cursor positions
+        let (datetime_area, datetime_cursor_x) = centered_input(&state.input_datetime, v2);
+        let (title_area, title_cursor_x) = centered_input(&state.input_title, v3);
+
+        // Calculate cursor position if in edit mode
+        let cursor_position = if state.edit_mode == EditMode::Editing {
+            let (cursor_x, cursor_y) = match state.editable {
+                Editable::DateTime => (datetime_cursor_x, v2.y),
+                Editable::Title => (title_cursor_x, v3.y),
+            };
+            Some(Position::new(cursor_x, cursor_y))
+        } else {
+            None
+        };
+
+        // Send cursor position via event
+        let _ = state.app_tx.send(AppEvent::SetCursor(cursor_position));
+
+        // Render datetime input
+        let input_datetime_widget =
+            Paragraph::new(state.input_datetime.value()).style(input_style(
+                state.edit_mode,
+                state.editable == Editable::DateTime,
+                state.input_datetime_error.is_some(),
+            ));
+        input_datetime_widget.render(datetime_area, buf);
+
+        // Render title input
+        let title_input_widget = Paragraph::new(state.input_title.value()).style(input_style(
+            state.edit_mode,
+            state.editable == Editable::Title,
+            state.input_title_error.is_some(),
+        ));
+        title_input_widget.render(title_area, buf);
     }
 }
 
