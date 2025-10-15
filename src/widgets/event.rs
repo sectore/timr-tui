@@ -156,6 +156,13 @@ impl EventState {
         }
     }
 
+    fn reset_cursor(&mut self) {
+        _ = self.app_tx.send(AppEvent::SetCursor(None));
+    }
+    fn reset_edit_mode(&mut self) {
+        self.edit_mode = EditMode::None;
+    }
+
     fn reset_input_datetime(&mut self) {
         self.input_datetime = Input::default().with_value(format_offsetdatetime(&self.event_time));
         self.input_datetime_error = None;
@@ -197,7 +204,8 @@ impl TuiEventHandler for EventState {
                         self.reset_input_datetime();
                         self.reset_input_title();
 
-                        self.edit_mode = EditMode::None;
+                        self.reset_edit_mode();
+                        self.reset_cursor();
                     }
                     KeyCode::Tab if key.modifiers.contains(KeyModifiers::SHIFT) => {
                         self.editable = self.editable.prev()
@@ -213,14 +221,16 @@ impl TuiEventHandler for EventState {
                                 // reset
                                 self.reset_input_datetime();
                             }
-                            self.edit_mode = EditMode::None;
+                            self.reset_edit_mode();
+                            self.reset_cursor();
                         }
                         Editable::Title => {
                             self.title = validate_title(self.input_title.value())
                                 .ok()
                                 .filter(|v| !v.is_empty())
                                 .map(str::to_string);
-                            self.edit_mode = EditMode::None;
+                            self.reset_edit_mode();
+                            self.reset_cursor();
                         }
                     },
                     _ => match self.editable {
@@ -334,7 +344,7 @@ impl StatefulWidget for EventWidget {
         clock::render_clock(v1, buf, render_clock_state);
 
         // Helper to calculate centered area, cursor x position, and scroll
-        let centered_input = |input: &Input, area: Rect| -> (Rect, u16, usize) {
+        let calc_editable_input_positions = |input: &Input, area: Rect| -> (Rect, u16, usize) {
             // Calculate scroll position to keep cursor visible
             let input_scroll = input.visual_scroll(area.width as usize);
 
@@ -373,71 +383,62 @@ impl StatefulWidget for EventWidget {
             }
         }
 
-        // Calculate centered areas, cursor positions, and scroll values
-        let (datetime_area, datetime_cursor_x, datetime_scroll) =
-            centered_input(&state.input_datetime, v2);
-        let (title_area, title_cursor_x, title_scroll) = centered_input(&state.input_title, v3);
+        // Render date time input
+        // EDIT
+        if state.edit_mode == EditMode::Editing && state.editable == Editable::DateTime {
+            let (datetime_area, datetime_cursor_x, datetime_scroll) =
+                calc_editable_input_positions(&state.input_datetime, v2);
 
-        // Calculate cursor position if in edit mode
-        let cursor_position = if state.edit_mode == EditMode::Editing {
-            let (cursor_x, cursor_y) = match state.editable {
-                Editable::DateTime => (datetime_cursor_x, v2.y),
-                Editable::Title => (title_cursor_x, v3.y),
-            };
-            Some(Position::new(cursor_x, cursor_y))
+            Paragraph::new(state.input_datetime.value())
+                .style(input_edit_style(state.input_datetime_error.is_some()))
+                .scroll((0, datetime_scroll as u16))
+                .render(datetime_area, buf);
+
+            // Update cursor
+            let cp = Position::new(datetime_cursor_x, v2.y);
+            let _ = state.app_tx.send(AppEvent::SetCursor(Some(cp)));
         } else {
-            None
+            // NORMAL
+            let mut prefix = "Until";
+
+            if clock_duration.is_since() {
+                let duration: Duration = clock_duration.clone().into();
+                // Show `done` for a short of time (1 sec)
+                prefix = if duration < Duration::from_secs(1) {
+                    "Done"
+                } else {
+                    "Since"
+                };
+            };
+
+            Paragraph::new(format!(
+                "{} {}",
+                prefix.to_uppercase(),
+                state.input_datetime.value()
+            ))
+            .centered()
+            .render(v2, buf);
         };
 
-        // Send cursor position via event
-        let _ = state.app_tx.send(AppEvent::SetCursor(cursor_position));
-
-        // Render date time input
-        let input_datetime_widget =
-            // EDIT
-            if state.edit_mode == EditMode::Editing && state.editable == Editable::DateTime {
-                Paragraph::new(state.input_datetime.value())
-                    .style(input_edit_style(
-                        state.input_datetime_error.is_some(),
-                    ))
-                    .scroll((0, datetime_scroll as u16))
-            } else {
-                // NORMAL
-                let mut prefix = "Until";
-
-                if clock_duration.is_since() {
-                    let duration: Duration = clock_duration.clone().into();
-                    // Show `done` for a short of time (1 sec)
-                    prefix = if duration < Duration::from_secs(1) {
-                        "Done"
-                    } else {
-                        "Since"
-                    };
-                };
-
-                Paragraph::new(format!(
-                    "{} {}",
-                    prefix.to_uppercase(),
-                    state.input_datetime.value()
-                ))
-            };
-
-        input_datetime_widget.render(datetime_area, buf);
-
         // Render title input
-        let title_input_widget =
-            // EDIT
-            if state.edit_mode == EditMode::Editing && state.editable == Editable::Title {
-                Paragraph::new(state.input_title.value().to_uppercase())
-                    .style(input_edit_style(
-                        state.input_title_error.is_some(),
-                    ))
-                    .scroll((0, title_scroll as u16))
-            } else {
-                // NORMAL
-                Paragraph::new(state.input_title.value().to_uppercase())
-            };
-        title_input_widget.render(title_area, buf);
+        // EDIT
+        if state.edit_mode == EditMode::Editing && state.editable == Editable::Title {
+            let (title_area, title_cursor_x, title_scroll) =
+                calc_editable_input_positions(&state.input_title, v3);
+
+            Paragraph::new(state.input_title.value().to_uppercase())
+                .style(input_edit_style(state.input_title_error.is_some()))
+                .scroll((0, title_scroll as u16))
+                .render(title_area, buf);
+            // Update cursor
+            let cp = Position::new(title_cursor_x, v3.y);
+            let _ = state.app_tx.send(AppEvent::SetCursor(Some(cp)));
+        } else {
+            // NORMAL
+            Paragraph::new(state.input_title.value().to_uppercase())
+                .centered()
+                .render(v3, buf);
+        };
 
         // Render error
         let error_txt: String = match (&state.input_datetime_error, &state.input_title_error) {
