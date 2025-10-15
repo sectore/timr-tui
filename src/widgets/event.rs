@@ -3,7 +3,7 @@ use crossterm::event::{Event as CrosstermEvent, KeyCode, KeyModifiers};
 use ratatui::{
     buffer::Buffer,
     layout::{Constraint, Layout, Position, Rect},
-    style::{Color, Style},
+    style::{Color, Modifier, Style},
     text::Line,
     widgets::{Paragraph, StatefulWidget, Widget},
 };
@@ -155,6 +155,16 @@ impl EventState {
             self.done_count = clock::count_clock_done(self.done_count);
         }
     }
+
+    fn reset_input_datetime(&mut self) {
+        self.input_datetime = Input::default().with_value(format_offsetdatetime(&self.event_time));
+        self.input_datetime_error = None;
+    }
+
+    fn reset_input_title(&mut self) {
+        self.input_title = Input::default().with_value(format_offsetdatetime(&self.event_time));
+        self.input_title_error = None;
+    }
 }
 
 fn validate_datetime(value: &str) -> Result<time::PrimitiveDateTime, Report> {
@@ -166,7 +176,7 @@ fn validate_datetime(value: &str) -> Result<time::PrimitiveDateTime, Report> {
 }
 
 fn validate_title(value: &str) -> Result<&str, Report> {
-    if value.len() > 10 {
+    if value.len() > 60 {
         return Err(eyre!("Title should be less than 20 characters"));
     }
     Ok(value)
@@ -181,9 +191,9 @@ impl TuiEventHandler for EventState {
                 match key.code {
                     // Skip changes
                     KeyCode::Esc => {
-                        // reset inputs with default values
-                        self.input_datetime =
-                            Input::default().with_value(format_offsetdatetime(&self.event_time));
+                        // reset inputs
+                        self.reset_input_datetime();
+                        self.reset_input_title();
 
                         self.edit_mode = EditMode::None;
                     }
@@ -198,9 +208,8 @@ impl TuiEventHandler for EventState {
                                 // apply offset
                                 self.event_time = date_time.assume_offset(self.app_time.offset());
                             } else {
-                                // reset with default value
-                                self.input_datetime = Input::default()
-                                    .with_value(format_offsetdatetime(&self.event_time));
+                                // reset
+                                self.reset_input_datetime();
                             }
                             self.edit_mode = EditMode::None;
                         }
@@ -339,30 +348,50 @@ impl StatefulWidget for EventWidget {
 
         clock::render_clock(v1, buf, render_clock_state);
 
-        // Helper to calculate centered area and cursor x position
-        let centered_input = |input: &Input, area: Rect| -> (Rect, u16) {
-            let text_width = input.value().len() as u16;
-            let offset_x = (area.width.saturating_sub(text_width)) / 2;
+        // Helper to calculate centered area, cursor x position, and scroll
+        let centered_input = |input: &Input, area: Rect| -> (Rect, u16, usize) {
+            // Calculate scroll position to keep cursor visible
+            let input_scroll = input.visual_scroll(area.width as usize);
+
+            // Get correct visual width (handles unicode properly)
+            let text_width = Line::raw(input.value()).width() as u16;
+
+            // Calculate visible text width after scrolling
+            let visible_text_width = text_width
+                .saturating_sub(input_scroll as u16)
+                .min(area.width);
+
+            // Center the visible portion
+            let offset_x = (area.width.saturating_sub(visible_text_width)) / 2;
+
             let centered_area = Rect {
                 x: area.x + offset_x,
                 y: area.y,
-                width: text_width.min(area.width),
+                width: visible_text_width,
                 height: area.height,
             };
-            let cursor_x = area.x + offset_x + input.visual_cursor() as u16;
-            (centered_area, cursor_x)
+
+            // Cursor position relative to the visible scrolled text
+            let cursor_offset = input.visual_cursor().saturating_sub(input_scroll);
+            let cursor_x = area.x + offset_x + cursor_offset as u16;
+
+            (centered_area, cursor_x, input_scroll)
         };
 
         fn input_style(edit_mode: EditMode, editable: bool, error: bool) -> Style {
             match edit_mode {
                 EditMode::Editing if editable && error => Color::Red.into(),
+                EditMode::Editing if editable => {
+                    Style::default().add_modifier(Modifier::UNDERLINED)
+                }
                 _ => Style::default(),
             }
         }
 
-        // Calculate centered areas and cursor positions
-        let (datetime_area, datetime_cursor_x) = centered_input(&state.input_datetime, v2);
-        let (title_area, title_cursor_x) = centered_input(&state.input_title, v3);
+        // Calculate centered areas, cursor positions, and scroll values
+        let (datetime_area, datetime_cursor_x, datetime_scroll) =
+            centered_input(&state.input_datetime, v2);
+        let (title_area, title_cursor_x, title_scroll) = centered_input(&state.input_title, v3);
 
         // Calculate cursor position if in edit mode
         let cursor_position = if state.edit_mode == EditMode::Editing {
@@ -379,20 +408,23 @@ impl StatefulWidget for EventWidget {
         let _ = state.app_tx.send(AppEvent::SetCursor(cursor_position));
 
         // Render datetime input
-        let input_datetime_widget =
-            Paragraph::new(state.input_datetime.value()).style(input_style(
+        let input_datetime_widget = Paragraph::new(state.input_datetime.value())
+            .style(input_style(
                 state.edit_mode,
                 state.editable == Editable::DateTime,
                 state.input_datetime_error.is_some(),
-            ));
+            ))
+            .scroll((0, datetime_scroll as u16));
         input_datetime_widget.render(datetime_area, buf);
 
         // Render title input
-        let title_input_widget = Paragraph::new(state.input_title.value()).style(input_style(
-            state.edit_mode,
-            state.editable == Editable::Title,
-            state.input_title_error.is_some(),
-        ));
+        let title_input_widget = Paragraph::new(state.input_title.value().to_uppercase())
+            .style(input_style(
+                state.edit_mode,
+                state.editable == Editable::Title,
+                state.input_title_error.is_some(),
+            ))
+            .scroll((0, title_scroll as u16));
         title_input_widget.render(title_area, buf);
     }
 }
