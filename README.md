@@ -45,20 +45,25 @@ _(theme depends on your terminal preferences)_
 ## Countdown: Mission Elapsed Time ([MET](https://en.wikipedia.org/wiki/Mission_Elapsed_Time))
 
 <a href="demo/countdown-met.gif">
-  <img alt="menu" src="demo/countdown-met.gif" />
+  <img alt="Countdown: Mission Elapsed Time" src="demo/countdown-met.gif" />
 </a>
 
+## Event (past/future)
+
+<a href="demo/event.gif">
+  <img alt="event" src="demo/event.gif" />
+</a>
 
 ## Local time
 
 <a href="demo/local-time.gif">
-  <img alt="menu" src="demo/local-time.gif" />
+  <img alt="local time" src="demo/local-time.gif" />
 </a>
 
 ## Local time (footer)
 
 <a href="demo/local-time-footer.gif">
-  <img alt="menu" src="demo/local-time-footer.gif" />
+  <img alt="local time at footer" src="demo/local-time-footer.gif" />
 </a>
 
 ## Toggle deciseconds
@@ -242,6 +247,7 @@ Available recipes:
     demo-countdown           # build demo: countdown [alias: dc]
     demo-countdown-met       # build demo: countdown + met [alias: dcm]
     demo-decis               # build demo: deciseconds [alias: dd]
+    demo-event               # build demo: event [alias: de]
     demo-local-time          # build demo: local time [alias: dlt]
     demo-local-time-footer   # build demo: local time (footer) [alias: dltf]
     demo-menu                # build demo: menu [alias: dm]
