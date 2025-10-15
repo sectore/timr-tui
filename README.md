@@ -150,6 +150,14 @@ Extra option (if `--features sound` is enabled by local build only):
 | <kbd>↓</kbd> | edit to go down |
 | <kbd>ctrl+↓</kbd> | edit to go down 10x |
 
+**In `Event` `edit` mode only:**
+
+| Key | Description |
+| --- | --- |
+| <kbd>Enter</kbd> | save changes |
+| <kbd>Esc</kbd> | skip changes |
+| <kbd>Tab</kbd> | switch input |
+
 **In `Pomodoro` screen only:**
 
 | Key | Description |
