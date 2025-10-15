@@ -169,6 +169,11 @@ impl EventState {
     fn reset_cursor(&mut self) {
         _ = self.app_tx.send(AppEvent::SetCursor(None));
     }
+
+    pub fn is_edit_mode(&self) -> bool {
+        self.edit_mode.is_editable()
+    }
+
     fn reset_edit_mode(&mut self) {
         self.edit_mode = EditMode::None;
     }

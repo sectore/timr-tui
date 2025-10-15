@@ -421,7 +421,13 @@ impl App {
                     AppEditMode::None
                 }
             }
-            Content::Event => AppEditMode::None,
+            Content::Event => {
+                if self.event.is_edit_mode() {
+                    AppEditMode::Event
+                } else {
+                    AppEditMode::None
+                }
+            }
             Content::LocalTime => AppEditMode::None,
         }
     }
