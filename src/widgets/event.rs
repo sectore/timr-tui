@@ -21,8 +21,9 @@ use crate::{
 };
 use std::{cmp::max, time::Duration};
 
-#[derive(PartialEq)]
+#[derive(Clone, Copy, Default)]
 enum Editable {
+    #[default]
     DateTime,
     Title,
 }
@@ -43,10 +44,19 @@ impl Editable {
     }
 }
 
-#[derive(PartialEq, Clone, Copy)]
+#[derive(Clone, Copy)]
 enum EditMode {
     None,
-    Editing,
+    Editing(Editable),
+}
+
+impl EditMode {
+    fn is_editable(&self) -> bool {
+        match self {
+            EditMode::None => false,
+            EditMode::Editing(_) => true,
+        }
+    }
 }
 
 /// State for `EventWidget`
@@ -66,7 +76,7 @@ pub struct EventState {
     input_title: Input,
     input_title_error: Option<Report>,
     edit_mode: EditMode,
-    editable: Editable,
+    last_editable: Editable,
 }
 
 pub struct EventStateArgs {
@@ -104,7 +114,7 @@ impl EventState {
             input_title: Input::default().with_value(input_title_value),
             input_title_error: None,
             edit_mode: EditMode::None,
-            editable: Editable::DateTime,
+            last_editable: Editable::default(),
         }
     }
 
@@ -193,10 +203,10 @@ fn validate_title(value: &str) -> Result<&str, Report> {
 
 impl TuiEventHandler for EventState {
     fn update(&mut self, event: TuiEvent) -> Option<TuiEvent> {
-        let edit_mode = self.edit_mode != EditMode::None;
+        let editable = self.edit_mode.is_editable();
         match event {
             // EDIT mode
-            TuiEvent::Crossterm(crossterm_event @ CrosstermEvent::Key(key)) if edit_mode => {
+            TuiEvent::Crossterm(crossterm_event @ CrosstermEvent::Key(key)) if editable => {
                 match key.code {
                     // Skip changes
                     KeyCode::Esc => {
@@ -208,11 +218,19 @@ impl TuiEventHandler for EventState {
                         self.reset_cursor();
                     }
                     KeyCode::Tab if key.modifiers.contains(KeyModifiers::SHIFT) => {
-                        self.editable = self.editable.prev()
+                        if let EditMode::Editing(e) = self.edit_mode {
+                            self.last_editable = e.prev();
+                            self.edit_mode = EditMode::Editing(self.last_editable)
+                        }
                     }
-                    KeyCode::Tab => self.editable = self.editable.next(),
-                    KeyCode::Enter => match self.editable {
-                        Editable::DateTime => {
+                    KeyCode::Tab => {
+                        if let EditMode::Editing(e) = self.edit_mode {
+                            self.last_editable = e.next();
+                            self.edit_mode = EditMode::Editing(self.last_editable)
+                        }
+                    }
+                    KeyCode::Enter => match self.edit_mode {
+                        EditMode::Editing(Editable::DateTime) => {
                             // validate
                             if let Ok(date_time) = validate_datetime(self.input_datetime.value()) {
                                 // apply offset
@@ -224,7 +242,7 @@ impl TuiEventHandler for EventState {
                             self.reset_edit_mode();
                             self.reset_cursor();
                         }
-                        Editable::Title => {
+                        EditMode::Editing(Editable::Title) => {
                             self.title = validate_title(self.input_title.value())
                                 .ok()
                                 .filter(|v| !v.is_empty())
@@ -232,9 +250,10 @@ impl TuiEventHandler for EventState {
                             self.reset_edit_mode();
                             self.reset_cursor();
                         }
+                        EditMode::None => {}
                     },
-                    _ => match self.editable {
-                        Editable::DateTime => {
+                    _ => match self.edit_mode {
+                        EditMode::Editing(Editable::DateTime) => {
                             self.input_datetime.handle_event(&crossterm_event);
                             if let Err(e) = validate_datetime(self.input_datetime.value()) {
                                 self.input_datetime_error = Some(e);
@@ -242,7 +261,7 @@ impl TuiEventHandler for EventState {
                                 self.input_datetime_error = None;
                             }
                         }
-                        Editable::Title => {
+                        EditMode::Editing(Editable::Title) => {
                             self.input_title.handle_event(&crossterm_event);
                             if let Err(e) = validate_title(self.input_title.value()) {
                                 self.input_title_error = Some(e);
@@ -250,6 +269,7 @@ impl TuiEventHandler for EventState {
                                 self.input_title_error = None;
                             }
                         }
+                        EditMode::None => {}
                     },
                 }
             }
@@ -257,7 +277,7 @@ impl TuiEventHandler for EventState {
             TuiEvent::Crossterm(CrosstermEvent::Key(key)) => match key.code {
                 // Enter edit mode
                 KeyCode::Char('e') => {
-                    self.edit_mode = EditMode::Editing;
+                    self.edit_mode = EditMode::Editing(self.last_editable);
                 }
                 _ => return Some(event),
             },
@@ -384,60 +404,66 @@ impl StatefulWidget for EventWidget {
         }
 
         // Render date time input
-        // EDIT
-        if state.edit_mode == EditMode::Editing && state.editable == Editable::DateTime {
-            let (datetime_area, datetime_cursor_x, datetime_scroll) =
-                calc_editable_input_positions(&state.input_datetime, v2);
+        match state.edit_mode {
+            // EDIT
+            EditMode::Editing(Editable::DateTime) => {
+                let (datetime_area, datetime_cursor_x, datetime_scroll) =
+                    calc_editable_input_positions(&state.input_datetime, v2);
 
-            Paragraph::new(state.input_datetime.value())
-                .style(input_edit_style(state.input_datetime_error.is_some()))
-                .scroll((0, datetime_scroll as u16))
-                .render(datetime_area, buf);
+                Paragraph::new(state.input_datetime.value())
+                    .style(input_edit_style(state.input_datetime_error.is_some()))
+                    .scroll((0, datetime_scroll as u16))
+                    .render(datetime_area, buf);
 
-            // Update cursor
-            let cp = Position::new(datetime_cursor_x, v2.y);
-            let _ = state.app_tx.send(AppEvent::SetCursor(Some(cp)));
-        } else {
+                // Update cursor
+                let cp = Position::new(datetime_cursor_x, v2.y);
+                let _ = state.app_tx.send(AppEvent::SetCursor(Some(cp)));
+            }
             // NORMAL
-            let mut prefix = "Until";
+            _ => {
+                let mut prefix = "Until";
 
-            if clock_duration.is_since() {
-                let duration: Duration = clock_duration.clone().into();
-                // Show `done` for a short of time (1 sec)
-                prefix = if duration < Duration::from_secs(1) {
-                    "Done"
-                } else {
-                    "Since"
+                if clock_duration.is_since() {
+                    let duration: Duration = clock_duration.clone().into();
+                    // Show `done` for a short of time (1 sec)
+                    prefix = if duration < Duration::from_secs(1) {
+                        "Done"
+                    } else {
+                        "Since"
+                    };
                 };
-            };
 
-            Paragraph::new(format!(
-                "{} {}",
-                prefix.to_uppercase(),
-                state.input_datetime.value()
-            ))
-            .centered()
-            .render(v2, buf);
+                Paragraph::new(format!(
+                    "{} {}",
+                    prefix.to_uppercase(),
+                    state.input_datetime.value()
+                ))
+                .centered()
+                .render(v2, buf);
+            }
         };
 
         // Render title input
-        // EDIT
-        if state.edit_mode == EditMode::Editing && state.editable == Editable::Title {
-            let (title_area, title_cursor_x, title_scroll) =
-                calc_editable_input_positions(&state.input_title, v3);
+        match state.edit_mode {
+            // EDIT
+            EditMode::Editing(Editable::Title) => {
+                let (title_area, title_cursor_x, title_scroll) =
+                    calc_editable_input_positions(&state.input_title, v3);
 
-            Paragraph::new(state.input_title.value().to_uppercase())
-                .style(input_edit_style(state.input_title_error.is_some()))
-                .scroll((0, title_scroll as u16))
-                .render(title_area, buf);
-            // Update cursor
-            let cp = Position::new(title_cursor_x, v3.y);
-            let _ = state.app_tx.send(AppEvent::SetCursor(Some(cp)));
-        } else {
+                Paragraph::new(state.input_title.value().to_uppercase())
+                    .style(input_edit_style(state.input_title_error.is_some()))
+                    .scroll((0, title_scroll as u16))
+                    .render(title_area, buf);
+                // Update cursor
+                let cp = Position::new(title_cursor_x, v3.y);
+                let _ = state.app_tx.send(AppEvent::SetCursor(Some(cp)));
+            }
             // NORMAL
-            Paragraph::new(state.input_title.value().to_uppercase())
-                .centered()
-                .render(v3, buf);
+            _ => {
+                Paragraph::new(state.input_title.value().to_uppercase())
+                    .centered()
+                    .render(v3, buf);
+            }
         };
 
         // Render error
