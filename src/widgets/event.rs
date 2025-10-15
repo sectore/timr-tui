@@ -224,46 +224,95 @@ impl TuiEventHandler for EventState {
                     }
                     KeyCode::Tab if key.modifiers.contains(KeyModifiers::SHIFT) => {
                         if let EditMode::Editing(e) = self.edit_mode {
-                            self.last_editable = e.prev();
-                            self.edit_mode = EditMode::Editing(self.last_editable)
+                            // before switching reset inputs in case of errors
+                            match e {
+                                Editable::DateTime if self.input_datetime_error.is_some() => {
+                                    self.reset_input_datetime();
+                                }
+                                Editable::Title if self.input_title_error.is_some() => {
+                                    self.reset_input_title();
+                                }
+                                _ => {}
+                            }
+                            // switch inputs
+                            let prev = e.prev();
+                            self.edit_mode = EditMode::Editing(prev);
+                            self.last_editable = prev;
                         }
                     }
                     KeyCode::Tab => {
                         if let EditMode::Editing(e) = self.edit_mode {
-                            self.last_editable = e.next();
-                            self.edit_mode = EditMode::Editing(self.last_editable)
+                            // before switching reset inputs in case of errors
+                            match e {
+                                Editable::DateTime if self.input_datetime_error.is_some() => {
+                                    self.reset_input_datetime();
+                                }
+                                Editable::Title if self.input_title_error.is_some() => {
+                                    self.reset_input_title();
+                                }
+                                _ => {}
+                            }
+                            // switch inputs
+                            let next = e.next();
+                            self.edit_mode = EditMode::Editing(next);
+                            self.last_editable = next;
                         }
                     }
                     KeyCode::Enter => match self.edit_mode {
                         EditMode::Editing(Editable::DateTime) => {
-                            // validate
-                            if let Ok(date_time) = validate_datetime(self.input_datetime.value()) {
-                                // apply offset
-                                self.event_time = date_time.assume_offset(self.app_time.offset());
-                            } else {
-                                // reset
-                                self.reset_input_datetime();
+                            // accept valid values only
+                            match validate_datetime(self.input_datetime.value()) {
+                                Ok(date_time) => {
+                                    // apply offset
+                                    self.event_time =
+                                        date_time.assume_offset(self.app_time.offset());
+                                    self.reset_edit_mode();
+                                    self.reset_cursor();
+                                }
+                                Err(e) => self.input_datetime_error = Some(e),
                             }
-                            self.reset_edit_mode();
-                            self.reset_cursor();
                         }
                         EditMode::Editing(Editable::Title) => {
-                            self.title = validate_title(self.input_title.value())
-                                .ok()
-                                .filter(|v| !v.is_empty())
-                                .map(str::to_string);
-                            self.reset_edit_mode();
-                            self.reset_cursor();
+                            // accept valid values only
+                            match validate_title(self.input_title.value()) {
+                                Ok(title) => {
+                                    self.title = if title.is_empty() {
+                                        None
+                                    } else {
+                                        Some(title.into())
+                                    };
+                                    self.reset_edit_mode();
+                                    self.reset_cursor();
+                                }
+                                Err(e) => self.input_title_error = Some(e),
+                            }
                         }
                         EditMode::None => {}
                     },
                     _ => match self.edit_mode {
                         EditMode::Editing(Editable::DateTime) => {
                             self.input_datetime.handle_event(&crossterm_event);
-                            if let Err(e) = validate_datetime(self.input_datetime.value()) {
-                                self.input_datetime_error = Some(e);
-                            } else {
-                                self.input_datetime_error = None;
+
+                            let value = self.input_datetime.value();
+
+                            match self.input_datetime_error {
+                                // a full validation of `datetime` in case of a previous error only
+                                Some(_) => {
+                                    if let Err(e) = validate_datetime(value) {
+                                        self.input_datetime_error = Some(e);
+                                    } else {
+                                        self.input_datetime_error = None;
+                                    }
+                                }
+                                // a more light validation of `datetime` in case of no previous error
+                                None => {
+                                    if value.len() > 19 {
+                                        self.input_datetime_error =
+                                            Some(eyre!("Expected format 'YYYY-MM-DD HH:MM:SS'"))
+                                    } else {
+                                        self.input_datetime_error = None;
+                                    }
+                                }
                             }
                         }
                         EditMode::Editing(Editable::Title) => {
