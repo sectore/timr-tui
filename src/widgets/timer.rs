@@ -4,7 +4,7 @@ use crate::{
     utils::center,
     widgets::clock::{self, ClockState, ClockWidget},
 };
-use crossterm::event::KeyModifiers;
+use crossterm::event::{Event as CrosstermEvent, KeyModifiers};
 use ratatui::{
     buffer::Buffer,
     crossterm::event::KeyCode,
@@ -41,7 +41,7 @@ impl TuiEventHandler for TimerState {
                 self.clock.update_done_count();
             }
             // EDIT mode
-            TuiEvent::Key(key) if edit_mode => match key.code {
+            TuiEvent::Crossterm(CrosstermEvent::Key(key)) if edit_mode => match key.code {
                 // Skip changes
                 KeyCode::Esc => {
                     // Important: set current value first
@@ -78,7 +78,7 @@ impl TuiEventHandler for TimerState {
                 _ => return Some(event),
             },
             // default mode
-            TuiEvent::Key(key) => match key.code {
+            TuiEvent::Crossterm(CrosstermEvent::Key(key)) => match key.code {
                 // Toggle run/pause
                 KeyCode::Char('s') => {
                     self.clock.toggle_pause();

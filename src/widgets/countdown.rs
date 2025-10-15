@@ -9,7 +9,7 @@ use crate::{
         edit_time::{EditTimeState, EditTimeStateArgs, EditTimeWidget},
     },
 };
-use crossterm::event::KeyModifiers;
+use crossterm::event::{Event as CrosstermEvent, KeyModifiers};
 use ratatui::{
     buffer::Buffer,
     crossterm::event::KeyCode,
@@ -163,102 +163,106 @@ impl TuiEventHandler for CountdownState {
                 }
             }
             // EDIT CLOCK mode
-            TuiEvent::Key(key) if self.is_clock_edit_mode() => match key.code {
-                // skip editing
-                KeyCode::Esc => {
-                    // Important: set current value first
-                    self.clock.set_current_value(*self.clock.get_prev_value());
-                    // before toggling back to non-edit mode
-                    self.clock.toggle_edit();
-                }
-                // Apply changes and set new initial value
-                KeyCode::Char('s') if key.modifiers.contains(KeyModifiers::CONTROL) => {
-                    // toggle edit mode
-                    self.clock.toggle_edit();
-                    // set initial value
-                    self.clock
-                        .set_initial_value(*self.clock.get_current_value());
-                    // always reset `elapsed_clock`
-                    self.elapsed_clock.reset();
-                }
-                // Apply changes
-                KeyCode::Char('s') => {
-                    // toggle edit mode
-                    self.clock.toggle_edit();
-                    // always reset `elapsed_clock`
-                    self.elapsed_clock.reset();
-                }
-                KeyCode::Right => {
-                    self.clock.edit_prev();
-                }
-                KeyCode::Left => {
-                    self.clock.edit_next();
-                }
-                KeyCode::Up if key.modifiers.contains(KeyModifiers::CONTROL) => {
-                    self.clock.edit_jump_up();
-                }
-                KeyCode::Up => {
-                    self.clock.edit_up();
-                }
-                KeyCode::Down if key.modifiers.contains(KeyModifiers::CONTROL) => {
-                    self.clock.edit_jump_down();
-                }
-                KeyCode::Down => {
-                    self.clock.edit_down();
-                }
-                _ => return Some(event),
-            },
-            // EDIT LOCAL TIME mode
-            TuiEvent::Key(key) if self.is_time_edit_mode() => match key.code {
-                // skip editing
-                KeyCode::Esc => {
-                    self.edit_time = None;
-                }
-                // Apply changes and set new initial value
-                KeyCode::Char('s') if key.modifiers.contains(KeyModifiers::CONTROL) => {
-                    if let Some(edit_time) = &mut self.edit_time.clone() {
-                        // Order matters:
-                        // 1. update current value
-                        self.edit_time_done(edit_time);
-                        // 2. set initial value
+            TuiEvent::Crossterm(CrosstermEvent::Key(key)) if self.is_clock_edit_mode() => {
+                match key.code {
+                    // skip editing
+                    KeyCode::Esc => {
+                        // Important: set current value first
+                        self.clock.set_current_value(*self.clock.get_prev_value());
+                        // before toggling back to non-edit mode
+                        self.clock.toggle_edit();
+                    }
+                    // Apply changes and set new initial value
+                    KeyCode::Char('s') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                        // toggle edit mode
+                        self.clock.toggle_edit();
+                        // set initial value
                         self.clock
                             .set_initial_value(*self.clock.get_current_value());
+                        // always reset `elapsed_clock`
+                        self.elapsed_clock.reset();
                     }
-                    // always reset `elapsed_clock`
-                    self.elapsed_clock.reset();
-                }
-                // Apply changes of editing by local time
-                KeyCode::Char('s') => {
-                    if let Some(edit_time) = &mut self.edit_time.clone() {
-                        self.edit_time_done(edit_time)
+                    // Apply changes
+                    KeyCode::Char('s') => {
+                        // toggle edit mode
+                        self.clock.toggle_edit();
+                        // always reset `elapsed_clock`
+                        self.elapsed_clock.reset();
                     }
-                    // always reset `elapsed_clock`
-                    self.elapsed_clock.reset();
+                    KeyCode::Right => {
+                        self.clock.edit_prev();
+                    }
+                    KeyCode::Left => {
+                        self.clock.edit_next();
+                    }
+                    KeyCode::Up if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                        self.clock.edit_jump_up();
+                    }
+                    KeyCode::Up => {
+                        self.clock.edit_up();
+                    }
+                    KeyCode::Down if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                        self.clock.edit_jump_down();
+                    }
+                    KeyCode::Down => {
+                        self.clock.edit_down();
+                    }
+                    _ => return Some(event),
                 }
-                // move edit position to the left
-                KeyCode::Left => {
-                    // safe unwrap because we are in `is_time_edit_mode`
-                    self.edit_time.as_mut().unwrap().next();
+            }
+            // EDIT LOCAL TIME mode
+            TuiEvent::Crossterm(CrosstermEvent::Key(key)) if self.is_time_edit_mode() => {
+                match key.code {
+                    // skip editing
+                    KeyCode::Esc => {
+                        self.edit_time = None;
+                    }
+                    // Apply changes and set new initial value
+                    KeyCode::Char('s') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                        if let Some(edit_time) = &mut self.edit_time.clone() {
+                            // Order matters:
+                            // 1. update current value
+                            self.edit_time_done(edit_time);
+                            // 2. set initial value
+                            self.clock
+                                .set_initial_value(*self.clock.get_current_value());
+                        }
+                        // always reset `elapsed_clock`
+                        self.elapsed_clock.reset();
+                    }
+                    // Apply changes of editing by local time
+                    KeyCode::Char('s') => {
+                        if let Some(edit_time) = &mut self.edit_time.clone() {
+                            self.edit_time_done(edit_time)
+                        }
+                        // always reset `elapsed_clock`
+                        self.elapsed_clock.reset();
+                    }
+                    // move edit position to the left
+                    KeyCode::Left => {
+                        // safe unwrap because we are in `is_time_edit_mode`
+                        self.edit_time.as_mut().unwrap().next();
+                    }
+                    // move edit position to the right
+                    KeyCode::Right => {
+                        // safe unwrap because we are in `is_time_edit_mode`
+                        self.edit_time.as_mut().unwrap().prev();
+                    }
+                    // Value up
+                    KeyCode::Up => {
+                        // safe unwrap because of previous check in `is_time_edit_mode`
+                        self.edit_time.as_mut().unwrap().up();
+                    }
+                    // Value down
+                    KeyCode::Down => {
+                        // safe unwrap because of previous check in `is_time_edit_mode`
+                        self.edit_time.as_mut().unwrap().down();
+                    }
+                    _ => return Some(event),
                 }
-                // move edit position to the right
-                KeyCode::Right => {
-                    // safe unwrap because we are in `is_time_edit_mode`
-                    self.edit_time.as_mut().unwrap().prev();
-                }
-                // Value up
-                KeyCode::Up => {
-                    // safe unwrap because of previous check in `is_time_edit_mode`
-                    self.edit_time.as_mut().unwrap().up();
-                }
-                // Value down
-                KeyCode::Down => {
-                    // safe unwrap because of previous check in `is_time_edit_mode`
-                    self.edit_time.as_mut().unwrap().down();
-                }
-                _ => return Some(event),
-            },
+            }
             // default mode
-            TuiEvent::Key(key) => match key.code {
+            TuiEvent::Crossterm(CrosstermEvent::Key(key)) => match key.code {
                 KeyCode::Char('r') => {
                     // reset both clocks to use intial values
                     self.clock.reset();

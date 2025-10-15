@@ -143,10 +143,8 @@ impl StatefulWidget for Footer {
                 ]),
             ];
 
-            // Controls (except for `localtime` and `event`)
-            if self.selected_content != Content::LocalTime
-                && self.selected_content != Content::Event
-            {
+            // Controls (except for `localtime`)
+            if self.selected_content != Content::LocalTime {
                 table_rows.extend_from_slice(&[
                     // controls - 1. row
                     Row::new(vec![
@@ -156,7 +154,7 @@ impl StatefulWidget for Footer {
                         )),
                         Cell::from(Line::from({
                             match self.app_edit_mode {
-                                AppEditMode::None => {
+                                AppEditMode::None if self.selected_content != Content::Event => {
                                     let mut spans = vec![Span::from(if self.running_clock {
                                         "[s]top"
                                     } else {
@@ -184,8 +182,16 @@ impl StatefulWidget for Footer {
                                     }
                                     spans
                                 }
-                                _ => {
+                                AppEditMode::None if self.selected_content == Content::Event => {
+                                    vec![Span::from("[e]dit")]
+                                }
+                                AppEditMode::Clock | AppEditMode::Time | AppEditMode::Event => {
                                     let mut spans = vec![Span::from("[s]ave changes")];
+
+                                    if self.selected_content == Content::Event {
+                                        spans[0] = Span::from("[enter]save changes")
+                                    };
+
                                     if self.selected_content == Content::Countdown
                                         || self.selected_content == Content::Pomodoro
                                     {
@@ -198,60 +204,72 @@ impl StatefulWidget for Footer {
                                         Span::from(SPACE),
                                         Span::from("[esc]skip changes"),
                                     ]);
+
+                                    if self.selected_content == Content::Event {
+                                        spans.extend_from_slice(&[
+                                            Span::from(SPACE),
+                                            Span::from("[tab]switch input"),
+                                        ]);
+                                    }
                                     spans
                                 }
+                                _ => vec![],
                             }
                         })),
                     ]),
                     // controls - 2. row
-                    Row::new(vec![
-                        Cell::from(Line::from("")),
-                        Cell::from(Line::from({
-                            match self.app_edit_mode {
-                                AppEditMode::None => {
-                                    let mut spans = vec![];
-                                    if self.selected_content == Content::Pomodoro {
-                                        spans.extend_from_slice(&[Span::from(
-                                            "[^←] or [^→] switch work/pause",
-                                        )]);
+                    Row::new(if self.selected_content == Content::Event {
+                        vec![]
+                    } else {
+                        vec![
+                            Cell::from(Line::from("")),
+                            Cell::from(Line::from({
+                                match self.app_edit_mode {
+                                    AppEditMode::None => {
+                                        let mut spans = vec![];
+                                        if self.selected_content == Content::Pomodoro {
+                                            spans.extend_from_slice(&[Span::from(
+                                                "[^←] or [^→] switch work/pause",
+                                            )]);
+                                        }
+                                        spans
                                     }
-                                    spans
+                                    _ => vec![
+                                        Span::from(format!(
+                                            // ← →,
+                                            "[{} {}]change selection",
+                                            scrollbar::HORIZONTAL.begin,
+                                            scrollbar::HORIZONTAL.end
+                                        )),
+                                        Span::from(SPACE),
+                                        Span::from(format!(
+                                            // ↑
+                                            "[{}]edit up",
+                                            scrollbar::VERTICAL.begin
+                                        )),
+                                        Span::from(SPACE),
+                                        Span::from(format!(
+                                            // ctrl + ↑
+                                            "[^{}]edit up 10x",
+                                            scrollbar::VERTICAL.begin
+                                        )),
+                                        Span::from(SPACE),
+                                        Span::from(format!(
+                                            // ↓
+                                            "[{}]edit up",
+                                            scrollbar::VERTICAL.end
+                                        )),
+                                        Span::from(SPACE),
+                                        Span::from(format!(
+                                            // ctrl + ↓
+                                            "[^{}]edit up 10x",
+                                            scrollbar::VERTICAL.end
+                                        )),
+                                    ],
                                 }
-                                _ => vec![
-                                    Span::from(format!(
-                                        // ← →,
-                                        "[{} {}]change selection",
-                                        scrollbar::HORIZONTAL.begin,
-                                        scrollbar::HORIZONTAL.end
-                                    )),
-                                    Span::from(SPACE),
-                                    Span::from(format!(
-                                        // ↑
-                                        "[{}]edit up",
-                                        scrollbar::VERTICAL.begin
-                                    )),
-                                    Span::from(SPACE),
-                                    Span::from(format!(
-                                        // ctrl + ↑
-                                        "[^{}]edit up 10x",
-                                        scrollbar::VERTICAL.begin
-                                    )),
-                                    Span::from(SPACE),
-                                    Span::from(format!(
-                                        // ↓
-                                        "[{}]edit up",
-                                        scrollbar::VERTICAL.end
-                                    )),
-                                    Span::from(SPACE),
-                                    Span::from(format!(
-                                        // ctrl + ↓
-                                        "[^{}]edit up 10x",
-                                        scrollbar::VERTICAL.end
-                                    )),
-                                ],
-                            }
-                        })),
-                    ]),
+                            })),
+                        ]
+                    }),
                 ])
             }
 
