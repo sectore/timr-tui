@@ -1,4 +1,4 @@
-use color_eyre::{Report, eyre::eyre};
+use color_eyre::{Report, eyre::eyre, owo_colors::OwoColorize};
 use crossterm::event::{Event as CrosstermEvent, KeyCode, KeyModifiers};
 use ratatui::{
     buffer::Buffer,
@@ -162,7 +162,7 @@ impl EventState {
     }
 
     fn reset_input_title(&mut self) {
-        self.input_title = Input::default().with_value(format_offsetdatetime(&self.event_time));
+        self.input_title = Input::default().with_value(self.title.clone().unwrap_or_default());
         self.input_title_error = None;
     }
 }
@@ -172,12 +172,14 @@ fn validate_datetime(value: &str) -> Result<time::PrimitiveDateTime, Report> {
         value,
         format_description!("[year]-[month]-[day] [hour]:[minute]:[second]"),
     )
-    .map_err(|_| eyre!("Invalid format. Expected format: 'YYYY-MM-DD HH:MM:SS'"))
+    .map_err(|_| eyre!("Expected format 'YYYY-MM-DD HH:MM:SS'"))
 }
 
+const MAX_LABEL_WIDTH: usize = 60;
+
 fn validate_title(value: &str) -> Result<&str, Report> {
-    if value.len() > 60 {
-        return Err(eyre!("Title should be less than 20 characters"));
+    if value.len() > MAX_LABEL_WIDTH {
+        return Err(eyre!("Max. {} chars", MAX_LABEL_WIDTH));
     }
     Ok(value)
 }
@@ -297,7 +299,9 @@ impl StatefulWidget for EventWidget {
 
         let label_event = Line::raw(state.title.clone().unwrap_or("".into()).to_uppercase());
         let time_str = format_offsetdatetime(&state.event_time);
-        let time_prefix = if clock_duration.is_since() {
+        let time_prefix = if state.edit_mode == EditMode::Editing {
+            "Edit"
+        } else if clock_duration.is_since() {
             let duration: Duration = clock_duration.clone().into();
             // Show `done` for a short of time (1 sec)
             if duration < Duration::from_secs(1) {
@@ -309,23 +313,27 @@ impl StatefulWidget for EventWidget {
             "Until"
         };
 
-        let label_time = Line::raw(format!(
-            "{} {}",
-            time_prefix.to_uppercase(),
-            time_str.to_uppercase()
-        ));
-        let max_label_width = max(label_event.width(), label_time.width()) as u16;
+        // let label_time = Line::raw(format!(
+        //     "{} {}",
+        //     time_prefix.to_uppercase(),
+        //     time_str.to_uppercase()
+        // ));
+        // let max_label_width = max(label_event.width(), label_time.width()) as u16;
 
         let area = center(
             area,
-            Constraint::Length(max(clock_width, max_label_width)),
-            Constraint::Length(DIGIT_HEIGHT + 3 /* height of label */),
+            Constraint::Length(max(clock_width, MAX_LABEL_WIDTH as u16)),
+            Constraint::Length(
+                DIGIT_HEIGHT + 7, /* height of all labels + empty lines */
+            ),
         );
-        let [_, v1, v2, v3] = Layout::vertical(Constraint::from_lengths([
-            1, // empty (offset) to keep everything centered vertically comparing to "clock" widgets with one label only
+        let [_, v1, v2, v3, _, v4] = Layout::vertical(Constraint::from_lengths([
+            3, // empty (offset) to keep everything centered vertically comparing to "clock" widgets with one label only
             DIGIT_HEIGHT,
-            1, // event date
-            1, // event title
+            1, // label: event date
+            1, // label: event title
+            1, // empty
+            1, // label: error
         ]))
         .areas(area);
 
@@ -380,7 +388,9 @@ impl StatefulWidget for EventWidget {
 
         fn input_style(edit_mode: EditMode, editable: bool, error: bool) -> Style {
             match edit_mode {
-                EditMode::Editing if editable && error => Color::Red.into(),
+                EditMode::Editing if editable && error => Style::default()
+                    .add_modifier(Modifier::UNDERLINED)
+                    .fg(Color::Red),
                 EditMode::Editing if editable => {
                     Style::default().add_modifier(Modifier::UNDERLINED)
                 }
@@ -426,6 +436,17 @@ impl StatefulWidget for EventWidget {
             ))
             .scroll((0, title_scroll as u16));
         title_input_widget.render(title_area, buf);
+
+        let error_txt: String = match (&state.input_datetime_error, &state.input_title_error) {
+            (Some(e), _) => e.to_string(),
+            (_, Some(e)) => e.to_string(),
+            _ => "".into(),
+        };
+        Paragraph::new(error_txt.to_lowercase())
+            // .style(Style::default().fg(Color::Red))
+            .style(Style::default().add_modifier(Modifier::ITALIC))
+            .centered()
+            .render(v4, buf);
     }
 }
 
