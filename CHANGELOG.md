@@ -4,7 +4,7 @@
 
 ### Features
 
-- (event) New `event` screen to count custom date times in the future or past. [#117](https://github.com/sectore/timr-tui/pull/117), [#120](https://github.com/sectore/timr-tui/pull/120), [#122](https://github.com/sectore/timr-tui/pull/122), [#123](https://github.com/sectore/timr-tui/pull/123), [#124](https://github.com/sectore/timr-tui/pull/124), [#125](https://github.com/sectore/timr-tui/pull/125), [#129](https://github.com/sectore/timr-tui/pull/129), [#130](https://github.com/sectore/timr-tui/pull/130), [#131](https://github.com/sectore/timr-tui/pull/131)
+- (event) New `event` screen to count custom date times in the future or past. [#117](https://github.com/sectore/timr-tui/pull/117), [#120](https://github.com/sectore/timr-tui/pull/120), [#122](https://github.com/sectore/timr-tui/pull/122), [#123](https://github.com/sectore/timr-tui/pull/123), [#124](https://github.com/sectore/timr-tui/pull/124), [#125](https://github.com/sectore/timr-tui/pull/125), [#129](https://github.com/sectore/timr-tui/pull/129), [#130](https://github.com/sectore/timr-tui/pull/130), [#131](https://github.com/sectore/timr-tui/pull/131), [#132](https://github.com/sectore/timr-tui/pull/132)
 - (screens) switch by `←` or `→` keys [#127](https://github.com/sectore/timr-tui/pull/127)
 - (duration) inrease `MAX_DURATION` to `9999y 364d 23:59:59.9` [#128](https://github.com/sectore/timr-tui/pull/128)
 
