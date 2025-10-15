@@ -1,4 +1,4 @@
-use color_eyre::{Report, eyre::eyre, owo_colors::OwoColorize};
+use color_eyre::{Report, eyre::eyre};
 use crossterm::event::{Event as CrosstermEvent, KeyCode, KeyModifiers};
 use ratatui::{
     buffer::Buffer,
@@ -297,29 +297,6 @@ impl StatefulWidget for EventWidget {
         let clock_widths = clock::clock_horizontal_lengths(&clock_format, with_decis);
         let clock_width = clock_widths.iter().sum();
 
-        let label_event = Line::raw(state.title.clone().unwrap_or("".into()).to_uppercase());
-        let time_str = format_offsetdatetime(&state.event_time);
-        let time_prefix = if state.edit_mode == EditMode::Editing {
-            "Edit"
-        } else if clock_duration.is_since() {
-            let duration: Duration = clock_duration.clone().into();
-            // Show `done` for a short of time (1 sec)
-            if duration < Duration::from_secs(1) {
-                "Done"
-            } else {
-                "Since"
-            }
-        } else {
-            "Until"
-        };
-
-        // let label_time = Line::raw(format!(
-        //     "{} {}",
-        //     time_prefix.to_uppercase(),
-        //     time_str.to_uppercase()
-        // ));
-        // let max_label_width = max(label_event.width(), label_time.width()) as u16;
-
         let area = center(
             area,
             Constraint::Length(max(clock_width, MAX_LABEL_WIDTH as u16)),
@@ -347,7 +324,7 @@ impl StatefulWidget for EventWidget {
 
         let render_clock_state = clock::RenderClockState {
             with_decis,
-            duration: clock_duration,
+            duration: clock_duration.clone(),
             editable_time: None,
             format: clock_format,
             symbol,
@@ -386,15 +363,13 @@ impl StatefulWidget for EventWidget {
             (centered_area, cursor_x, input_scroll)
         };
 
-        fn input_style(edit_mode: EditMode, editable: bool, error: bool) -> Style {
-            match edit_mode {
-                EditMode::Editing if editable && error => Style::default()
+        fn input_edit_style(with_error: bool) -> Style {
+            if with_error {
+                Style::default()
                     .add_modifier(Modifier::UNDERLINED)
-                    .fg(Color::Red),
-                EditMode::Editing if editable => {
-                    Style::default().add_modifier(Modifier::UNDERLINED)
-                }
-                _ => Style::default(),
+                    .fg(Color::Red)
+            } else {
+                Style::default().add_modifier(Modifier::UNDERLINED)
             }
         }
 
@@ -417,33 +392,60 @@ impl StatefulWidget for EventWidget {
         // Send cursor position via event
         let _ = state.app_tx.send(AppEvent::SetCursor(cursor_position));
 
-        // Render datetime input
-        let input_datetime_widget = Paragraph::new(state.input_datetime.value())
-            .style(input_style(
-                state.edit_mode,
-                state.editable == Editable::DateTime,
-                state.input_datetime_error.is_some(),
-            ))
-            .scroll((0, datetime_scroll as u16));
+        // Render date time input
+        let input_datetime_widget =
+            // EDIT
+            if state.edit_mode == EditMode::Editing && state.editable == Editable::DateTime {
+                Paragraph::new(state.input_datetime.value())
+                    .style(input_edit_style(
+                        state.input_datetime_error.is_some(),
+                    ))
+                    .scroll((0, datetime_scroll as u16))
+            } else {
+                // NORMAL
+                let mut prefix = "Until";
+
+                if clock_duration.is_since() {
+                    let duration: Duration = clock_duration.clone().into();
+                    // Show `done` for a short of time (1 sec)
+                    prefix = if duration < Duration::from_secs(1) {
+                        "Done"
+                    } else {
+                        "Since"
+                    };
+                };
+
+                Paragraph::new(format!(
+                    "{} {}",
+                    prefix.to_uppercase(),
+                    state.input_datetime.value()
+                ))
+            };
+
         input_datetime_widget.render(datetime_area, buf);
 
         // Render title input
-        let title_input_widget = Paragraph::new(state.input_title.value().to_uppercase())
-            .style(input_style(
-                state.edit_mode,
-                state.editable == Editable::Title,
-                state.input_title_error.is_some(),
-            ))
-            .scroll((0, title_scroll as u16));
+        let title_input_widget =
+            // EDIT
+            if state.edit_mode == EditMode::Editing && state.editable == Editable::Title {
+                Paragraph::new(state.input_title.value().to_uppercase())
+                    .style(input_edit_style(
+                        state.input_title_error.is_some(),
+                    ))
+                    .scroll((0, title_scroll as u16))
+            } else {
+                // NORMAL
+                Paragraph::new(state.input_title.value().to_uppercase())
+            };
         title_input_widget.render(title_area, buf);
 
+        // Render error
         let error_txt: String = match (&state.input_datetime_error, &state.input_title_error) {
             (Some(e), _) => e.to_string(),
             (_, Some(e)) => e.to_string(),
             _ => "".into(),
         };
         Paragraph::new(error_txt.to_lowercase())
-            // .style(Style::default().fg(Color::Red))
             .style(Style::default().add_modifier(Modifier::ITALIC))
             .centered()
             .render(v4, buf);
