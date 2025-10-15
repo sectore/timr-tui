@@ -141,3 +141,10 @@ alias db := demo-blink
 [group('demo')]
 demo-blink:
     vhs demo/blink.tape
+
+alias de := demo-event
+
+# build demo: event
+[group('demo')]
+demo-event:
+    vhs demo/event.tape
