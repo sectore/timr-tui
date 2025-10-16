@@ -1,19 +1,22 @@
 # Changelog
 
-## [unreleased]
+## v1.6.0 - 2025-10-16
 
 ### Features
 
 - (event) New `event` screen to count custom date times in the future or past. [#117](https://github.com/sectore/timr-tui/pull/117), [#120](https://github.com/sectore/timr-tui/pull/120), [#122](https://github.com/sectore/timr-tui/pull/122), [#123](https://github.com/sectore/timr-tui/pull/123), [#124](https://github.com/sectore/timr-tui/pull/124), [#125](https://github.com/sectore/timr-tui/pull/125), [#129](https://github.com/sectore/timr-tui/pull/129), [#130](https://github.com/sectore/timr-tui/pull/130), [#131](https://github.com/sectore/timr-tui/pull/131), [#132](https://github.com/sectore/timr-tui/pull/132)
-- (screens) switch by `←` or `→` keys [#127](https://github.com/sectore/timr-tui/pull/127)
-- (duration) inrease `MAX_DURATION` to `9999y 364d 23:59:59.9` [#128](https://github.com/sectore/timr-tui/pull/128)
+- (keybindings) Switch screens by `←` or `→` keys [#127](https://github.com/sectore/timr-tui/pull/127)
+- (duration) Inrease `MAX_DURATION` to `9999y 364d 23:59:59.9` [#128](https://github.com/sectore/timr-tui/pull/128)
 
 ### Breaking change
 
-- (pomodoro)! new keybindings `ctrl+←` or `ctrl+→` to switch `work`/`pause` [#127](https://github.com/sectore/timr-tui/pull/127)
-- (keybindings)! change keys for `screens` [#126](https://github.com/sectore/timr-tui/pull/126)
+- (pomodoro)! New keybindings `ctrl+←` or `ctrl+→` to switch `work`/`pause` [#127](https://github.com/sectore/timr-tui/pull/127)
+- (keybindings)! Change keys for `screens` [#126](https://github.com/sectore/timr-tui/pull/126)
 - (cli)! Remove `--countdown-target` argument [#121](https://github.com/sectore/timr-tui/pull/121)
 
+### Misc.
+
+- Add `AGENTS.md` [#133](https://github.com/sectore/timr-tui/pull/133)
 
 ## v1.5.0 - 2025-10-03
 
@@ -25,12 +28,10 @@
 - (edit) Change any value by `10x` up or down [#110](https://github.com/sectore/timr-tui/pull/110)
 - (timer/countdown): Support `days` and `years` up to `999y 364d 23:59:59` [#96](https://github.com/sectore/timr-tui/pull/96)
 
-
 ### Fix
 
 - (edit) Auto jump to next possible value while decreasing, but ignoring `zero` values [#109](https://github.com/sectore/timr-tui/pull/109)
 - (format) Improve format handling + fix `days` (no zero-padding) [#107](https://github.com/sectore/timr-tui/pull/107)
-
 
 ### Misc.
 
