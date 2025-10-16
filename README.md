@@ -1,10 +1,11 @@
 # timr-tui
 
-TUI to organize your time: Pomodoro, Countdown, Timer.
+TUI to organize your time: Pomodoro, Countdown, Timer, Event.
 
-- `[t]imer` Check the time on anything you are you doing.
-- `[c]ountdown` Use it for your workout, yoga session, meditation, handstand or whatever.
-- `[p]omodoro` Organize your working time to be focused all the time by following the [Pomodoro Technique](https://en.wikipedia.org/wiki/Pomodoro_Technique).
+- `[1] countdown` Use it for your workout, yoga/breathing sessions, meditation, handstand or whatever.
+- `[2] timer` Check the time on anything you are you doing.
+- `[3] pomodoro` Organize your working time to be focused all the time by following the [Pomodoro Technique](https://en.wikipedia.org/wiki/Pomodoro_Technique).
+- `[4] event` Count the time for any event in the future or past.
 
 Built with [Ratatui](https://ratatui.rs/) / [Rust 🦀](https://www.rust-lang.org/).
 
