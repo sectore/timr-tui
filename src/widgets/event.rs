@@ -7,7 +7,7 @@ use ratatui::{
     text::Line,
     widgets::{Paragraph, StatefulWidget, Widget},
 };
-use time::{OffsetDateTime, macros::format_description};
+use time::{OffsetDateTime, PrimitiveDateTime, macros::format_description};
 use tui_input::Input;
 use tui_input::backend::crossterm::EventHandler;
 
@@ -187,6 +187,42 @@ impl EventState {
         self.input_title = Input::default().with_value(self.title.clone().unwrap_or_default());
         self.input_title_error = None;
     }
+
+    fn save_event_time(&mut self, date_time: PrimitiveDateTime) {
+        self.event_time =
+            // apply offset to be in sync with `AppTime`
+            date_time.assume_offset(self.app_time.offset());
+    }
+
+    fn save_title(&mut self, value: &str) {
+        self.title = if value.is_empty() {
+            None
+        } else {
+            Some(value.into())
+        };
+    }
+
+    fn prepare_switch_input(&mut self, editable: Editable) {
+        // before switching store valid values or reset inputs in case of errors
+        match editable {
+            Editable::DateTime => {
+                // accept valid values only
+                match validate_datetime(self.input_datetime.value()) {
+                    Ok(dt) => self.save_event_time(dt),
+                    Err(_) => self.reset_input_datetime(),
+                }
+            }
+            Editable::Title => match validate_title(self.input_title.clone().value()) {
+                Ok(title) => self.save_title(title),
+                Err(_) => self.reset_input_title(),
+            },
+        }
+    }
+
+    fn switch_input(&mut self, editable: Editable) {
+        self.edit_mode = EditMode::Editing(editable);
+        self.last_editable = editable;
+    }
 }
 
 fn validate_datetime(value: &str) -> Result<time::PrimitiveDateTime, Report> {
@@ -222,52 +258,78 @@ impl TuiEventHandler for EventState {
                         self.reset_edit_mode();
                         self.reset_cursor();
                     }
+                    // switch to prev. input
                     KeyCode::Tab if key.modifiers.contains(KeyModifiers::SHIFT) => {
-                        if let EditMode::Editing(e) = self.edit_mode {
-                            self.last_editable = e.prev();
-                            self.edit_mode = EditMode::Editing(self.last_editable)
+                        if let EditMode::Editing(editable) = self.edit_mode {
+                            self.prepare_switch_input(editable);
+                            self.switch_input(editable.prev());
                         }
                     }
+                    // switch to next input
                     KeyCode::Tab => {
-                        if let EditMode::Editing(e) = self.edit_mode {
-                            self.last_editable = e.next();
-                            self.edit_mode = EditMode::Editing(self.last_editable)
+                        if let EditMode::Editing(editable) = self.edit_mode {
+                            self.prepare_switch_input(editable);
+                            self.switch_input(editable.next());
                         }
                     }
                     KeyCode::Enter => match self.edit_mode {
                         EditMode::Editing(Editable::DateTime) => {
-                            // validate
-                            if let Ok(date_time) = validate_datetime(self.input_datetime.value()) {
-                                // apply offset
-                                self.event_time = date_time.assume_offset(self.app_time.offset());
-                            } else {
-                                // reset
-                                self.reset_input_datetime();
+                            // accept valid values only
+                            match validate_datetime(self.input_datetime.value()) {
+                                Ok(dt) => {
+                                    self.save_event_time(dt);
+                                    self.reset_edit_mode();
+                                    self.reset_cursor();
+                                }
+                                Err(e) => self.input_datetime_error = Some(e),
                             }
-                            self.reset_edit_mode();
-                            self.reset_cursor();
                         }
                         EditMode::Editing(Editable::Title) => {
-                            self.title = validate_title(self.input_title.value())
-                                .ok()
-                                .filter(|v| !v.is_empty())
-                                .map(str::to_string);
-                            self.reset_edit_mode();
-                            self.reset_cursor();
+                            // accept valid values only
+                            match validate_title(self.input_title.clone().value()) {
+                                Ok(title) => {
+                                    self.save_title(title);
+                                    self.reset_edit_mode();
+                                    self.reset_cursor();
+                                }
+                                Err(e) => self.input_title_error = Some(e),
+                            }
                         }
                         EditMode::None => {}
                     },
                     _ => match self.edit_mode {
                         EditMode::Editing(Editable::DateTime) => {
+                            // push `CrosstermEvent` down to input
                             self.input_datetime.handle_event(&crossterm_event);
-                            if let Err(e) = validate_datetime(self.input_datetime.value()) {
-                                self.input_datetime_error = Some(e);
-                            } else {
-                                self.input_datetime_error = None;
+
+                            let value = self.input_datetime.value();
+
+                            match self.input_datetime_error {
+                                // To relax errors while typing:
+                                // (A) Do a "full" validation of `datetime` in case of a previous error only
+                                Some(_) => {
+                                    if let Err(e) = validate_datetime(value) {
+                                        self.input_datetime_error = Some(e);
+                                    } else {
+                                        self.input_datetime_error = None;
+                                    }
+                                }
+                                // (B) do a "light" validation of `datetime` in case of no previous error
+                                None => {
+                                    // check length of expected format
+                                    if value.len() > 19 {
+                                        self.input_datetime_error =
+                                            Some(eyre!("Expected format 'YYYY-MM-DD HH:MM:SS'"))
+                                    } else {
+                                        self.input_datetime_error = None;
+                                    }
+                                }
                             }
                         }
                         EditMode::Editing(Editable::Title) => {
+                            // push `CrosstermEvent` down to input
                             self.input_title.handle_event(&crossterm_event);
+                            // do always a validation while typing
                             if let Err(e) = validate_title(self.input_title.value()) {
                                 self.input_title_error = Some(e);
                             } else {
@@ -278,7 +340,7 @@ impl TuiEventHandler for EventState {
                     },
                 }
             }
-            // default mode
+            // NORMAL mode
             TuiEvent::Crossterm(CrosstermEvent::Key(key)) => match key.code {
                 // Enter edit mode
                 KeyCode::Char('e') => {
