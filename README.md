@@ -73,6 +73,13 @@ _(theme depends on your terminal preferences)_
   <img alt="deciseconds" src="demo/decis.gif" />
 </a>
 
+## Maximum up to `9999y 364d 23:59:59.9`
+
+<a href="demo/timer-max.png">
+  <img alt="maximum" src="demo/timer-max.png" />
+</a>
+
+
 ## Change style
 
 <a href="demo/style.gif">
