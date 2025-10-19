@@ -11,6 +11,7 @@ Set Margin 1
 # --- START ---
 Type 'cargo run -- -r -d -c "10000y"'
 Enter
+Sleep .2
 Type "m"
 # --- SCREENSHOT ---
 Sleep 1s

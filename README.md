@@ -37,19 +37,13 @@ _(theme depends on your terminal preferences)_
   <img alt="pomodoro" src="demo/timer.gif" />
 </a>
 
-## Countdown
+## Countdown (*incl. [Mission Elapsed Time](https://en.wikipedia.org/wiki/Mission_Elapsed_Time)*)
 
 <a href="demo/countdown.gif">
   <img alt="countdown" src="demo/countdown.gif" />
 </a>
 
-## Countdown: Mission Elapsed Time ([MET](https://en.wikipedia.org/wiki/Mission_Elapsed_Time))
-
-<a href="demo/countdown-met.gif">
-  <img alt="Countdown: Mission Elapsed Time" src="demo/countdown-met.gif" />
-</a>
-
-## Event (past/future)
+## Event (*past/future*)
 
 <a href="demo/event.gif">
   <img alt="event" src="demo/event.gif" />
@@ -61,7 +55,7 @@ _(theme depends on your terminal preferences)_
   <img alt="local time" src="demo/local-time.gif" />
 </a>
 
-## Local time (footer)
+## Local time (*footer*)
 
 <a href="demo/local-time-footer.gif">
   <img alt="local time at footer" src="demo/local-time-footer.gif" />
@@ -73,7 +67,7 @@ _(theme depends on your terminal preferences)_
   <img alt="deciseconds" src="demo/decis.gif" />
 </a>
 
-## Maximum up to `9999y 364d 23:59:59.9`
+## Maximum (*`9999y`* *`364d`* *`23:59:59.9`*)
 
 <a href="demo/timer-max.png">
   <img alt="maximum" src="demo/timer-max.png" />

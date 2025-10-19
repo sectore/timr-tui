@@ -4,8 +4,8 @@ Output demo/decis.gif
 Set Theme "nord-light"
 
 Set FontSize 14
-Set Width 800
-Set Height 400
+Set Width 1000
+Set Height 500
 Set Padding 0
 Set Margin 1
 
@@ -14,7 +14,8 @@ Set LoopOffset 4
 Hide
 Type "cargo run -- -r -m t"
 Enter
-Sleep 0.2
+Sleep .2
+Type "m" # hide menu
 Show
 # --- STYLES ---
 Type "s"

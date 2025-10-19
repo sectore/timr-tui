@@ -1,5 +1,3 @@
-# Output demo/timer-max.gif
-
 # https://github.com/charmbracelet/vhs/blob/main/THEMES.md
 Set Theme "SeaShells"
 

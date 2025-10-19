@@ -65,6 +65,17 @@ run-sound-args path args:
 
 # demos
 
+alias da := demo-all
+
+# build all demos
+[group('demo')]
+demo-all:
+    #!/usr/bin/env bash
+    for tape in demo/*.tape; do
+        echo "Building demo: $tape"
+        vhs "$tape"
+    done
+
 alias dp := demo-pomodoro
 
 # build demo: pomodoro
@@ -148,3 +159,17 @@ alias de := demo-event
 [group('demo')]
 demo-event:
     vhs demo/event.tape
+
+alias dcmx := demo-countdown-max
+
+# build demo: timer-max
+[group('demo')]
+demo-countdown-max:
+    vhs demo/countdown-max.tape
+
+alias dtm := demo-timer-max
+
+# build demo: timer-max
+[group('demo')]
+demo-timer-max:
+    vhs demo/timer-max.tape
