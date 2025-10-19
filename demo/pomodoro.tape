@@ -13,7 +13,7 @@ Set Margin 1
 
 # --- START ---
 Hide
-Type "cd cargo run -- -r -d -m p --blink on"
+Type "cargo run -- -r -d -m p --blink on"
 Enter
 Sleep .2
 Type "m" # hide menu
