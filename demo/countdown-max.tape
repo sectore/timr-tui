@@ -1,7 +1,6 @@
-Output demo/countdown-target-future.gif
 
 # https://github.com/charmbracelet/vhs/blob/main/THEMES.md
-Set Theme "SeaShells"
+Set Theme "Retro"
 
 Set FontSize 14
 Set Width 1000
@@ -10,11 +9,11 @@ Set Padding 0
 Set Margin 1
 
 # --- START ---
-Set LoopOffset 4
-Hide
-Type "cargo run -- -r -m c --ct '2030-01-10 18:00'"
+Type 'cargo run -- -r -d -c "10000y"'
 Enter
+Sleep .2
 Type "m"
-Sleep 0.2
-Show
-Sleep 0.1
+# --- SCREENSHOT ---
+Sleep 1s
+Screenshot demo/countdown-max.png
+Sleep 1s

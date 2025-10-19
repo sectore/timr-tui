@@ -4,23 +4,24 @@ Output demo/menu.gif
 Set Theme "Apple Classic"
 
 Set FontSize 14
-Set Width 800
-Set Height 400
+Set Width 1000
+Set Height 500
 Set Padding 0
 Set Margin 1
 
 # --- START ---
 Set LoopOffset 4
 Hide
-Type "cargo run -- -r -m p --menu"
+Type "cargo run -- -r -m c"
 Enter
-Type@200ms "m"
+Type@200ms "m" # hide menu
 Show
 # --- STYLES ---
 Sleep 0.3s
-Type@0.3s "m"
-Type@0.3s "t"
-Type@0.3s "c"
-Type@0.3s "p"
+Type@0.3s "m" # show menu
+Type@0.3s "2"
+Type@0.3s "3"
 Type@0.3s "e"
 Escape@0.3s
+Type@0.3s "4"
+Type@0.3s "0"

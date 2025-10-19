@@ -1,23 +1,24 @@
 Output demo/countdown.gif
 
 # https://github.com/charmbracelet/vhs/blob/main/THEMES.md
-Set Theme "Builtin Solarized Light"
+Set Theme "iceberg-light"
 
 Set FontSize 14
-Set Width 800
-Set Height 400
+Set Width 1000
+Set Height 500
 Set Padding 0
 Set Margin 1
 
 # --- START ---
 Set LoopOffset 4
 Hide
-Type "cargo run -- -r -d -m c"
+Type "cargo run -- -r -d -c 10:00"
 Enter
-Sleep 0.2
+Sleep .2
+Type "m" # hide menu
 Show
 # --- COUNTDOWN ---
-Sleep 1
+Sleep .5
 Type "s"
 Sleep 1.4
 Type "s"
@@ -28,6 +29,5 @@ Type "e"
 Sleep 0.1
 Down@10ms 65
 Sleep 0.1
-Type "e"
-Sleep 0.1
+Type "s"
 Sleep 3
