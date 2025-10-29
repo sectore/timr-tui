@@ -1,4 +1,4 @@
-use crossterm::event::{Event as CrosstermEvent, EventStream};
+use crossterm::event::{Event as CrosstermEvent, EventStream, KeyEventKind};
 use futures::{Stream, StreamExt};
 use ratatui::layout::Position;
 use std::{pin::Pin, time::Duration};
@@ -92,7 +92,10 @@ fn crossterm_stream() -> Pin<Box<dyn Stream<Item = TuiEvent>>> {
             // we are not interested in all events
             .filter_map(|result| async move {
                 match result {
-                    Ok(event) => Some(TuiEvent::Crossterm(event)),
+                    // filter `KeyEventKind::Press` out to ignore all the other `CrosstermEvent::Key` events
+                    Ok(CrosstermEvent::Key(key)) => (key.kind == KeyEventKind::Press)
+                        .then_some(TuiEvent::Crossterm(CrosstermEvent::Key(key))),
+                    Ok(other) => Some(TuiEvent::Crossterm(other)),
                     Err(_) => Some(TuiEvent::Error),
                 }
             }),
