@@ -1,5 +1,15 @@
 # Changelog
 
+## v1.6.1 - 2025-10-29
+
+### Fix
+
+- (event) Ignore all key events except `KeyEventKind::Press` [#137](https://github.com/sectore/timr-tui/issues/137)
+
+### Misc.
+
+- (docs) Update all demos [#135](https://github.com/sectore/timr-tui/pull/135), [513f1fe](https://github.com/sectore/timr-tui/commit/513f1fec11ab8bdad46ca565b0c3f08ed37d6219)
+
 ## v1.6.0 - 2025-10-16
 
 ### Features
