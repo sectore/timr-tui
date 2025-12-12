@@ -212,6 +212,47 @@ Install [from the AUR](https://aur.archlinux.org/packages/timr/):
 paru -S timr
 ```
 
+## Nix
+
+_Note:_ Currently `timr-tui` is [available on the `unstable` channel](https://search.nixos.org/packages?channel=unstable&query=timr-tui) only.
+
+### Command line
+
+```sh
+# default (w/o sound)
+nix-env -iA nixpkgs.timr-tui
+# or w/ sound enabled
+nix-env -iA nixpkgs.timr-tui --arg timr-tui '(timr-tui.override { enableSound = true; })'
+```
+
+### Configuration
+
+```nix
+# default (w/o sound)
+environment.systemPackages = with pkgs; [ 
+  timr-tui 
+];
+# or w/ sound enabled
+environment.systemPackages = with pkgs; [ 
+  (timr-tui.override { enableSound = true; }) 
+];
+```
+
+### Home Manager
+
+```nix
+# default (w/o sound)
+home.packages = with pkgs; [ 
+  timr-tui 
+];
+# or w/ sound enabled
+home.packages = with pkgs; [ 
+  (timr-tui.override { enableSound = true; }) 
+];
+```
+
+Source at `nixpkgs`: https://github.com/NixOS/nixpkgs/blob/nixos-unstable/pkgs/by-name/ti/timr-tui/package.nix
+
 ## Release binaries
 
 Pre-built artifacts are available to download from [latest GitHub release](https://github.com/sectore/timr-tui/releases).

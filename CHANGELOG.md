@@ -4,6 +4,7 @@
 
 ### Misc.
 
+- (readme) Installation instructions for `Nix` users [#143](https://github.com/sectore/timr-tui/pull/143)
 - (deps) Rust 1.92.0 [#142](https://github.com/sectore/timr-tui/pull/142)
 
 ## v1.6.1 - 2025-10-29
