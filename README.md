@@ -1,3 +1,5 @@
+![crate.io](https://img.shields.io/crates/v/timr-tui) ![CI](https://img.shields.io/github/actions/workflow/status/sectore/timr-tui/ci.yml) ![License](https://img.shields.io/crates/l/timr-tui) [![Built With Ratatui](https://img.shields.io/badge/Built_With-Ratatui-000?logo=ratatui&logoColor=fff&labelColor=000&color=fff)](https://ratatui.rs/) 
+
 # timr-tui
 
 TUI to organize your time: Pomodoro, Countdown, Timer, Event.
