@@ -4,6 +4,7 @@
 
 ### Misc.
 
+- (deps) Latest Ratatui `v0.30.0` [#144](https://github.com/sectore/timr-tui/pull/144)
 - (readme) Installation instructions for `Nix` users [#143](https://github.com/sectore/timr-tui/pull/143)
 - (deps) Rust 1.92.0 [#142](https://github.com/sectore/timr-tui/pull/142)
 
