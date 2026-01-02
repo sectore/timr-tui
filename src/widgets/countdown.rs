@@ -3,7 +3,6 @@ use crate::{
     constants::TICK_VALUE_MS,
     duration::{DurationEx, MAX_DURATION},
     events::{AppEventTx, TuiEvent, TuiEventHandler},
-    utils::center,
     widgets::{
         clock::{self, ClockState, ClockStateArgs, ClockWidget, Mode as ClockMode},
         edit_time::{EditTimeState, EditTimeStateArgs, EditTimeWidget},
@@ -347,8 +346,7 @@ impl StatefulWidget for Countdown {
                 .to_uppercase(),
             );
             let widget = EditTimeWidget::new(self.style);
-            let area = center(
-                area,
+            let area = area.centered(
                 Constraint::Length(max(widget.get_width(), label.width() as u16)),
                 Constraint::Length(widget.get_height() + 1 /* height of label */),
             );
@@ -383,8 +381,7 @@ impl StatefulWidget for Countdown {
             );
             let widget = ClockWidget::new(self.style, self.blink);
 
-            let area = center(
-                area,
+            let area = area.centered(
                 Constraint::Length(max(
                     widget.get_width(state.clock.get_format(), state.clock.with_decis),
                     label.width() as u16,

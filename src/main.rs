@@ -10,7 +10,6 @@ mod args;
 mod duration;
 mod storage;
 mod terminal;
-mod utils;
 mod widgets;
 
 #[cfg(feature = "sound")]

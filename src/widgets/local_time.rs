@@ -10,7 +10,6 @@ use crate::{
     common::{AppTime, AppTimeFormat, Style as DigitStyle},
     duration::{ClockDuration, DurationEx},
     events::{TuiEvent, TuiEventHandler},
-    utils::center,
     widgets::clock_elements::{
         COLON_WIDTH, Colon, DIGIT_HEIGHT, DIGIT_SPACE_WIDTH, DIGIT_WIDTH, Digit,
     },
@@ -137,8 +136,7 @@ impl StatefulWidget for LocalTimeWidget {
             1, // date
         ];
 
-        let area = center(
-            area,
+        let area = area.centered(
             Constraint::Length(content_width),
             Constraint::Length(v_heights.iter().sum()),
         );

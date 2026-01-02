@@ -1,7 +1,6 @@
 use crate::{
     common::Style,
     events::{TuiEvent, TuiEventHandler},
-    utils::center,
     widgets::clock::{self, ClockState, ClockWidget},
 };
 use crossterm::event::{Event as CrosstermEvent, KeyModifiers};
@@ -111,8 +110,7 @@ impl StatefulWidget for Timer {
         let clock_widget = ClockWidget::new(self.style, self.blink);
         let label = Line::raw((format!("Timer {}", clock.get_mode())).to_uppercase());
 
-        let area = center(
-            area,
+        let area = area.centered(
             Constraint::Length(max(
                 clock_widget.get_width(clock.get_format(), clock.with_decis),
                 label.width() as u16,
