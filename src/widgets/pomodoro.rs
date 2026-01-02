@@ -2,7 +2,6 @@ use crate::{
     common::Style,
     constants::TICK_VALUE_MS,
     events::{AppEventTx, TuiEvent, TuiEventHandler},
-    utils::center,
     widgets::clock::{ClockState, ClockStateArgs, ClockWidget, Countdown},
 };
 use crossterm::event::{Event as CrosstermEvent, KeyCode, KeyModifiers};
@@ -247,8 +246,7 @@ impl StatefulWidget for PomodoroWidget {
         );
         let label_round = Line::raw((format!("round {}", state.get_round(),)).to_uppercase());
 
-        let area = center(
-            area,
+        let area = area.centered(
             Constraint::Length(max(
                 clock_widget
                     .get_width(state.get_clock().get_format(), state.get_clock().with_decis),

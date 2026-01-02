@@ -16,7 +16,6 @@ use crate::{
     duration::CalendarDuration,
     event::Event,
     events::{AppEvent, AppEventTx, TuiEvent, TuiEventHandler},
-    utils::center,
     widgets::{clock, clock_elements::DIGIT_HEIGHT},
 };
 use std::{cmp::max, time::Duration};
@@ -394,8 +393,7 @@ impl StatefulWidget for EventWidget {
         let clock_widths = clock::clock_horizontal_lengths(&clock_format, with_decis);
         let clock_width = clock_widths.iter().sum();
 
-        let area = center(
-            area,
+        let area = area.centered(
             Constraint::Length(max(clock_width, MAX_LABEL_WIDTH as u16)),
             Constraint::Length(
                 DIGIT_HEIGHT + 7, /* height of all labels + empty lines */

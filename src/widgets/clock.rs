@@ -19,7 +19,6 @@ use crate::{
         ONE_SECOND, ONE_YEAR,
     },
     events::{AppEvent, AppEventTx},
-    utils::center_horizontal,
     widgets::clock_elements::{
         COLON_WIDTH, Colon, DIGIT_HEIGHT, DIGIT_LABEL_WIDTH, DIGIT_SPACE_WIDTH, DIGIT_WIDTH,
         DOT_WIDTH, Digit, Dot, THREE_DIGITS_WIDTH, TWO_DIGITS_WIDTH,
@@ -968,7 +967,7 @@ pub fn render_clock<D: ClockDuration>(area: Rect, buf: &mut Buffer, state: Rende
     } = state;
 
     let width = widths.iter().sum();
-    let area = center_horizontal(area, Constraint::Length(width));
+    let area = area.centered_horizontally(Constraint::Length(width));
 
     let edit_years = matches!(editable_time, Some(Time::Years));
     let edit_days = matches!(editable_time, Some(Time::Days));
