@@ -1,6 +1,6 @@
 # timr-tui
 
-[![crate.io](https://img.shields.io/crates/v/timr-tui)](https://crates.io/crates/timr-tui) [![CI](https://img.shields.io/github/actions/workflow/status/sectore/timr-tui/ci.yml)](https://github.com/sectore/timr-tui/actions/workflows/ci.yml) [![License](https://img.shields.io/crates/l/timr-tui)](./LICENSE) [![Built With Ratatui](https://img.shields.io/badge/Built_With-Ratatui-000?logo=ratatui&logoColor=fff&labelColor=000&color=fff)](https://ratatui.rs/) 
+[![crate.io](https://img.shields.io/crates/v/timr-tui)](https://crates.io/crates/timr-tui) [![CI](https://img.shields.io/github/actions/workflow/status/sectore/timr-tui/ci.yml)](https://github.com/sectore/timr-tui/actions/workflows/ci.yml) [![License](https://img.shields.io/crates/l/timr-tui)](./LICENSE) [![Built With Ratatui](https://img.shields.io/badge/Built_With-Ratatui-000?logo=ratatui&logoColor=fff&labelColor=000&color=fff)](https://ratatui.rs/)
 
 TUI to organize your time: Pomodoro, Countdown, Timer, Event.
 
@@ -8,7 +8,6 @@ TUI to organize your time: Pomodoro, Countdown, Timer, Event.
 - `[2] timer` Check the time on anything you are you doing.
 - `[3] pomodoro` Organize your working time to be focused all the time by following the [Pomodoro Technique](https://en.wikipedia.org/wiki/Pomodoro_Technique).
 - `[4] event` Count the time for any event in the future or past.
-
 
 # Table of Contents
 
@@ -37,13 +36,13 @@ _(theme depends on your terminal preferences)_
   <img alt="pomodoro" src="demo/timer.gif" />
 </a>
 
-## Countdown (*incl. [Mission Elapsed Time](https://en.wikipedia.org/wiki/Mission_Elapsed_Time)*)
+## Countdown (_incl. [Mission Elapsed Time](https://en.wikipedia.org/wiki/Mission_Elapsed_Time)_)
 
 <a href="demo/countdown.gif">
   <img alt="countdown" src="demo/countdown.gif" />
 </a>
 
-## Event (*past/future*)
+## Event (_past/future_)
 
 <a href="demo/event.gif">
   <img alt="event" src="demo/event.gif" />
@@ -55,7 +54,7 @@ _(theme depends on your terminal preferences)_
   <img alt="local time" src="demo/local-time.gif" />
 </a>
 
-## Local time (*footer*)
+## Local time (_footer_)
 
 <a href="demo/local-time-footer.gif">
   <img alt="local time at footer" src="demo/local-time-footer.gif" />
@@ -67,12 +66,11 @@ _(theme depends on your terminal preferences)_
   <img alt="deciseconds" src="demo/decis.gif" />
 </a>
 
-## Maximum (*`9999y`* *`364d`* *`23:59:59.9`*)
+## Maximum (_`9999y`_ _`364d`_ _`23:59:59.9`_)
 
 <a href="demo/timer-max.png">
   <img alt="maximum" src="demo/timer-max.png" />
 </a>
-
 
 ## Change style
 
@@ -120,73 +118,73 @@ Extra option (if `--features sound` is enabled by local build only):
 
 ## Menu
 
-| Key | Description |
-| --- | --- |
+| Key                                         | Description |
+| ------------------------------------------- | ----------- |
 | <kbd>↑</kbd> / <kbd>↓</kbd> or <kbd>m</kbd> | Toggle menu |
 
 ## Screens
 
-| Key | Description |
-| --- | --- |
-| <kbd>1</kbd> | Pomodoro |
-| <kbd>2</kbd> | Countdown |
-| <kbd>3</kbd> | Timer |
-| <kbd>4</kbd> | Event |
-| <kbd>0</kbd> | Local Time |
-| <kbd>→</kbd> | next screen |
+| Key          | Description     |
+| ------------ | --------------- |
+| <kbd>1</kbd> | Pomodoro        |
+| <kbd>2</kbd> | Countdown       |
+| <kbd>3</kbd> | Timer           |
+| <kbd>4</kbd> | Event           |
+| <kbd>0</kbd> | Local Time      |
+| <kbd>→</kbd> | next screen     |
 | <kbd>←</kbd> | previous screen |
 
 ## Controls
 
-| Key | Description |
-| --- | --- |
-| <kbd>s</kbd> | start |
-| <kbd>r</kbd> | reset |
+| Key          | Description     |
+| ------------ | --------------- |
+| <kbd>s</kbd> | start           |
+| <kbd>r</kbd> | reset           |
 | <kbd>e</kbd> | enter edit mode |
-| <kbd>q</kbd> | quit |
+| <kbd>q</kbd> | quit            |
 
 **In `edit` mode only:**
 
-| Key | Description |
-| --- | --- |
-| <kbd>s</kbd> | save changes |
-| <kbd>Esc</kbd> | skip changes |
-| <kbd>←</kbd> or <kbd>→</kbd> | change selection |
-| <kbd>↑</kbd> | edit to go up |
-| <kbd>ctrl+↑</kbd> | edit to go up 10x |
-| <kbd>↓</kbd> | edit to go down |
-| <kbd>ctrl+↓</kbd> | edit to go down 10x |
+| Key                          | Description         |
+| ---------------------------- | ------------------- |
+| <kbd>s</kbd>                 | save changes        |
+| <kbd>Esc</kbd>               | skip changes        |
+| <kbd>←</kbd> or <kbd>→</kbd> | change selection    |
+| <kbd>↑</kbd>                 | edit to go up       |
+| <kbd>ctrl+↑</kbd>            | edit to go up 10x   |
+| <kbd>↓</kbd>                 | edit to go down     |
+| <kbd>ctrl+↓</kbd>            | edit to go down 10x |
 
 **In `Event` `edit` mode only:**
 
-| Key | Description |
-| --- | --- |
+| Key              | Description  |
+| ---------------- | ------------ |
 | <kbd>Enter</kbd> | save changes |
-| <kbd>Esc</kbd> | skip changes |
-| <kbd>Tab</kbd> | switch input |
+| <kbd>Esc</kbd>   | skip changes |
+| <kbd>Tab</kbd>   | switch input |
 
 **In `Pomodoro` screen only:**
 
-| Key | Description |
-| --- | --- |
-| <kbd>ctrl+←</kbd> or <kbd>ctrl+→</kbd> | switch work/pause |
-| <kbd>ctrl+r</kbd> | reset round |
-| <kbd>ctrl+s</kbd> | save initial value |
+| Key                                    | Description        |
+| -------------------------------------- | ------------------ |
+| <kbd>ctrl+←</kbd> or <kbd>ctrl+→</kbd> | switch work/pause  |
+| <kbd>ctrl+r</kbd>                      | reset round        |
+| <kbd>ctrl+s</kbd>                      | save initial value |
 
 **In `Countdown` screen only:**
 
-| Key | Description |
-| --- | --- |
+| Key               | Description        |
+| ----------------- | ------------------ |
 | <kbd>ctrl+e</kbd> | edit by local time |
 | <kbd>ctrl+s</kbd> | save initial value |
 
 ## Appearance
 
-| Key | Description |
-| --- | --- |
-| <kbd>,</kbd> | toggle styles |
+| Key          | Description        |
+| ------------ | ------------------ |
+| <kbd>,</kbd> | toggle styles      |
 | <kbd>.</kbd> | toggle deciseconds |
-| <kbd>:</kbd> | toggle local time |
+| <kbd>:</kbd> | toggle local time  |
 
 # Installation
 
@@ -272,6 +270,7 @@ If you have [`direnv`](https://direnv.net) installed, run `direnv allow` once to
 - [`Rust`](https://www.rust-lang.org/learn/get-started)
 - [`Clippy`](https://github.com/rust-lang/rust-clippy)
 - [`rustfmt`](https://github.com/rust-lang/rustfmt)
+- [`dprint`](https://dprint.dev)
 - [`just`](https://just.systems)
 
 ### Commands
