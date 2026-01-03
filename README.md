@@ -5,7 +5,7 @@
 TUI to organize your time: Pomodoro, Countdown, Timer, Event.
 
 - `[1] countdown` Use it for your workout, yoga/breathing sessions, meditation, handstand or whatever.
-- `[2] timer` Check the time on anything you are you doing.
+- `[2] timer` Check the time on anything you are doing.
 - `[3] pomodoro` Organize your working time to be focused all the time by following the [Pomodoro Technique](https://en.wikipedia.org/wiki/Pomodoro_Technique).
 - `[4] event` Count the time for any event in the future or past.
 
@@ -227,12 +227,12 @@ nix-env -iA nixpkgs.timr-tui --arg timr-tui '(timr-tui.override { enableSound = 
 
 ```nix
 # default (w/o sound)
-environment.systemPackages = with pkgs; [ 
-  timr-tui 
+environment.systemPackages = with pkgs; [
+  timr-tui
 ];
 # or w/ sound enabled
-environment.systemPackages = with pkgs; [ 
-  (timr-tui.override { enableSound = true; }) 
+environment.systemPackages = with pkgs; [
+  (timr-tui.override { enableSound = true; })
 ];
 ```
 
@@ -240,16 +240,16 @@ environment.systemPackages = with pkgs; [
 
 ```nix
 # default (w/o sound)
-home.packages = with pkgs; [ 
-  timr-tui 
+home.packages = with pkgs; [
+  timr-tui
 ];
 # or w/ sound enabled
-home.packages = with pkgs; [ 
-  (timr-tui.override { enableSound = true; }) 
+home.packages = with pkgs; [
+  (timr-tui.override { enableSound = true; })
 ];
 ```
 
-Source at `nixpkgs`: https://github.com/NixOS/nixpkgs/blob/nixos-unstable/pkgs/by-name/ti/timr-tui/package.nix
+Source at `nixpkgs`: <https://github.com/NixOS/nixpkgs/blob/nixos-unstable/pkgs/by-name/ti/timr-tui/package.nix>
 
 ## Release binaries
 
@@ -334,7 +334,7 @@ nix build .#windows
 cargo test
 ```
 
-# Misc.
+# Misc
 
 ## Persistant app state
 
