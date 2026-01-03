@@ -84,6 +84,7 @@
               pkgs.just
               pkgs.nixd
               pkgs.alejandra
+              pkgs.dprint
             ]
             # pkgs needed to play sound on Linux
             ++ lib.optionals stdenv.isLinux [

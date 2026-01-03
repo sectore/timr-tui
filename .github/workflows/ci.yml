@@ -2,18 +2,19 @@ name: lint, format, test, build
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
 
 jobs:
-
   check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: DeterminateSystems/nix-installer-action@main
-      - name: Check formatting
+      - name: Check fmt
         run: nix develop --command cargo fmt --all -- --check
+      - name: Check fmt md
+        run: nix develop --command dprint check **/*.md
       - name: Run clippy
         run: nix develop --command cargo clippy -- -D warnings
       - name: Run alejandra
