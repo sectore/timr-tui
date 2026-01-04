@@ -38,6 +38,7 @@ clap = { version = "4.5.53", features = ["derive"] }
 time = { version = "0.3.44", features = ["formatting", "local-offset", "parsing", "macros", "serde"] }
 notify-rust = "4.11.7"
 rodio = { version = "0.21.1", features = [
+    "playback",
     "symphonia-mp3",
     "symphonia-wav",
 ], default-features = false, optional = true }
