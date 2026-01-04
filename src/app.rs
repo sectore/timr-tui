@@ -22,6 +22,8 @@ use crossterm::event::Event as CrosstermEvent;
 
 #[cfg(feature = "sound")]
 use crate::sound::Sound;
+#[cfg(feature = "sound")]
+use std::path::PathBuf;
 
 use color_eyre::Result;
 use ratatui::{
@@ -30,7 +32,7 @@ use ratatui::{
     layout::{Constraint, Layout, Position, Rect},
     widgets::{StatefulWidget, Widget},
 };
-use std::path::PathBuf;
+
 use std::time::Duration;
 use tracing::{debug, error};
 
@@ -45,8 +47,8 @@ pub struct App {
     mode: Mode,
     notification: Toggle,
     blink: Toggle,
-    #[allow(dead_code)] // w/ `--features sound` available only
-    sound_path: Option<PathBuf>,
+    #[cfg(feature = "sound")]
+    sound: Option<Sound>,
     app_time: AppTime,
     app_time_format: AppTimeFormat,
     countdown: CountdownState,
@@ -80,6 +82,7 @@ pub struct AppArgs {
     pub current_value_timer: Duration,
     pub event: Event,
     pub app_tx: events::AppEventTx,
+    #[cfg(feature = "sound")]
     pub sound_path: Option<PathBuf>,
     pub footer_toggle_app_time: Toggle,
 }
@@ -142,8 +145,6 @@ impl From<FromAppArgs> for App {
             app_tx,
             #[cfg(feature = "sound")]
             sound_path: args.sound,
-            #[cfg(not(feature = "sound"))]
-            sound_path: None,
             footer_toggle_app_time: stg.footer_app_time,
         })
     }
@@ -170,17 +171,22 @@ impl App {
             event,
             notification,
             blink,
-            sound_path,
             app_tx,
             footer_toggle_app_time,
+            #[cfg(feature = "sound")]
+            sound_path,
         } = args;
         let app_time = AppTime::new();
+
+        #[cfg(feature = "sound")]
+        let sound = sound_path.and_then(|path| Sound::new(path).ok());
 
         Self {
             mode: Mode::Running,
             notification,
             blink,
-            sound_path,
+            #[cfg(feature = "sound")]
+            sound,
             content,
             app_time,
             app_time_format,
@@ -364,13 +370,10 @@ impl App {
                     };
 
                     #[cfg(feature = "sound")]
-                    if let Some(path) = app.sound_path.clone() {
-                        _ = Sound::new(path).and_then(|sound| sound.play()).or_else(
-                            |err| -> Result<()> {
-                                error!("Sound error: {:?}", err);
-                                Ok(())
-                            },
-                        );
+                    if let Some(sound) = &app.sound {
+                        if let Err(err) = sound.play() {
+                            error!("Sound error: {:?}", err);
+                        }
                     }
                 }
                 events::AppEvent::SetCursor(position) => {
