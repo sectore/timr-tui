@@ -270,6 +270,7 @@ If you have [`direnv`](https://direnv.net) installed, run `direnv allow` once to
 - [`Rust`](https://www.rust-lang.org/learn/get-started)
 - [`Clippy`](https://github.com/rust-lang/rust-clippy)
 - [`rustfmt`](https://github.com/rust-lang/rustfmt)
+- [`dprint`](https://dprint.dev)
 - [`just`](https://just.systems)
 
 ### Commands
