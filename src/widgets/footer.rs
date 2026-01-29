@@ -154,9 +154,9 @@ impl StatefulWidget for Footer {
                             match self.app_edit_mode {
                                 AppEditMode::None if self.selected_content != Content::Event => {
                                     let mut spans = vec![Span::from(if self.running_clock {
-                                        "[s]top"
+                                        "[␣]stop"
                                     } else {
-                                        "[s]tart"
+                                        "[␣]start"
                                     })];
                                     spans.extend_from_slice(&[
                                         Span::from(SPACE),
@@ -175,7 +175,7 @@ impl StatefulWidget for Footer {
                                     if self.selected_content == Content::Pomodoro {
                                         spans.extend_from_slice(&[
                                             Span::from(SPACE),
-                                            Span::from("[^r]eset clocks+rounds"),
+                                            Span::from("[^r]eset clocks/rounds"),
                                         ]);
                                     }
                                     spans
