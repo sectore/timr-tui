@@ -105,9 +105,7 @@ impl StatefulWidget for Footer {
 
             content_labels.extend_from_slice(&[
                 Span::from(SPACE),
-                Span::from("[→]next"),
-                Span::from(SPACE),
-                Span::from("[←]prev."),
+                Span::from("[←] [→] switch screens"),
             ]);
 
             const SPACE: &str = "  "; // 2 empty spaces
@@ -229,7 +227,7 @@ impl StatefulWidget for Footer {
                                         let mut spans = vec![];
                                         if self.selected_content == Content::Pomodoro {
                                             spans.extend_from_slice(&[Span::from(
-                                                "[^←] or [^→] switch work/pause",
+                                                "[^←] [^→] switch work/pause",
                                             )]);
                                         }
                                         spans
