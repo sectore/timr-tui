@@ -2,11 +2,15 @@
 
 ## [unreleased]
 
+### Features
+
+- (footer) re-style menu [#152](https://github.com/sectore/timr-tui/pull/152)
+- (keys) `start` / `stop` using `␣` key [#151](https://github.com/sectore/timr-tui/pull/151)
+
 ### Fix
 
-- fix(footer): combine `←` `→` labels [#151](https://github.com/sectore/timr-tui/pull/151)
-- fix(sound): latest `rodio` breaks sound implementation [#149](https://github.com/sectore/timr-tui/issues/149)
-- fix(readme) typo [#145](https://github.com/sectore/timr-tui/issues/145)
+- (sound) latest `rodio` breaks sound implementation [#149](https://github.com/sectore/timr-tui/issues/149)
+- (readme) typo [#145](https://github.com/sectore/timr-tui/issues/145)
 
 ### Misc.
 
