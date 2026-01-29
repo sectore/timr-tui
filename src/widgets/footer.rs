@@ -103,10 +103,8 @@ impl StatefulWidget for Footer {
                 })
                 .collect();
 
-            content_labels.extend_from_slice(&[
-                Span::from(SPACE),
-                Span::from("[←] [→] switch screens"),
-            ]);
+            content_labels
+                .extend_from_slice(&[Span::from(SPACE), Span::from("[←] [→] switch screens")]);
 
             const SPACE: &str = "  "; // 2 empty spaces
             let widths = [Constraint::Length(12), Constraint::Percentage(100)];
