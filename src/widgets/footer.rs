@@ -90,10 +90,10 @@ impl StatefulWidget for Footer {
                 Line::from(match (state.app_time_format, self.selected_content) {
                     // Show time
                     (Some(v), content) if content != Content::LocalTime => format!(
-                        " {} ", // add some WIDE_SPACE around
+                        "{SPACE}{}{SPACE}", // keep SPACE around
                         self.app_time.format(&v)
                     ),
-                    // Hide time -> empty
+                    // Hide time -> empty string
                     _ => "".into(),
                 })
                 .right_aligned(),
