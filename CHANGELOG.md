@@ -2,11 +2,17 @@
 
 ## [unreleased]
 
+### Fix
+
+- fix(sound): latest `rodio` breaks sound implementation [#149](https://github.com/sectore/timr-tui/issues/149)
+- fix(readme) typo [#145](https://github.com/sectore/timr-tui/issues/145)
+
 ### Misc.
 
+- (deps) Rust 1.93.0 [#150](https://github.com/sectore/timr-tui/pull/150)
+- use `dprint` as `Markdown` code formatter [#146](https://github.com/sectore/timr-tui/issues/146)
 - (deps) Latest Ratatui `v0.30.0` [#144](https://github.com/sectore/timr-tui/pull/144)
 - (readme) Installation instructions for `Nix` users [#143](https://github.com/sectore/timr-tui/pull/143)
-- (deps) Rust 1.92.0 [#142](https://github.com/sectore/timr-tui/pull/142)
 
 ## v1.6.1 - 2025-10-29
 
