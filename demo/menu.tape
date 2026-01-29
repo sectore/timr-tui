@@ -1,7 +1,7 @@
 Output demo/menu.gif
 
 # https://github.com/charmbracelet/vhs/blob/main/THEMES.md
-Set Theme "Apple Classic"
+Set Theme "Purple Rain"
 
 Set FontSize 14
 Set Width 1000
