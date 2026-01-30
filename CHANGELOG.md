@@ -4,6 +4,7 @@
 
 ### Features
 
+- (pomodoro) change time by factor 10 [#154](https://github.com/sectore/timr-tui/issues/154)
 - (countdown) change local time by factor 10 [#153](https://github.com/sectore/timr-tui/issues/153)
 - (footer) re-style menu [#152](https://github.com/sectore/timr-tui/pull/152)
 - (keys) `start` / `stop` using `␣` key [#151](https://github.com/sectore/timr-tui/pull/151)
