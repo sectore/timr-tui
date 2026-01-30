@@ -102,17 +102,20 @@ impl EditTimeState {
         self.selected = self.selected.prev();
     }
 
-    fn up_by(&mut self, times: i64) {
+    fn count_to(&mut self, times: i64) -> time::Duration {
         let seconds = match self.selected {
             Selected::Seconds => times,
             Selected::Minutes => 60 * times,
             Selected::Hours => 60 * 60 * times,
         };
+        time::Duration::new(seconds, 0)
+    }
 
-        let delta = time::Duration::new(seconds, 0);
+    fn up_by(&mut self, times: i64) {
+        let count_value = self.count_to(times);
 
-        if self.time.lt(&self.max.saturating_sub(delta)) {
-            self.time = self.time.saturating_add(delta);
+        if self.time.lt(&self.max.saturating_sub(count_value)) {
+            self.time = self.time.saturating_add(count_value);
         }
     }
 
@@ -125,16 +128,10 @@ impl EditTimeState {
     }
 
     fn down_by(&mut self, times: i64) {
-        let seconds = match self.selected {
-            Selected::Seconds => times,
-            Selected::Minutes => 60 * times,
-            Selected::Hours => 60 * 60 * times,
-        };
+        let count_value = self.count_to(times);
 
-        let delta = time::Duration::new(seconds, 0);
-
-        if self.time.ge(&self.min.saturating_add(delta)) {
-            self.time = self.time.saturating_sub(delta);
+        if self.time.ge(&self.min.saturating_add(count_value)) {
+            self.time = self.time.saturating_sub(count_value);
         }
     }
 
