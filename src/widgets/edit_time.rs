@@ -102,74 +102,45 @@ impl EditTimeState {
         self.selected = self.selected.prev();
     }
 
+    fn count_to(&mut self, times: i64) -> time::Duration {
+        let seconds = match self.selected {
+            Selected::Seconds => times,
+            Selected::Minutes => 60 * times,
+            Selected::Hours => 60 * 60 * times,
+        };
+        time::Duration::new(seconds, 0)
+    }
+
+    fn up_by(&mut self, times: i64) {
+        let count_value = self.count_to(times);
+
+        if self.time.lt(&self.max.saturating_sub(count_value)) {
+            self.time = self.time.saturating_add(count_value);
+        }
+    }
+
     pub fn up(&mut self) {
-        self.time = match self.selected {
-            Selected::Seconds => {
-                if self
-                    .time
-                    .lt(&self.max.saturating_sub(time::Duration::new(1, 0)))
-                {
-                    self.time.saturating_add(time::Duration::new(1, 0))
-                } else {
-                    self.time
-                }
-            }
-            Selected::Minutes => {
-                if self
-                    .time
-                    .lt(&self.max.saturating_sub(time::Duration::new(60, 0)))
-                {
-                    self.time.saturating_add(time::Duration::new(60, 0))
-                } else {
-                    self.time
-                }
-            }
-            Selected::Hours => {
-                if self
-                    .time
-                    .lt(&self.max.saturating_sub(time::Duration::new(60 * 60, 0)))
-                {
-                    self.time.saturating_add(time::Duration::new(60 * 60, 0))
-                } else {
-                    self.time
-                }
-            }
+        self.up_by(1);
+    }
+
+    pub fn jump_up(&mut self) {
+        self.up_by(10);
+    }
+
+    fn down_by(&mut self, times: i64) {
+        let count_value = self.count_to(times);
+
+        if self.time.ge(&self.min.saturating_add(count_value)) {
+            self.time = self.time.saturating_sub(count_value);
         }
     }
 
     pub fn down(&mut self) {
-        self.time = match self.selected {
-            Selected::Seconds => {
-                if self
-                    .time
-                    .ge(&self.min.saturating_add(time::Duration::new(1, 0)))
-                {
-                    self.time.saturating_sub(time::Duration::new(1, 0))
-                } else {
-                    self.time
-                }
-            }
-            Selected::Minutes => {
-                if self
-                    .time
-                    .ge(&self.min.saturating_add(time::Duration::new(60, 0)))
-                {
-                    self.time.saturating_sub(time::Duration::new(60, 0))
-                } else {
-                    self.time
-                }
-            }
-            Selected::Hours => {
-                if self
-                    .time
-                    .ge(&self.min.saturating_add(time::Duration::new(60 * 60, 0)))
-                {
-                    self.time.saturating_sub(time::Duration::new(60 * 60, 0))
-                } else {
-                    self.time
-                }
-            }
-        }
+        self.down_by(1);
+    }
+
+    pub fn jump_down(&mut self) {
+        self.down_by(10);
     }
 }
 
