@@ -57,12 +57,12 @@ const ITALIC: Style = Style::new().italic();
 impl StatefulWidget for Footer {
     type State = FooterState;
     fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
-        let content_labels: BTreeMap<Content, (u8, &str)> = BTreeMap::from([
-            (Content::Countdown, (1, "countdown")),
-            (Content::Timer, (2, "timer")),
-            (Content::Pomodoro, (3, "pomodoro")),
-            (Content::Event, (4, "event")),
-            (Content::LocalTime, (0, "local time")),
+        let content_labels: BTreeMap<Content, &str> = BTreeMap::from([
+            (Content::Countdown, "countdown"),
+            (Content::Timer, "timer"),
+            (Content::Pomodoro, "pomodoro"),
+            (Content::Event, "event"),
+            (Content::LocalTime, "local time"),
         ]);
 
         let [_, area] =
@@ -105,7 +105,8 @@ impl StatefulWidget for Footer {
             let mut content_labels: Vec<Span> = content_labels
                 .iter()
                 .enumerate()
-                .flat_map(|(index, (content, (key, label)))| {
+                .flat_map(|(index, (content, label))| {
+                    let no = index + 1;
                     let is_last = index == content_labels.len() - 1;
                     let is_selected = *content == self.selected_content;
                     let label_text = if is_last {
@@ -114,7 +115,7 @@ impl StatefulWidget for Footer {
                         format!("{label}{WIDE_SPACE}")
                     };
                     [
-                        Span::styled(format!("{key}"), BOLD),
+                        Span::styled(format!("{no}"), BOLD),
                         Span::from(SPACE),
                         Span::styled(label_text, if is_selected { BOLD.italic() } else { ITALIC }),
                     ]
