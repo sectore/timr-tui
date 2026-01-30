@@ -252,12 +252,12 @@ impl App {
             debug!("Received key {:?}", key.code);
             match key.code {
                 KeyCode::Char('q') => app.mode = Mode::Quit,
-                KeyCode::Char('1') | KeyCode::Char('c') /* TODO: deprecated, remove it in next version */ => app.content = Content::Countdown,
-                KeyCode::Char('2') | KeyCode::Char('t') /* TODO: deprecated, remove it in next version */ => app.content = Content::Timer,
-                KeyCode::Char('3') | KeyCode::Char('p') /* TODO: deprecated, remove it in next version */ => app.content = Content::Pomodoro,
+                KeyCode::Char('1') | KeyCode::Char('c') /* TODO: deprecated, remove it in next major version */ => app.content = Content::Countdown,
+                KeyCode::Char('2') | KeyCode::Char('t') /* TODO: deprecated, remove it in next major version */ => app.content = Content::Timer,
+                KeyCode::Char('3') | KeyCode::Char('p') /* TODO: deprecated, remove it in next major version */ => app.content = Content::Pomodoro,
                 KeyCode::Char('4') => app.content = Content::Event,
                 // toogle app time format
-                KeyCode::Char('0') | KeyCode::Char('l') /* TODO: deprecated, remove it in next version */ => app.content = Content::LocalTime,
+                KeyCode::Char('0') | KeyCode::Char('l') /* TODO: deprecated, remove it in next major version */ => app.content = Content::LocalTime,
                 // switch `screens`
                 KeyCode::Right => {
                     app.content = app.content.next();
@@ -297,8 +297,6 @@ impl App {
                         app.footer.set_app_time_format(new_format);
                     }
                 }
-                // toogle menu
-                KeyCode::Char('m') => app.footer.set_show_menu(!app.footer.get_show_menu()),
                 KeyCode::Char(',') => {
                     app.style = app.style.next();
                 }
@@ -310,6 +308,8 @@ impl App {
                     app.pomodoro.set_with_decis(app.with_decis);
                     app.event.set_with_decis(app.with_decis);
                 }
+                // toogle menu
+                KeyCode::Char('m') => app.footer.set_show_menu(!app.footer.get_show_menu()),
                 KeyCode::Up => app.footer.set_show_menu(true),
                 KeyCode::Down => app.footer.set_show_menu(false),
                 _ => {}

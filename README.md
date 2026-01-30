@@ -118,9 +118,9 @@ Extra option (if `--features sound` is enabled by local build only):
 
 ## Menu
 
-| Key                                         | Description |
-| ------------------------------------------- | ----------- |
-| <kbd>↑</kbd> / <kbd>↓</kbd> or <kbd>m</kbd> | Toggle menu |
+| Key                         | Description |
+| --------------------------- | ----------- |
+| <kbd>↑</kbd> / <kbd>↓</kbd> | Toggle menu |
 
 ## Screens
 
@@ -136,19 +136,19 @@ Extra option (if `--features sound` is enabled by local build only):
 
 ## Controls
 
-| Key          | Description     |
-| ------------ | --------------- |
-| <kbd>s</kbd> | start           |
-| <kbd>r</kbd> | reset           |
-| <kbd>e</kbd> | enter edit mode |
-| <kbd>q</kbd> | quit            |
+| Key              | Description     |
+| ---------------- | --------------- |
+| <kbd>space</kbd> | start/stop      |
+| <kbd>r</kbd>     | reset           |
+| <kbd>e</kbd>     | enter edit mode |
+| <kbd>q</kbd>     | quit            |
 
 **In `edit` mode only:**
 
 | Key                          | Description         |
 | ---------------------------- | ------------------- |
 | <kbd>s</kbd>                 | save changes        |
-| <kbd>Esc</kbd>               | skip changes        |
+| <kbd>esc</kbd>               | skip changes        |
 | <kbd>←</kbd> or <kbd>→</kbd> | change selection    |
 | <kbd>↑</kbd>                 | edit to go up       |
 | <kbd>ctrl+↑</kbd>            | edit to go up 10x   |
@@ -159,9 +159,9 @@ Extra option (if `--features sound` is enabled by local build only):
 
 | Key              | Description  |
 | ---------------- | ------------ |
-| <kbd>Enter</kbd> | save changes |
-| <kbd>Esc</kbd>   | skip changes |
-| <kbd>Tab</kbd>   | switch input |
+| <kbd>enter</kbd> | save changes |
+| <kbd>esc</kbd>   | skip changes |
+| <kbd>tab</kbd>   | switch input |
 
 **In `Pomodoro` screen only:**
 

@@ -273,8 +273,7 @@ impl TuiEventHandler for CountdownState {
                         edit_time.set_time(time);
                     }
                 }
-                // TODO: Deprecate 's' in next major release
-                KeyCode::Char('s') | KeyCode::Char(' ') => {
+                KeyCode::Char(' ') | KeyCode::Char('s') /* TODO: deprecated, remove it in next version */  => {
                     // toggle pause status depending on which clock is running
                     if !self.clock.is_done() {
                         self.clock.toggle_pause();
