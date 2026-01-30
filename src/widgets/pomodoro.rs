@@ -168,11 +168,17 @@ impl TuiEventHandler for PomodoroState {
                 KeyCode::Char('s') => {
                     self.get_clock_mut().toggle_edit();
                 }
-                // Value up
+                // change value up
+                KeyCode::Up if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                    self.get_clock_mut().edit_jump_up();
+                }
                 KeyCode::Up => {
                     self.get_clock_mut().edit_up();
                 }
-                // Value down
+                // change value down
+                KeyCode::Down if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                    self.get_clock_mut().edit_jump_down();
+                }
                 KeyCode::Down => {
                     self.get_clock_mut().edit_down();
                 }
