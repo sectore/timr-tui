@@ -174,7 +174,7 @@ impl StatefulWidget for Footer {
                             match self.app_edit_mode {
                                 AppEditMode::None if self.selected_content != Content::Event => {
                                     let mut spans = vec![
-                                        Span::styled("␣", BOLD),
+                                        Span::styled("space", BOLD),
                                         Span::from(SPACE),
                                         Span::styled(
                                             if self.running_clock { "stop" } else { "start" },
@@ -190,7 +190,7 @@ impl StatefulWidget for Footer {
                                     if self.selected_content == Content::Countdown {
                                         spans.extend_from_slice(&[
                                             Span::from(WIDE_SPACE),
-                                            Span::styled("⌃e", BOLD),
+                                            Span::styled("^e", BOLD),
                                             Span::from(SPACE),
                                             Span::styled("edit by local time", ITALIC),
                                         ]);
@@ -204,7 +204,7 @@ impl StatefulWidget for Footer {
                                     if self.selected_content == Content::Pomodoro {
                                         spans.extend_from_slice(&[
                                             Span::from(WIDE_SPACE),
-                                            Span::styled("⌃r", BOLD),
+                                            Span::styled("^r", BOLD),
                                             Span::from(SPACE),
                                             Span::styled("reset clocks/rounds", ITALIC),
                                         ]);
@@ -226,7 +226,7 @@ impl StatefulWidget for Footer {
                                     ];
 
                                     if self.selected_content == Content::Event {
-                                        spans[0] = Span::styled("↵", BOLD);
+                                        spans[0] = Span::styled("enter", BOLD);
                                     };
 
                                     if self.selected_content == Content::Countdown
@@ -234,7 +234,7 @@ impl StatefulWidget for Footer {
                                     {
                                         spans.extend_from_slice(&[
                                             Span::from(WIDE_SPACE),
-                                            Span::styled("⌃s", BOLD),
+                                            Span::styled("^s", BOLD),
                                             Span::from(SPACE),
                                             Span::styled("save initial value", ITALIC),
                                         ]);
@@ -272,7 +272,7 @@ impl StatefulWidget for Footer {
                                         let mut spans = vec![];
                                         if self.selected_content == Content::Pomodoro {
                                             spans.extend_from_slice(&[
-                                                Span::styled("⌃← ⌃→", BOLD),
+                                                Span::styled("^← ^→", BOLD),
                                                 Span::from(SPACE),
                                                 Span::styled("switch work/pause", ITALIC),
                                             ]);
@@ -291,7 +291,7 @@ impl StatefulWidget for Footer {
                                         Span::styled("edit up", ITALIC),
                                         Span::from(WIDE_SPACE),
                                         Span::styled(
-                                            format!("⌃{}", scrollbar::VERTICAL.begin),
+                                            format!("^{}", scrollbar::VERTICAL.begin),
                                             BOLD,
                                         ),
                                         Span::from(SPACE),
@@ -301,7 +301,7 @@ impl StatefulWidget for Footer {
                                         Span::from(SPACE),
                                         Span::styled("edit down", ITALIC),
                                         Span::from(WIDE_SPACE),
-                                        Span::styled(format!("⌃{}", scrollbar::VERTICAL.end), BOLD),
+                                        Span::styled(format!("^{}", scrollbar::VERTICAL.end), BOLD),
                                         Span::from(SPACE),
                                         Span::styled("edit down 10x", ITALIC),
                                     ],
