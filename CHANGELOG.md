@@ -4,13 +4,14 @@
 
 ### Features
 
+- (countdown) change local time by factor 10 [#153](https://github.com/sectore/timr-tui/issues/153)
 - (footer) re-style menu [#152](https://github.com/sectore/timr-tui/pull/152)
 - (keys) `start` / `stop` using `␣` key [#151](https://github.com/sectore/timr-tui/pull/151)
 
 ### Fix
 
 - (sound) latest `rodio` breaks sound implementation [#149](https://github.com/sectore/timr-tui/issues/149)
-- (readme) typo [#145](https://github.com/sectore/timr-tui/issues/145)
+- (readme) typo [#145](https://github.com/sectore/timr-tui/issues/145) by @dnlzrgz
 
 ### Misc.
 
