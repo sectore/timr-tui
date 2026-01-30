@@ -247,12 +247,20 @@ impl TuiEventHandler for CountdownState {
                         // safe unwrap because we are in `is_time_edit_mode`
                         self.edit_time.as_mut().unwrap().prev();
                     }
-                    // Value up
+                    // change value up
+                    KeyCode::Up if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                        // safe unwrap because of previous check in `is_time_edit_mode`
+                        self.edit_time.as_mut().unwrap().jump_up();
+                    }
                     KeyCode::Up => {
                         // safe unwrap because of previous check in `is_time_edit_mode`
                         self.edit_time.as_mut().unwrap().up();
                     }
-                    // Value down
+                    // change value down
+                    KeyCode::Down if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                        // safe unwrap because of previous check in `is_time_edit_mode`
+                        self.edit_time.as_mut().unwrap().jump_down();
+                    }
                     KeyCode::Down => {
                         // safe unwrap because of previous check in `is_time_edit_mode`
                         self.edit_time.as_mut().unwrap().down();
