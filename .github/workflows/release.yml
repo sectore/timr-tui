@@ -3,7 +3,8 @@ name: release
 on:
   push:
     branches:
-      - "release/**"
+      # - "release/**"
+      - "fix/cross-build-win"
 
 jobs:
   get-version:
@@ -46,13 +47,13 @@ jobs:
         if: matrix.os_target == 'windows'
         run: nix build .#windows
 
-      - name: Build (linux)
-        if: matrix.os_target == 'linux'
-        run: nix build .#linuxStatic
+      # - name: Build (linux)
+      #   if: matrix.os_target == 'linux'
+      #   run: nix build .#linuxStatic
 
-      - name: Build (macos)
-        if: matrix.os_target == 'macos'
-        run: nix build
+      # - name: Build (macos)
+      #   if: matrix.os_target == 'macos'
+      #   run: nix build
 
       - name: Copy artifact
         run: |
