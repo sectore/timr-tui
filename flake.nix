@@ -19,13 +19,11 @@
     flake-utils.lib.eachDefaultSystem (system: let
       pkgs = nixpkgs.legacyPackages.${system};
 
-      toolchain =
-        fenix.packages.${system}.fromToolchainFile
-        {
-          file = ./rust-toolchain.toml;
-          # sha256 = nixpkgs.lib.fakeSha256;
-          sha256 = "sha256-vra6TkHITpwRyA5oBKAHSX0Mi6CBDNQD+ryPSpxFsfg=";
-        };
+      toolchain = fenix.packages.${system}.fromToolchainFile {
+        file = ./rust-toolchain.toml;
+        # sha256 = nixpkgs.lib.fakeSha256;
+        sha256 = "sha256-vra6TkHITpwRyA5oBKAHSX0Mi6CBDNQD+ryPSpxFsfg=";
+      };
 
       craneLib = (crane.mkLib pkgs).overrideToolchain toolchain;
 
@@ -50,24 +48,19 @@
 
       # Windows cross-compilation build
       # @see https://crane.dev/examples/cross-windows.html
-      windowsBuild = craneLib.buildPackage {
-        inherit (commonArgs) src strictDeps doCheck;
-
-        CARGO_BUILD_TARGET = "x86_64-pc-windows-gnu";
-
-        # fixes issues related to libring
-        TARGET_CC = "${pkgs.pkgsCross.mingwW64.stdenv.cc}/bin/${pkgs.pkgsCross.mingwW64.stdenv.cc.targetPrefix}cc";
-
-        #fixes issues related to openssl
-        OPENSSL_DIR = "${pkgs.openssl.dev}";
-        OPENSSL_LIB_DIR = "${pkgs.openssl.out}/lib";
-        OPENSSL_INCLUDE_DIR = "${pkgs.openssl.dev}/include/";
-
-        depsBuildBuild = with pkgs; [
-          pkgsCross.mingwW64.stdenv.cc
-          pkgsCross.mingwW64.windows.pthreads
-        ];
-      };
+      windowsBuild = let
+        pkgsWindows = import nixpkgs {
+          localSystem = system;
+          crossSystem = {
+            config = "x86_64-w64-mingw32";
+            libc = "msvcrt";
+          };
+        };
+        craneLibWindows = (crane.mkLib pkgsWindows).overrideToolchain (p: toolchain);
+      in
+        craneLibWindows.buildPackage {
+          inherit (commonArgs) src strictDeps doCheck;
+        };
     in {
       packages = {
         inherit timr;
