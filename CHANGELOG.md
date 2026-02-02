@@ -11,6 +11,7 @@
 
 ### Fix
 
+- fix(nix): use `crossSystem` for `Windows` builds [#156](https://github.com/sectore/timr-tui/pull/156)
 - (sound) latest `rodio` breaks sound implementation [#149](https://github.com/sectore/timr-tui/issues/149)
 - (readme) typo [#145](https://github.com/sectore/timr-tui/issues/145) by @dnlzrgz
 
