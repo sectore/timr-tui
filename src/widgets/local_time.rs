@@ -51,7 +51,10 @@ impl LocalTimeState {
 
 impl TuiEventHandler for LocalTimeState {
     fn update(&mut self, event: TuiEvent) -> Option<TuiEvent> {
-        Some(event)
+        match event {
+            TuiEvent::Tick => None,
+            _ => Some(event),
+        }
     }
 }
 

@@ -60,6 +60,7 @@ pub struct App {
     with_decis: bool,
     footer: FooterState,
     cursor_position: Option<Position>,
+    needs_redraw: bool,
 }
 
 pub struct AppArgs {
@@ -239,6 +240,7 @@ impl App {
                 },
             ),
             cursor_position: None,
+            needs_redraw: true,
         }
     }
 
@@ -250,6 +252,7 @@ impl App {
         // Closure to handle `KeyEvent`'s
         let handle_key_event = |app: &mut Self, key: KeyEvent| {
             debug!("Received key {:?}", key.code);
+            app.needs_redraw = true;
             match key.code {
                 KeyCode::Char('q') => app.mode = Mode::Quit,
                 KeyCode::Char('1') | KeyCode::Char('c') /* TODO: deprecated, remove it in next major version */ => app.content = Content::Countdown,
@@ -322,6 +325,7 @@ impl App {
                 app.countdown.set_app_time(app.app_time);
                 app.local_time.set_app_time(app.app_time);
                 app.event.set_app_time(app.app_time);
+                app.needs_redraw = true;
             }
 
             // Pipe events into subviews and handle only 'unhandled' events afterwards
@@ -333,9 +337,15 @@ impl App {
                 Content::LocalTime => app.local_time.update(event.clone()),
             } {
                 match unhandled {
-                    events::TuiEvent::Render
-                    | events::TuiEvent::Crossterm(crossterm::event::Event::Resize(_, _)) => {
+                    events::TuiEvent::Render => {
+                        if app.needs_redraw {
+                            app.draw(terminal)?;
+                            app.needs_redraw = false;
+                        }
+                    }
+                    events::TuiEvent::Crossterm(crossterm::event::Event::Resize(_, _)) => {
                         app.draw(terminal)?;
+                        app.needs_redraw = false;
                     }
                     events::TuiEvent::Crossterm(CrosstermEvent::Key(key)) => {
                         handle_key_event(app, key)
@@ -346,9 +356,9 @@ impl App {
             Ok(())
         };
 
-        #[allow(unused_variables)] // `app` is used by `--features sound` only
         // Closure to handle `AppEvent`'s
         let handle_app_events = |app: &mut Self, event: events::AppEvent| -> Result<()> {
+            app.needs_redraw = true;
             match event {
                 events::AppEvent::ClockDone(type_id, name) => {
                     debug!("AppEvent::ClockDone");
