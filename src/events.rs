@@ -7,12 +7,11 @@ use tokio::time::interval;
 use tokio_stream::{StreamMap, wrappers::IntervalStream};
 
 use crate::common::ClockTypeId;
-use crate::constants::{FPS_VALUE_MS, TICK_VALUE_MS};
+use crate::constants::TICK_VALUE_MS;
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
 enum StreamKey {
     Ticks,
-    Render,
     Crossterm,
 }
 
@@ -20,7 +19,6 @@ enum StreamKey {
 pub enum TuiEvent {
     Error,
     Tick,
-    Render,
     Crossterm(CrosstermEvent),
 }
 
@@ -43,7 +41,6 @@ impl Default for Events {
         Self {
             streams: StreamMap::from_iter([
                 (StreamKey::Ticks, tick_stream()),
-                (StreamKey::Render, render_stream()),
                 (StreamKey::Crossterm, crossterm_stream()),
             ]),
             app_channel: mpsc::unbounded_channel(),
@@ -78,11 +75,6 @@ impl Events {
 fn tick_stream() -> Pin<Box<dyn Stream<Item = TuiEvent>>> {
     let tick_interval = interval(Duration::from_millis(TICK_VALUE_MS));
     Box::pin(IntervalStream::new(tick_interval).map(|_| TuiEvent::Tick))
-}
-
-fn render_stream() -> Pin<Box<dyn Stream<Item = TuiEvent>>> {
-    let render_interval = interval(Duration::from_millis(FPS_VALUE_MS));
-    Box::pin(IntervalStream::new(render_interval).map(|_| TuiEvent::Render))
 }
 
 fn crossterm_stream() -> Pin<Box<dyn Stream<Item = TuiEvent>>> {

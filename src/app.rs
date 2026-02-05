@@ -60,7 +60,6 @@ pub struct App {
     with_decis: bool,
     footer: FooterState,
     cursor_position: Option<Position>,
-    needs_redraw: bool,
 }
 
 pub struct AppArgs {
@@ -240,7 +239,6 @@ impl App {
                 },
             ),
             cursor_position: None,
-            needs_redraw: true,
         }
     }
 
@@ -252,7 +250,6 @@ impl App {
         // Closure to handle `KeyEvent`'s
         let handle_key_event = |app: &mut Self, key: KeyEvent| {
             debug!("Received key {:?}", key.code);
-            app.needs_redraw = true;
             match key.code {
                 KeyCode::Char('q') => app.mode = Mode::Quit,
                 KeyCode::Char('1') | KeyCode::Char('c') /* TODO: deprecated, remove it in next major version */ => app.content = Content::Countdown,
@@ -319,46 +316,39 @@ impl App {
             };
         };
         // Closure to handle `TuiEvent`'s
-        let mut handle_tui_events = |app: &mut Self, event: events::TuiEvent| -> Result<()> {
+        let handle_tui_events = |app: &mut Self, event: events::TuiEvent| -> Result<bool> {
             if matches!(event, events::TuiEvent::Tick) {
                 app.app_time = AppTime::new();
                 app.countdown.set_app_time(app.app_time);
                 app.local_time.set_app_time(app.app_time);
                 app.event.set_app_time(app.app_time);
-                app.needs_redraw = true;
             }
 
             // Pipe events into subviews and handle only 'unhandled' events afterwards
-            if let Some(unhandled) = match app.content {
+            let unhandled = match app.content {
                 Content::Countdown => app.countdown.update(event.clone()),
                 Content::Timer => app.timer.update(event.clone()),
                 Content::Pomodoro => app.pomodoro.update(event.clone()),
                 Content::Event => app.event.update(event.clone()),
                 Content::LocalTime => app.local_time.update(event.clone()),
-            } {
-                match unhandled {
-                    events::TuiEvent::Render => {
-                        if app.needs_redraw {
-                            app.draw(terminal)?;
-                            app.needs_redraw = false;
-                        }
-                    }
-                    events::TuiEvent::Crossterm(crossterm::event::Event::Resize(_, _)) => {
-                        app.draw(terminal)?;
-                        app.needs_redraw = false;
-                    }
-                    events::TuiEvent::Crossterm(CrosstermEvent::Key(key)) => {
-                        handle_key_event(app, key)
-                    }
-                    _ => {}
-                }
+            };
+            if let Some(events::TuiEvent::Crossterm(CrosstermEvent::Key(key))) = unhandled {
+                handle_key_event(app, key);
             }
-            Ok(())
+
+            // Trigger re-draw for specific events only.
+            let trigger_redraw = matches!(
+                event,
+                events::TuiEvent::Tick
+                    | events::TuiEvent::Crossterm(CrosstermEvent::Key(_))
+                    | events::TuiEvent::Crossterm(CrosstermEvent::Resize(_, _))
+            );
+            Ok(trigger_redraw)
         };
 
         // Closure to handle `AppEvent`'s
-        let handle_app_events = |app: &mut Self, event: events::AppEvent| -> Result<()> {
-            app.needs_redraw = true;
+        let handle_app_events = |app: &mut Self, event: events::AppEvent| -> Result<bool> {
+            let mut trigger_redraw = false;
             match event {
                 events::AppEvent::ClockDone(type_id, name) => {
                     debug!("AppEvent::ClockDone");
@@ -388,16 +378,26 @@ impl App {
                 }
                 events::AppEvent::SetCursor(position) => {
                     app.cursor_position = position;
+                    // Trigger re-draw by setting cursor smoothly
+                    trigger_redraw = true;
                 }
             }
-            Ok(())
+            Ok(trigger_redraw)
         };
 
         while self.is_running() {
             if let Some(event) = events.next().await {
-                let _ = match event {
-                    events::Event::Terminal(e) => handle_tui_events(&mut self, e),
-                    events::Event::App(e) => handle_app_events(&mut self, e),
+                match event {
+                    events::Event::Terminal(e) => {
+                        if let Ok(true) = handle_tui_events(&mut self, e) {
+                            self.draw(terminal)?;
+                        }
+                    }
+                    events::Event::App(e) => {
+                        if let Ok(true) = handle_app_events(&mut self, e) {
+                            self.draw(terminal)?;
+                        }
+                    }
                 };
             }
         }
