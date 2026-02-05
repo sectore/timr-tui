@@ -7,7 +7,6 @@
 - (fix) remove `Render` event handling entirely [#158](https://github.com/sectore/timr-tui/pull/158)
 - (perf) reduce CPU usage by implementing conditional redraws [#157](https://github.com/sectore/timr-tui/pull/157) by @fgbm
 
-
 ## v1.7.0 - 2026-02-02
 
 ### Features
