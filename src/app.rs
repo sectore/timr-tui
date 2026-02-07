@@ -316,6 +316,7 @@ impl App {
             };
         };
         // Closure to handle `TuiEvent`'s
+        // It returns a flag (bool) whether the app needs to be re-drawn or not
         let handle_tui_events = |app: &mut Self, event: events::TuiEvent| -> Result<bool> {
             if matches!(event, events::TuiEvent::Tick) {
                 app.app_time = AppTime::new();
@@ -332,6 +333,7 @@ impl App {
                 Content::Event => app.event.update(event.clone()),
                 Content::LocalTime => app.local_time.update(event.clone()),
             };
+            // from all 'unhandled' events we are interested in `CrosstermEvent::Key` only
             if let Some(events::TuiEvent::Crossterm(CrosstermEvent::Key(key))) = unhandled {
                 handle_key_event(app, key);
             }
@@ -347,6 +349,7 @@ impl App {
         };
 
         // Closure to handle `AppEvent`'s
+        // It returns a flag (bool) whether the app needs to be re-drawn or not
         let handle_app_events = |app: &mut Self, event: events::AppEvent| -> Result<bool> {
             let mut trigger_redraw = false;
             match event {
