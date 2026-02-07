@@ -1,11 +1,11 @@
 # Changelog
 
-## [unreleased]
+## v1.7.1 - 2026-02-07
 
 ### Fix
 
-- (fix) remove `Render` event handling entirely [#158](https://github.com/sectore/timr-tui/pull/158)
-- (perf) reduce CPU usage by implementing conditional redraws [#157](https://github.com/sectore/timr-tui/pull/157) by @fgbm
+- remove `Render` event handling entirely [#158](https://github.com/sectore/timr-tui/pull/158)
+- (perf) reduce CPU usage by implementing conditional redraws [#157](https://github.com/sectore/timr-tui/pull/157) by @fgbm.
 
 ## v1.7.0 - 2026-02-02
 
@@ -18,7 +18,7 @@
 
 ### Fix
 
-- fix(nix): use `crossSystem` for `Windows` builds [#156](https://github.com/sectore/timr-tui/pull/156)
+- (nix) use `crossSystem` for `Windows` builds [#156](https://github.com/sectore/timr-tui/pull/156)
 - (sound) latest `rodio` breaks sound implementation [#149](https://github.com/sectore/timr-tui/issues/149)
 - (readme) typo [#145](https://github.com/sectore/timr-tui/issues/145) by @dnlzrgz
 
