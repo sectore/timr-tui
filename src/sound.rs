@@ -1,4 +1,4 @@
-use rodio::{Decoder, OutputStream, OutputStreamBuilder, Source, source::Buffered};
+use rodio::{Decoder, DeviceSinkBuilder, MixerDeviceSink, Source, source::Buffered};
 use std::fs::File;
 use std::io::BufReader;
 use std::path::PathBuf;
@@ -37,13 +37,13 @@ pub fn validate_sound_file(path: &PathBuf) -> Result<&PathBuf, SoundError> {
 
 pub struct Sound {
     buffer: Arc<Buffered<Decoder<BufReader<File>>>>,
-    stream: OutputStream,
+    stream: MixerDeviceSink,
 }
 
 impl Sound {
     pub fn new(path: PathBuf) -> Result<Self, SoundError> {
-        let stream = OutputStreamBuilder::open_default_stream()
-            .map_err(|e| SoundError::OutputStream(e.to_string()))?;
+        let stream = DeviceSinkBuilder::open_default_sink()
+            .map_err(|e: rodio::DeviceSinkError| SoundError::OutputStream(e.to_string()))?;
 
         let file = File::open(&path).map_err(|e| SoundError::File(e.to_string()))?;
         let decoder = Decoder::try_from(file).map_err(|e| SoundError::Decoder(e.to_string()))?;
