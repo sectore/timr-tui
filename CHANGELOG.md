@@ -4,8 +4,8 @@
 
 ### Features
 
-- (keys) Vim motions [#163](https://github.com/sectore/timr-tui/issues/163)
- 
+- (keys) Support Vim motions [#163](https://github.com/sectore/timr-tui/issues/163)
+
 ### Misc.
 
 - (deps) Update deps [#162](https://github.com/sectore/timr-tui/pull/162)
