@@ -188,22 +188,26 @@ impl TuiEventHandler for CountdownState {
                         // always reset `elapsed_clock`
                         self.elapsed_clock.reset();
                     }
-                    KeyCode::Right => {
+                    KeyCode::Right | KeyCode::Char('l') => {
                         self.clock.edit_prev();
                     }
-                    KeyCode::Left => {
+                    KeyCode::Left | KeyCode::Char('h') => {
                         self.clock.edit_next();
                     }
-                    KeyCode::Up if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                    KeyCode::Up | KeyCode::Char('k')
+                        if key.modifiers.contains(KeyModifiers::CONTROL) =>
+                    {
                         self.clock.edit_jump_up();
                     }
-                    KeyCode::Up => {
+                    KeyCode::Up | KeyCode::Char('k') => {
                         self.clock.edit_up();
                     }
-                    KeyCode::Down if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                    KeyCode::Down | KeyCode::Char('j')
+                        if key.modifiers.contains(KeyModifiers::CONTROL) =>
+                    {
                         self.clock.edit_jump_down();
                     }
-                    KeyCode::Down => {
+                    KeyCode::Down | KeyCode::Char('j') => {
                         self.clock.edit_down();
                     }
                     _ => return Some(event),
@@ -238,30 +242,34 @@ impl TuiEventHandler for CountdownState {
                         self.elapsed_clock.reset();
                     }
                     // move edit position to the left
-                    KeyCode::Left => {
+                    KeyCode::Left | KeyCode::Char('h') => {
                         // safe unwrap because we are in `is_time_edit_mode`
                         self.edit_time.as_mut().unwrap().next();
                     }
                     // move edit position to the right
-                    KeyCode::Right => {
+                    KeyCode::Right | KeyCode::Char('l') => {
                         // safe unwrap because we are in `is_time_edit_mode`
                         self.edit_time.as_mut().unwrap().prev();
                     }
                     // change value up
-                    KeyCode::Up if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                    KeyCode::Up | KeyCode::Char('k')
+                        if key.modifiers.contains(KeyModifiers::CONTROL) =>
+                    {
                         // safe unwrap because of previous check in `is_time_edit_mode`
                         self.edit_time.as_mut().unwrap().jump_up();
                     }
-                    KeyCode::Up => {
+                    KeyCode::Up | KeyCode::Char('k') => {
                         // safe unwrap because of previous check in `is_time_edit_mode`
                         self.edit_time.as_mut().unwrap().up();
                     }
                     // change value down
-                    KeyCode::Down if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                    KeyCode::Down | KeyCode::Char('j')
+                        if key.modifiers.contains(KeyModifiers::CONTROL) =>
+                    {
                         // safe unwrap because of previous check in `is_time_edit_mode`
                         self.edit_time.as_mut().unwrap().jump_down();
                     }
-                    KeyCode::Down => {
+                    KeyCode::Down | KeyCode::Char('j') => {
                         // safe unwrap because of previous check in `is_time_edit_mode`
                         self.edit_time.as_mut().unwrap().down();
                     }

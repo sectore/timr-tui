@@ -252,17 +252,17 @@ impl App {
             debug!("Received key {:?}", key.code);
             match key.code {
                 KeyCode::Char('q') => app.mode = Mode::Quit,
-                KeyCode::Char('1') | KeyCode::Char('c') /* TODO: deprecated, remove it in next major version */ => app.content = Content::Countdown,
-                KeyCode::Char('2') | KeyCode::Char('t') /* TODO: deprecated, remove it in next major version */ => app.content = Content::Timer,
-                KeyCode::Char('3') | KeyCode::Char('p') /* TODO: deprecated, remove it in next major version */ => app.content = Content::Pomodoro,
+                KeyCode::Char('1') => app.content = Content::Countdown,
+                KeyCode::Char('2') => app.content = Content::Timer,
+                KeyCode::Char('3') => app.content = Content::Pomodoro,
                 KeyCode::Char('4') => app.content = Content::Event,
                 // toogle app time format
-                KeyCode::Char('0') | KeyCode::Char('l') /* TODO: deprecated, remove it in next major version */ => app.content = Content::LocalTime,
+                KeyCode::Char('0') => app.content = Content::LocalTime,
                 // switch `screens`
-                KeyCode::Right => {
+                KeyCode::Right | KeyCode::Char('l') => {
                     app.content = app.content.next();
                 }
-                KeyCode::Left => {
+                KeyCode::Left | KeyCode::Char('h') => {
                     app.content = app.content.prev();
                 }
                 // toogle app time format
@@ -310,8 +310,8 @@ impl App {
                 }
                 // toogle menu
                 KeyCode::Char('m') => app.footer.set_show_menu(!app.footer.get_show_menu()),
-                KeyCode::Up => app.footer.set_show_menu(true),
-                KeyCode::Down => app.footer.set_show_menu(false),
+                KeyCode::Up | KeyCode::Char('k') => app.footer.set_show_menu(true),
+                KeyCode::Down | KeyCode::Char('j') => app.footer.set_show_menu(false),
                 _ => {}
             };
         };

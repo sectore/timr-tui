@@ -169,25 +169,29 @@ impl TuiEventHandler for PomodoroState {
                     self.get_clock_mut().toggle_edit();
                 }
                 // change value up
-                KeyCode::Up if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                KeyCode::Up | KeyCode::Char('k')
+                    if key.modifiers.contains(KeyModifiers::CONTROL) =>
+                {
                     self.get_clock_mut().edit_jump_up();
                 }
-                KeyCode::Up => {
+                KeyCode::Up | KeyCode::Char('k') => {
                     self.get_clock_mut().edit_up();
                 }
                 // change value down
-                KeyCode::Down if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                KeyCode::Down | KeyCode::Char('j')
+                    if key.modifiers.contains(KeyModifiers::CONTROL) =>
+                {
                     self.get_clock_mut().edit_jump_down();
                 }
-                KeyCode::Down => {
+                KeyCode::Down | KeyCode::Char('j') => {
                     self.get_clock_mut().edit_down();
                 }
                 // move edit position to the left
-                KeyCode::Left => {
+                KeyCode::Left | KeyCode::Char('h') => {
                     self.get_clock_mut().edit_next();
                 }
                 // move edit position to the right
-                KeyCode::Right => {
+                KeyCode::Right | KeyCode::Char('l') => {
                     self.get_clock_mut().edit_prev();
                 }
                 _ => return Some(event),
@@ -203,12 +207,12 @@ impl TuiEventHandler for PomodoroState {
                     self.get_clock_mut().toggle_edit();
                 }
                 // toggle WORK/PAUSE
-                KeyCode::Left if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                KeyCode::Left | KeyCode::Char('h') if key.modifiers.contains(KeyModifiers::CONTROL) => {
                     // `next` is acting as same as a "prev" function we don't have
                     self.next();
                 }
                 // toggle WORK/PAUSE
-                KeyCode::Right if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                KeyCode::Right | KeyCode::Char('l') if key.modifiers.contains(KeyModifiers::CONTROL) => {
                     self.next();
                 }
                 // reset rounds AND clocks

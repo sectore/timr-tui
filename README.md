@@ -118,9 +118,10 @@ Extra option (if `--features sound` is enabled by local build only):
 
 ## Menu
 
-| Key                         | Description |
-| --------------------------- | ----------- |
-| <kbd>↑</kbd> / <kbd>↓</kbd> | Toggle menu |
+| Key                                          | Description                 |
+| -------------------------------------------- | --------------------------- |
+| <kbd>↑</kbd> or <kbd>↓</kbd> or <kbd>m</kbd> | Toggle menu                 |
+| <kbd>k</kbd> or <kbd>j</kbd>                 | Toggle menu _(Vim motions)_ |
 
 ## Screens
 
@@ -145,15 +146,20 @@ Extra option (if `--features sound` is enabled by local build only):
 
 **In `edit` mode only:**
 
-| Key                          | Description         |
-| ---------------------------- | ------------------- |
-| <kbd>s</kbd>                 | save changes        |
-| <kbd>esc</kbd>               | skip changes        |
-| <kbd>←</kbd> or <kbd>→</kbd> | change selection    |
-| <kbd>↑</kbd>                 | edit to go up       |
-| <kbd>ctrl+↑</kbd>            | edit to go up 10x   |
-| <kbd>↓</kbd>                 | edit to go down     |
-| <kbd>ctrl+↓</kbd>            | edit to go down 10x |
+| Key                          | Description                         |
+| ---------------------------- | ----------------------------------- |
+| <kbd>s</kbd>                 | save changes                        |
+| <kbd>esc</kbd>               | skip changes                        |
+| <kbd>←</kbd> or <kbd>→</kbd> | change selection                    |
+| <kbd>h</kbd> or <kbd>l</kbd> | change selection _(Vim motions)_    |
+| <kbd>↑</kbd>                 | edit to go up                       |
+| <kbd>k</kbd>                 | edit to go up _(Vim motions)_       |
+| <kbd>ctrl+↑</kbd>            | edit to go up 10x                   |
+| <kbd>ctrl+k</kbd>            | edit to go up 10x _(Vim motions)_   |
+| <kbd>↓</kbd>                 | edit to go down                     |
+| <kbd>j</kbd>                 | edit to go down _(Vim motions)_     |
+| <kbd>ctrl+↓</kbd>            | edit to go down 10x                 |
+| <kbd>ctrl+j</kbd>            | edit to go down 10x _(Vim motions)_ |
 
 **In `Event` `edit` mode only:**
 

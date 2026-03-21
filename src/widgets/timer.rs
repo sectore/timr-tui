@@ -53,25 +53,29 @@ impl TuiEventHandler for TimerState {
                     self.clock.toggle_edit();
                 }
                 // move change position to the left
-                KeyCode::Left => {
+                KeyCode::Left | KeyCode::Char('h') => {
                     self.clock.edit_next();
                 }
                 // move change position to the right
-                KeyCode::Right => {
+                KeyCode::Right | KeyCode::Char('l') => {
                     self.clock.edit_prev();
                 }
-                KeyCode::Up if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                KeyCode::Up | KeyCode::Char('k')
+                    if key.modifiers.contains(KeyModifiers::CONTROL) =>
+                {
                     self.clock.edit_jump_up();
                 }
                 // change value up
-                KeyCode::Up => {
+                KeyCode::Up | KeyCode::Char('k') => {
                     self.clock.edit_up();
                 }
                 // change value down
-                KeyCode::Down if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                KeyCode::Down | KeyCode::Char('j')
+                    if key.modifiers.contains(KeyModifiers::CONTROL) =>
+                {
                     self.clock.edit_jump_down();
                 }
-                KeyCode::Down => {
+                KeyCode::Down | KeyCode::Char('j') => {
                     self.clock.edit_down();
                 }
                 _ => return Some(event),
