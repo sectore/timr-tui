@@ -4,6 +4,7 @@
 
 ### Misc.
 
+- (deps) Update deps [#162](https://github.com/sectore/timr-tui/pull/162)
 - (deps) Rust 1.94.0 [#161](https://github.com/sectore/timr-tui/pull/161)
 
 ## v1.7.1 - 2026-02-07
