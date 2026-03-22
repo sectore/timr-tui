@@ -104,8 +104,7 @@ impl From<FromAppArgs> for App {
         App::new(AppArgs {
             with_decis: args.decis || stg.with_decis,
             show_menu: args.menu || stg.show_menu,
-            // TODO: get from args
-            vim_motions: args.vim,
+            vim_motions: args.vim.unwrap_or(stg.vim).into(),
             notification: args.notification.unwrap_or(stg.notification),
             blink: args.blink.unwrap_or(stg.blink),
             app_time_format: stg.app_time_format,
@@ -499,6 +498,7 @@ impl App {
         AppStorage {
             content: self.content,
             show_menu: self.footer.get_show_menu(),
+            vim: self.vim_motions.into(),
             notification: self.notification,
             blink: self.blink,
             app_time_format: self.app_time_format,

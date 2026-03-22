@@ -100,7 +100,7 @@ Options:
   -m, --mode <MODE>                  Mode to start with. [possible values: countdown, timer, pomodoro, event, localtime]
   -s, --style <STYLE>                Style to display time with. [possible values: full, light, medium, dark, thick, cross, braille]
       --menu                         Open menu.
-  -v, --vim                          Vim motions.
+  -v, --vim <VIM>                    Toggle usage of Vim motions. [possible values: on, off]
   -r, --reset                        Reset stored values to defaults.
   -n, --notification <NOTIFICATION>  Toggle desktop notifications. Experimental. [possible values: on, off]
       --blink <BLINK>                Toggle blink mode to animate a clock when it reaches its finished mode. [possible values: on, off]
@@ -116,6 +116,8 @@ Extra option (if `--features sound` is enabled by local build only):
 ```
 
 # Keybindings
+
+Note: To enable Vim motions key binding, run with `--vim=on` once. It will be stored as part of settings, so only running once is needed. To disable, run `--vim=off`.
 
 ## Menu
 

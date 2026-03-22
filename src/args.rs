@@ -49,8 +49,8 @@ pub struct Args {
     #[arg(long, value_enum, help = "Open menu.")]
     pub menu: bool,
 
-    #[arg(long, short = 'v', value_enum, help = "Vim motions.")]
-    pub vim: bool,
+    #[arg(long, short = 'v', value_enum, help = "Toggle usage of Vim motions.")]
+    pub vim: Option<Toggle>,
 
     #[arg(long, short = 'r', help = "Reset stored values to defaults.")]
     pub reset: bool,
