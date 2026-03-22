@@ -175,12 +175,12 @@ Note: To enable Vim motions key binding, run with `--vim=on` once. It will be st
 
 **In `Pomodoro` screen only:**
 
-| Key                                              | Description                      |
-| ------------------------------------------------ | -------------------------------- |
-| <kbd>ctrl+←</kbd> or <kbd>ctrl+→</kbd>           | switch work/pause                |
-| <kbd>ctrl+h</kbd> or <kbd>ctrl+l</kbd>           | switch work/pause _(Vim motions)_ |
-| <kbd>ctrl+r</kbd>                      | reset round        |
-| <kbd>ctrl+s</kbd>                      | save initial value |
+| Key                                    | Description                       |
+| -------------------------------------- | --------------------------------- |
+| <kbd>ctrl+←</kbd> or <kbd>ctrl+→</kbd> | switch work/pause                 |
+| <kbd>ctrl+h</kbd> or <kbd>ctrl+l</kbd> | switch work/pause _(Vim motions)_ |
+| <kbd>ctrl+r</kbd>                      | reset round                       |
+| <kbd>ctrl+s</kbd>                      | save initial value                |
 
 **In `Countdown` screen only:**
 
