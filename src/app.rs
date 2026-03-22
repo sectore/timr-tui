@@ -58,6 +58,7 @@ pub struct App {
     local_time: LocalTimeState,
     style: Style,
     with_decis: bool,
+    vim_motions: bool,
     footer: FooterState,
     cursor_position: Option<Position>,
 }
@@ -68,6 +69,7 @@ pub struct AppArgs {
     pub notification: Toggle,
     pub blink: Toggle,
     pub show_menu: bool,
+    pub vim_motions: bool,
     pub app_time_format: AppTimeFormat,
     pub content: Content,
     pub pomodoro_mode: PomodoroMode,
@@ -102,6 +104,8 @@ impl From<FromAppArgs> for App {
         App::new(AppArgs {
             with_decis: args.decis || stg.with_decis,
             show_menu: args.menu || stg.show_menu,
+            // TODO: get from args
+            vim_motions: args.vim,
             notification: args.notification.unwrap_or(stg.notification),
             blink: args.blink.unwrap_or(stg.blink),
             app_time_format: stg.app_time_format,
@@ -155,6 +159,7 @@ impl App {
         let AppArgs {
             style,
             show_menu,
+            vim_motions,
             app_time_format,
             initial_value_work,
             initial_value_pause,
@@ -192,6 +197,7 @@ impl App {
             app_time_format,
             style,
             with_decis,
+            vim_motions,
             countdown: CountdownState::new(CountdownStateArgs {
                 initial_value: initial_value_countdown,
                 current_value: current_value_countdown,
@@ -199,6 +205,7 @@ impl App {
                 app_time,
                 with_decis,
                 app_tx: app_tx.clone(),
+                vim_motions,
             }),
             timer: TimerState::new(
                 ClockState::<clock::Timer>::new(ClockStateArgs {
@@ -209,6 +216,7 @@ impl App {
                     app_tx: Some(app_tx.clone()),
                 })
                 .with_name("Timer".to_owned()),
+                vim_motions,
             ),
             pomodoro: PomodoroState::new(PomodoroStateArgs {
                 mode: pomodoro_mode,
@@ -219,6 +227,7 @@ impl App {
                 with_decis,
                 round: pomodoro_round,
                 app_tx: app_tx.clone(),
+                vim_motions,
             }),
             local_time: LocalTimeState::new(LocalTimeStateArgs {
                 app_time,
@@ -237,6 +246,7 @@ impl App {
                 } else {
                     None
                 },
+                vim_motions,
             ),
             cursor_position: None,
         }
@@ -256,13 +266,18 @@ impl App {
                 KeyCode::Char('2') => app.content = Content::Timer,
                 KeyCode::Char('3') => app.content = Content::Pomodoro,
                 KeyCode::Char('4') => app.content = Content::Event,
-                // toogle app time format
                 KeyCode::Char('0') => app.content = Content::LocalTime,
                 // switch `screens`
-                KeyCode::Right | KeyCode::Char('l') => {
+                KeyCode::Right if !app.vim_motions => {
                     app.content = app.content.next();
                 }
-                KeyCode::Left | KeyCode::Char('h') => {
+                KeyCode::Char('l') if app.vim_motions => {
+                    app.content = app.content.next();
+                }
+                KeyCode::Left if !app.vim_motions => {
+                    app.content = app.content.prev();
+                }
+                KeyCode::Char('h') if app.vim_motions => {
                     app.content = app.content.prev();
                 }
                 // toogle app time format
@@ -310,8 +325,6 @@ impl App {
                 }
                 // toogle menu
                 KeyCode::Char('m') => app.footer.set_show_menu(!app.footer.get_show_menu()),
-                KeyCode::Up | KeyCode::Char('k') => app.footer.set_show_menu(true),
-                KeyCode::Down | KeyCode::Char('j') => app.footer.set_show_menu(false),
                 _ => {}
             };
         };

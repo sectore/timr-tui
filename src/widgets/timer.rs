@@ -15,11 +15,12 @@ use std::cmp::max;
 
 pub struct TimerState {
     clock: ClockState<clock::Timer>,
+    vim_motions: bool,
 }
 
 impl TimerState {
-    pub const fn new(clock: ClockState<clock::Timer>) -> Self {
-        Self { clock }
+    pub fn new(clock: ClockState<clock::Timer>, vim_motions: bool) -> Self {
+        Self { clock, vim_motions }
     }
 
     pub fn set_with_decis(&mut self, with_decis: bool) {
@@ -53,29 +54,47 @@ impl TuiEventHandler for TimerState {
                     self.clock.toggle_edit();
                 }
                 // move change position to the left
-                KeyCode::Left | KeyCode::Char('h') => {
+                KeyCode::Left if !self.vim_motions => {
+                    self.clock.edit_next();
+                }
+                KeyCode::Char('h') if self.vim_motions => {
                     self.clock.edit_next();
                 }
                 // move change position to the right
-                KeyCode::Right | KeyCode::Char('l') => {
+                KeyCode::Right if !self.vim_motions => {
                     self.clock.edit_prev();
                 }
-                KeyCode::Up | KeyCode::Char('k')
-                    if key.modifiers.contains(KeyModifiers::CONTROL) =>
+                KeyCode::Char('l') if self.vim_motions => {
+                    self.clock.edit_prev();
+                }
+                KeyCode::Up if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                    self.clock.edit_jump_up();
+                }
+                KeyCode::Char('k')
+                    if key.modifiers.contains(KeyModifiers::CONTROL) && self.vim_motions =>
                 {
                     self.clock.edit_jump_up();
                 }
                 // change value up
-                KeyCode::Up | KeyCode::Char('k') => {
+                KeyCode::Up if !self.vim_motions => {
+                    self.clock.edit_up();
+                }
+                KeyCode::Char('k') if self.vim_motions => {
                     self.clock.edit_up();
                 }
                 // change value down
-                KeyCode::Down | KeyCode::Char('j')
-                    if key.modifiers.contains(KeyModifiers::CONTROL) =>
+                KeyCode::Down if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                    self.clock.edit_jump_down();
+                }
+                KeyCode::Char('j')
+                    if key.modifiers.contains(KeyModifiers::CONTROL) && self.vim_motions =>
                 {
                     self.clock.edit_jump_down();
                 }
-                KeyCode::Down | KeyCode::Char('j') => {
+                KeyCode::Down if !self.vim_motions => {
+                    self.clock.edit_down();
+                }
+                KeyCode::Char('j') if self.vim_motions => {
                     self.clock.edit_down();
                 }
                 _ => return Some(event),

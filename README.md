@@ -100,6 +100,7 @@ Options:
   -m, --mode <MODE>                  Mode to start with. [possible values: countdown, timer, pomodoro, event, localtime]
   -s, --style <STYLE>                Style to display time with. [possible values: full, light, medium, dark, thick, cross, braille]
       --menu                         Open menu.
+  -v, --vim                          Vim motions.
   -r, --reset                        Reset stored values to defaults.
   -n, --notification <NOTIFICATION>  Toggle desktop notifications. Experimental. [possible values: on, off]
       --blink <BLINK>                Toggle blink mode to animate a clock when it reaches its finished mode. [possible values: on, off]
@@ -118,22 +119,23 @@ Extra option (if `--features sound` is enabled by local build only):
 
 ## Menu
 
-| Key                                          | Description                 |
-| -------------------------------------------- | --------------------------- |
-| <kbd>↑</kbd> or <kbd>↓</kbd> or <kbd>m</kbd> | Toggle menu                 |
-| <kbd>k</kbd> or <kbd>j</kbd>                 | Toggle menu _(Vim motions)_ |
+| Key                                          | Description |
+| -------------------------------------------- | ----------- |
+| <kbd>↑</kbd> or <kbd>↓</kbd> or <kbd>m</kbd> | Toggle menu |
 
 ## Screens
 
-| Key          | Description     |
-| ------------ | --------------- |
-| <kbd>1</kbd> | Pomodoro        |
-| <kbd>2</kbd> | Countdown       |
-| <kbd>3</kbd> | Timer           |
-| <kbd>4</kbd> | Event           |
-| <kbd>0</kbd> | Local Time      |
-| <kbd>→</kbd> | next screen     |
-| <kbd>←</kbd> | previous screen |
+| Key          | Description                     |
+| ------------ | ------------------------------- |
+| <kbd>1</kbd> | Pomodoro                        |
+| <kbd>2</kbd> | Countdown                       |
+| <kbd>3</kbd> | Timer                           |
+| <kbd>4</kbd> | Event                           |
+| <kbd>0</kbd> | Local Time                      |
+| <kbd>→</kbd> | next screen                     |
+| <kbd>←</kbd> | previous screen                 |
+| <kbd>l</kbd> | next screen _(Vim motions)_     |
+| <kbd>h</kbd> | previous screen _(Vim motions)_ |
 
 ## Controls
 

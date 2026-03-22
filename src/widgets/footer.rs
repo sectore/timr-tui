@@ -14,13 +14,19 @@ use ratatui::{
 pub struct FooterState {
     show_menu: bool,
     app_time_format: Option<AppTimeFormat>,
+    vim_motions: bool,
 }
 
 impl FooterState {
-    pub const fn new(show_menu: bool, app_time_format: Option<AppTimeFormat>) -> Self {
+    pub const fn new(
+        show_menu: bool,
+        app_time_format: Option<AppTimeFormat>,
+        vim_motions: bool,
+    ) -> Self {
         Self {
             show_menu,
             app_time_format,
+            vim_motions,
         }
     }
 
@@ -57,6 +63,28 @@ const ITALIC: Style = Style::new().italic();
 impl StatefulWidget for Footer {
     type State = FooterState;
     fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
+        let symbol_left = if state.vim_motions {
+            "h"
+        } else {
+            scrollbar::HORIZONTAL.begin
+        };
+
+        let symbol_right = if state.vim_motions {
+            "l"
+        } else {
+            scrollbar::HORIZONTAL.end
+        };
+        let symbol_up = if state.vim_motions {
+            "k"
+        } else {
+            scrollbar::VERTICAL.begin
+        };
+        let symbol_down = if state.vim_motions {
+            "j"
+        } else {
+            scrollbar::VERTICAL.end
+        };
+
         let content_labels: BTreeMap<Content, &str> = BTreeMap::from([
             (Content::Countdown, "countdown"),
             (Content::Timer, "timer"),
@@ -74,14 +102,9 @@ impl StatefulWidget for Footer {
         Block::new()
             .borders(Borders::TOP)
             .title(Line::from(vec![
-                Span::styled(
-                    if state.show_menu {
-                        scrollbar::VERTICAL.end
-                    } else {
-                        scrollbar::VERTICAL.begin
-                    },
-                    BOLD,
-                ),
+                Span::styled("m", BOLD),
+                Span::from(SPACE),
+                Span::from(if state.show_menu { "hide" } else { "show" }),
                 Span::from(SPACE),
                 Span::from("menu"),
                 Span::from(SPACE),
@@ -124,7 +147,11 @@ impl StatefulWidget for Footer {
 
             content_labels.extend_from_slice(&[
                 Span::from(WIDE_SPACE),
-                Span::styled("← →", BOLD),
+                Span::styled(symbol_left, BOLD),
+                Span::from(SPACE),
+                Span::from("or"),
+                Span::from(SPACE),
+                Span::styled(symbol_right, BOLD),
                 Span::from(SPACE),
                 Span::styled("switch screens", ITALIC),
             ]);
@@ -272,38 +299,41 @@ impl StatefulWidget for Footer {
                                         let mut spans = vec![];
                                         if self.selected_content == Content::Pomodoro {
                                             spans.extend_from_slice(&[
-                                                Span::styled("^← ^→", BOLD),
+                                                Span::styled(format!("^{}", symbol_left), BOLD),
                                                 Span::from(SPACE),
-                                                Span::styled("switch work/pause", ITALIC),
+                                                Span::from("or"),
+                                                Span::from(SPACE),
+                                                Span::styled(format!("^{}", symbol_right), BOLD),
+                                                Span::from(SPACE),
+                                                Span::styled("switch work/pause screens", ITALIC),
                                             ]);
                                         }
                                         spans
                                     }
                                     _ => vec![
-                                        Span::styled(scrollbar::HORIZONTAL.begin, BOLD),
+                                        Span::styled(symbol_left, BOLD),
                                         Span::from(SPACE),
-                                        Span::styled(scrollbar::HORIZONTAL.end, BOLD),
+                                        Span::from("or"),
                                         Span::from(SPACE),
-                                        Span::styled("change selection", ITALIC),
+                                        Span::styled(symbol_right, BOLD),
+                                        Span::from(SPACE),
+                                        Span::styled("move selection", ITALIC),
                                         Span::from(WIDE_SPACE),
-                                        Span::styled(scrollbar::VERTICAL.begin, BOLD),
+                                        Span::styled(symbol_up, BOLD),
                                         Span::from(SPACE),
                                         Span::styled("edit up", ITALIC),
                                         Span::from(WIDE_SPACE),
-                                        Span::styled(
-                                            format!("^{}", scrollbar::VERTICAL.begin),
-                                            BOLD,
-                                        ),
+                                        Span::styled(format!("^{}", symbol_up), BOLD),
                                         Span::from(SPACE),
-                                        Span::styled("edit up 10x", ITALIC),
+                                        Span::styled("edit up fast", ITALIC),
                                         Span::from(WIDE_SPACE),
-                                        Span::styled(scrollbar::VERTICAL.end, BOLD),
+                                        Span::styled(symbol_down, BOLD),
                                         Span::from(SPACE),
                                         Span::styled("edit down", ITALIC),
                                         Span::from(WIDE_SPACE),
-                                        Span::styled(format!("^{}", scrollbar::VERTICAL.end), BOLD),
+                                        Span::styled(format!("^{}", symbol_down), BOLD),
                                         Span::from(SPACE),
-                                        Span::styled("edit down 10x", ITALIC),
+                                        Span::styled("edit down fast", ITALIC),
                                     ],
                                 }
                             })),
