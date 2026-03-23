@@ -1,6 +1,6 @@
 # Changelog
 
-## [unreleased]
+## v1.8.0 - 2026-03-23
 
 ### Features
 
@@ -12,6 +12,7 @@
 
 ### Misc.
 
+- (docs) Update all demos [#165](https://github.com/sectore/timr-tui/pull/165)
 - (deps) Update deps [#162](https://github.com/sectore/timr-tui/pull/162)
 - (deps) Rust 1.94.0 [#161](https://github.com/sectore/timr-tui/pull/161)
 
