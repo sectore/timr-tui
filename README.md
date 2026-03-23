@@ -100,9 +100,10 @@ Options:
   -m, --mode <MODE>                  Mode to start with. [possible values: countdown, timer, pomodoro, event, localtime]
   -s, --style <STYLE>                Style to display time with. [possible values: full, light, medium, dark, thick, cross, braille]
       --menu                         Open menu.
+  -v, --vim <VIM>                    Enable/disable Vim motions. [possible values: on, off]
   -r, --reset                        Reset stored values to defaults.
-  -n, --notification <NOTIFICATION>  Toggle desktop notifications. Experimental. [possible values: on, off]
-      --blink <BLINK>                Toggle blink mode to animate a clock when it reaches its finished mode. [possible values: on, off]
+  -n, --notification <NOTIFICATION>  Enable/disable desktop notifications. Experimental. [possible values: on, off]
+      --blink <BLINK>                Enable/disable blink mode to animate a clock when it reaches its finished mode. [possible values: on, off]
       --log [<LOG>]                  Directory for log file. If not set, standard application log directory is used (check README for details).
   -h, --help                         Print help
   -V, --version                      Print version
@@ -116,23 +117,27 @@ Extra option (if `--features sound` is enabled by local build only):
 
 # Keybindings
 
+Note: To enable Vim motions key binding, run with `--vim=on` once. It will be stored as part of settings, so only running once is needed. To disable, run `--vim=off`.
+
 ## Menu
 
-| Key                         | Description |
-| --------------------------- | ----------- |
-| <kbd>↑</kbd> / <kbd>↓</kbd> | Toggle menu |
+| Key                          | Description |
+| ---------------------------- | ----------- |
+| <kbd>↑</kbd> or <kbd>↓</kbd> | Toggle menu |
 
 ## Screens
 
-| Key          | Description     |
-| ------------ | --------------- |
-| <kbd>1</kbd> | Pomodoro        |
-| <kbd>2</kbd> | Countdown       |
-| <kbd>3</kbd> | Timer           |
-| <kbd>4</kbd> | Event           |
-| <kbd>0</kbd> | Local Time      |
-| <kbd>→</kbd> | next screen     |
-| <kbd>←</kbd> | previous screen |
+| Key          | Description                     |
+| ------------ | ------------------------------- |
+| <kbd>1</kbd> | Pomodoro                        |
+| <kbd>2</kbd> | Countdown                       |
+| <kbd>3</kbd> | Timer                           |
+| <kbd>4</kbd> | Event                           |
+| <kbd>0</kbd> | Local Time                      |
+| <kbd>→</kbd> | next screen                     |
+| <kbd>←</kbd> | previous screen                 |
+| <kbd>l</kbd> | next screen _(Vim motions)_     |
+| <kbd>h</kbd> | previous screen _(Vim motions)_ |
 
 ## Controls
 
@@ -145,15 +150,20 @@ Extra option (if `--features sound` is enabled by local build only):
 
 **In `edit` mode only:**
 
-| Key                          | Description         |
-| ---------------------------- | ------------------- |
-| <kbd>s</kbd>                 | save changes        |
-| <kbd>esc</kbd>               | skip changes        |
-| <kbd>←</kbd> or <kbd>→</kbd> | change selection    |
-| <kbd>↑</kbd>                 | edit to go up       |
-| <kbd>ctrl+↑</kbd>            | edit to go up 10x   |
-| <kbd>↓</kbd>                 | edit to go down     |
-| <kbd>ctrl+↓</kbd>            | edit to go down 10x |
+| Key                          | Description                         |
+| ---------------------------- | ----------------------------------- |
+| <kbd>s</kbd>                 | save changes                        |
+| <kbd>esc</kbd>               | skip changes                        |
+| <kbd>←</kbd> or <kbd>→</kbd> | change selection                    |
+| <kbd>h</kbd> or <kbd>l</kbd> | change selection _(Vim motions)_    |
+| <kbd>↑</kbd>                 | edit to go up                       |
+| <kbd>k</kbd>                 | edit to go up _(Vim motions)_       |
+| <kbd>ctrl+↑</kbd>            | edit to go up 10x                   |
+| <kbd>ctrl+k</kbd>            | edit to go up 10x _(Vim motions)_   |
+| <kbd>↓</kbd>                 | edit to go down                     |
+| <kbd>j</kbd>                 | edit to go down _(Vim motions)_     |
+| <kbd>ctrl+↓</kbd>            | edit to go down 10x                 |
+| <kbd>ctrl+j</kbd>            | edit to go down 10x _(Vim motions)_ |
 
 **In `Event` `edit` mode only:**
 
@@ -165,11 +175,12 @@ Extra option (if `--features sound` is enabled by local build only):
 
 **In `Pomodoro` screen only:**
 
-| Key                                    | Description        |
-| -------------------------------------- | ------------------ |
-| <kbd>ctrl+←</kbd> or <kbd>ctrl+→</kbd> | switch work/pause  |
-| <kbd>ctrl+r</kbd>                      | reset round        |
-| <kbd>ctrl+s</kbd>                      | save initial value |
+| Key                                    | Description                       |
+| -------------------------------------- | --------------------------------- |
+| <kbd>ctrl+←</kbd> or <kbd>ctrl+→</kbd> | switch work/pause                 |
+| <kbd>ctrl+h</kbd> or <kbd>ctrl+l</kbd> | switch work/pause _(Vim motions)_ |
+| <kbd>ctrl+r</kbd>                      | reset round                       |
+| <kbd>ctrl+s</kbd>                      | save initial value                |
 
 **In `Countdown` screen only:**
 

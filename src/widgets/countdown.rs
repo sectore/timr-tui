@@ -27,6 +27,7 @@ pub struct CountdownStateArgs {
     pub app_time: AppTime,
     pub with_decis: bool,
     pub app_tx: AppEventTx,
+    pub vim_motions: bool,
 }
 
 /// State for Countdown Widget
@@ -38,6 +39,8 @@ pub struct CountdownState {
     app_time: AppTime,
     /// Edit by local time
     edit_time: Option<EditTimeState>,
+    /// Whether Vim motions are enabled
+    vim_motions: bool,
 }
 
 impl CountdownState {
@@ -49,6 +52,7 @@ impl CountdownState {
             with_decis,
             app_time,
             app_tx,
+            vim_motions,
         } = args;
 
         Self {
@@ -77,6 +81,7 @@ impl CountdownState {
             }),
             app_time,
             edit_time: None,
+            vim_motions,
         }
     }
 
@@ -188,22 +193,44 @@ impl TuiEventHandler for CountdownState {
                         // always reset `elapsed_clock`
                         self.elapsed_clock.reset();
                     }
-                    KeyCode::Right => {
+                    KeyCode::Right if !self.vim_motions => {
                         self.clock.edit_prev();
                     }
-                    KeyCode::Left => {
+                    KeyCode::Char('l') if self.vim_motions => {
+                        self.clock.edit_prev();
+                    }
+                    KeyCode::Left if !self.vim_motions => {
+                        self.clock.edit_next();
+                    }
+                    KeyCode::Char('h') if self.vim_motions => {
                         self.clock.edit_next();
                     }
                     KeyCode::Up if key.modifiers.contains(KeyModifiers::CONTROL) => {
                         self.clock.edit_jump_up();
                     }
-                    KeyCode::Up => {
+                    KeyCode::Char('k')
+                        if key.modifiers.contains(KeyModifiers::CONTROL) && self.vim_motions =>
+                    {
+                        self.clock.edit_jump_up();
+                    }
+                    KeyCode::Up if !self.vim_motions => {
+                        self.clock.edit_up();
+                    }
+                    KeyCode::Char('k') if self.vim_motions => {
                         self.clock.edit_up();
                     }
                     KeyCode::Down if key.modifiers.contains(KeyModifiers::CONTROL) => {
                         self.clock.edit_jump_down();
                     }
-                    KeyCode::Down => {
+                    KeyCode::Char('j')
+                        if key.modifiers.contains(KeyModifiers::CONTROL) && self.vim_motions =>
+                    {
+                        self.clock.edit_jump_down();
+                    }
+                    KeyCode::Down if !self.vim_motions => {
+                        self.clock.edit_down();
+                    }
+                    KeyCode::Char('j') if self.vim_motions => {
                         self.clock.edit_down();
                     }
                     _ => return Some(event),
@@ -238,12 +265,20 @@ impl TuiEventHandler for CountdownState {
                         self.elapsed_clock.reset();
                     }
                     // move edit position to the left
-                    KeyCode::Left => {
+                    KeyCode::Left if !self.vim_motions => {
+                        // safe unwrap because we are in `is_time_edit_mode`
+                        self.edit_time.as_mut().unwrap().next();
+                    }
+                    KeyCode::Char('h') if self.vim_motions => {
                         // safe unwrap because we are in `is_time_edit_mode`
                         self.edit_time.as_mut().unwrap().next();
                     }
                     // move edit position to the right
-                    KeyCode::Right => {
+                    KeyCode::Right if !self.vim_motions => {
+                        // safe unwrap because we are in `is_time_edit_mode`
+                        self.edit_time.as_mut().unwrap().prev();
+                    }
+                    KeyCode::Char('l') if self.vim_motions => {
                         // safe unwrap because we are in `is_time_edit_mode`
                         self.edit_time.as_mut().unwrap().prev();
                     }
@@ -252,7 +287,17 @@ impl TuiEventHandler for CountdownState {
                         // safe unwrap because of previous check in `is_time_edit_mode`
                         self.edit_time.as_mut().unwrap().jump_up();
                     }
-                    KeyCode::Up => {
+                    KeyCode::Char('k')
+                        if key.modifiers.contains(KeyModifiers::CONTROL) && self.vim_motions =>
+                    {
+                        // safe unwrap because of previous check in `is_time_edit_mode`
+                        self.edit_time.as_mut().unwrap().jump_up();
+                    }
+                    KeyCode::Up if !self.vim_motions => {
+                        // safe unwrap because of previous check in `is_time_edit_mode`
+                        self.edit_time.as_mut().unwrap().up();
+                    }
+                    KeyCode::Char('k') if self.vim_motions => {
                         // safe unwrap because of previous check in `is_time_edit_mode`
                         self.edit_time.as_mut().unwrap().up();
                     }
@@ -261,7 +306,17 @@ impl TuiEventHandler for CountdownState {
                         // safe unwrap because of previous check in `is_time_edit_mode`
                         self.edit_time.as_mut().unwrap().jump_down();
                     }
-                    KeyCode::Down => {
+                    KeyCode::Char('j')
+                        if key.modifiers.contains(KeyModifiers::CONTROL) && self.vim_motions =>
+                    {
+                        // safe unwrap because of previous check in `is_time_edit_mode`
+                        self.edit_time.as_mut().unwrap().jump_down();
+                    }
+                    KeyCode::Down if !self.vim_motions => {
+                        // safe unwrap because of previous check in `is_time_edit_mode`
+                        self.edit_time.as_mut().unwrap().down();
+                    }
+                    KeyCode::Char('j') if self.vim_motions => {
                         // safe unwrap because of previous check in `is_time_edit_mode`
                         self.edit_time.as_mut().unwrap().down();
                     }
@@ -281,7 +336,7 @@ impl TuiEventHandler for CountdownState {
                         edit_time.set_time(time);
                     }
                 }
-                KeyCode::Char(' ') | KeyCode::Char('s') /* TODO: deprecated, remove it in next version */  => {
+                KeyCode::Char(' ') => {
                     // toggle pause status depending on which clock is running
                     if !self.clock.is_done() {
                         self.clock.toggle_pause();

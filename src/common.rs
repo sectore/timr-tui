@@ -230,6 +230,15 @@ impl From<bool> for Toggle {
     }
 }
 
+impl From<Toggle> for bool {
+    fn from(value: Toggle) -> Self {
+        match value {
+            Toggle::On => true,
+            Toggle::Off => false,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
 

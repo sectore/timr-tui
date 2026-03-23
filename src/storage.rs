@@ -25,6 +25,8 @@ where
 pub struct AppStorage {
     pub content: Content,
     pub show_menu: bool,
+    #[serde(default)]
+    pub vim: Toggle,
     pub notification: Toggle,
     pub blink: Toggle,
     #[serde(deserialize_with = "deserialize_app_time_format")]
@@ -59,6 +61,7 @@ impl Default for AppStorage {
         AppStorage {
             content: Content::default(),
             show_menu: true,
+            vim: Toggle::Off,
             notification: Toggle::Off,
             blink: Toggle::Off,
             app_time_format: AppTimeFormat::default(),

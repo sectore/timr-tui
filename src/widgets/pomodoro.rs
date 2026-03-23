@@ -45,6 +45,7 @@ pub struct PomodoroState {
     mode: Mode,
     clock_map: ClockMap,
     round: u64,
+    vim_motions: bool,
 }
 
 pub struct PomodoroStateArgs {
@@ -56,6 +57,7 @@ pub struct PomodoroStateArgs {
     pub with_decis: bool,
     pub app_tx: AppEventTx,
     pub round: u64,
+    pub vim_motions: bool,
 }
 
 impl PomodoroState {
@@ -69,6 +71,7 @@ impl PomodoroState {
             with_decis,
             app_tx,
             round,
+            vim_motions,
         } = args;
         Self {
             mode,
@@ -91,6 +94,7 @@ impl PomodoroState {
                 .with_name("Pause".to_owned()),
             },
             round,
+            vim_motions,
         }
     }
 
@@ -172,22 +176,44 @@ impl TuiEventHandler for PomodoroState {
                 KeyCode::Up if key.modifiers.contains(KeyModifiers::CONTROL) => {
                     self.get_clock_mut().edit_jump_up();
                 }
-                KeyCode::Up => {
+                KeyCode::Char('k')
+                    if key.modifiers.contains(KeyModifiers::CONTROL) && self.vim_motions =>
+                {
+                    self.get_clock_mut().edit_jump_up();
+                }
+                KeyCode::Up if !self.vim_motions => {
+                    self.get_clock_mut().edit_up();
+                }
+                KeyCode::Char('k') if self.vim_motions => {
                     self.get_clock_mut().edit_up();
                 }
                 // change value down
                 KeyCode::Down if key.modifiers.contains(KeyModifiers::CONTROL) => {
                     self.get_clock_mut().edit_jump_down();
                 }
-                KeyCode::Down => {
+                KeyCode::Char('j')
+                    if key.modifiers.contains(KeyModifiers::CONTROL) && self.vim_motions =>
+                {
+                    self.get_clock_mut().edit_jump_down();
+                }
+                KeyCode::Down if !self.vim_motions => {
+                    self.get_clock_mut().edit_down();
+                }
+                KeyCode::Char('j') if self.vim_motions => {
                     self.get_clock_mut().edit_down();
                 }
                 // move edit position to the left
-                KeyCode::Left => {
+                KeyCode::Left if !self.vim_motions => {
+                    self.get_clock_mut().edit_next();
+                }
+                KeyCode::Char('h') if self.vim_motions => {
                     self.get_clock_mut().edit_next();
                 }
                 // move edit position to the right
-                KeyCode::Right => {
+                KeyCode::Right if !self.vim_motions => {
+                    self.get_clock_mut().edit_prev();
+                }
+                KeyCode::Char('l') if self.vim_motions => {
                     self.get_clock_mut().edit_prev();
                 }
                 _ => return Some(event),
@@ -203,12 +229,18 @@ impl TuiEventHandler for PomodoroState {
                     self.get_clock_mut().toggle_edit();
                 }
                 // toggle WORK/PAUSE
-                KeyCode::Left if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                KeyCode::Left if key.modifiers.contains(KeyModifiers::CONTROL) && !self.vim_motions => {
                     // `next` is acting as same as a "prev" function we don't have
                     self.next();
                 }
+                KeyCode::Char('h') if key.modifiers.contains(KeyModifiers::CONTROL) && self.vim_motions => {
+                    self.next();
+                }
                 // toggle WORK/PAUSE
-                KeyCode::Right if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                KeyCode::Right if key.modifiers.contains(KeyModifiers::CONTROL) && !self.vim_motions => {
+                    self.next();
+                }
+                KeyCode::Char('l') if key.modifiers.contains(KeyModifiers::CONTROL) && self.vim_motions => {
                     self.next();
                 }
                 // reset rounds AND clocks
