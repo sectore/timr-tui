@@ -100,10 +100,10 @@ Options:
   -m, --mode <MODE>                  Mode to start with. [possible values: countdown, timer, pomodoro, event, localtime]
   -s, --style <STYLE>                Style to display time with. [possible values: full, light, medium, dark, thick, cross, braille]
       --menu                         Open menu.
-  -v, --vim <VIM>                    Toggle usage of Vim motions. [possible values: on, off]
+  -v, --vim <VIM>                    Enable/disable Vim motions. [possible values: on, off]
   -r, --reset                        Reset stored values to defaults.
-  -n, --notification <NOTIFICATION>  Toggle desktop notifications. Experimental. [possible values: on, off]
-      --blink <BLINK>                Toggle blink mode to animate a clock when it reaches its finished mode. [possible values: on, off]
+  -n, --notification <NOTIFICATION>  Enable/disable desktop notifications. Experimental. [possible values: on, off]
+      --blink <BLINK>                Enable/disable blink mode to animate a clock when it reaches its finished mode. [possible values: on, off]
       --log [<LOG>]                  Directory for log file. If not set, standard application log directory is used (check README for details).
   -h, --help                         Print help
   -V, --version                      Print version

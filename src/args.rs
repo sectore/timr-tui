@@ -49,7 +49,7 @@ pub struct Args {
     #[arg(long, value_enum, help = "Open menu.")]
     pub menu: bool,
 
-    #[arg(long, short = 'v', value_enum, help = "Toggle usage of Vim motions.")]
+    #[arg(long, short = 'v', value_enum, help = "Enable/disable Vim motions.")]
     pub vim: Option<Toggle>,
 
     #[arg(long, short = 'r', help = "Reset stored values to defaults.")]
@@ -59,14 +59,14 @@ pub struct Args {
         long,
         short,
         value_enum,
-        help = "Toggle desktop notifications. Experimental."
+        help = "Enable/disable desktop notifications. Experimental."
     )]
     pub notification: Option<Toggle>,
 
     #[arg(
         long,
         value_enum,
-        help = "Toggle blink mode to animate a clock when it reaches its finished mode."
+        help = "Enable/disable blink mode to animate a clock when it reaches its finished mode."
     )]
     pub blink: Option<Toggle>,
 
