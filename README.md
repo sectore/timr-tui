@@ -121,9 +121,9 @@ Note: To enable Vim motions key binding, run with `--vim=on` once. It will be st
 
 ## Menu
 
-| Key                          | Description |
-| ---------------------------- | ----------- |
-| <kbd>↑</kbd> or <kbd>↓</kbd> | Toggle menu |
+| Key          | Description |
+| ------------ | ----------- |
+| <kbd>m</kbd> | Toggle menu |
 
 ## Screens
 
