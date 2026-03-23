@@ -18,7 +18,7 @@ Sleep .2
 Type "m" # hide menu
 Show
 # --- STYLES ---
-Type "s"
+Type " "
 Sleep 0.2
 Type@0.4s "......."
 Sleep 0.2

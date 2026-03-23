@@ -30,7 +30,7 @@ Down ## ddd
 Up 2
 Type "."
 Type "s" # save
-Type "s" # start to reach DONE
+Type " " # start to reach DONE
 Sleep 2s
 # --- SCREENSHOT ---
 Screenshot demo/timer-max.png

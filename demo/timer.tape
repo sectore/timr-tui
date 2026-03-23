@@ -18,12 +18,8 @@ Sleep 0.2
 Type "m" # hide menu
 Show
 # --- TIMER ---
-Type "s"
-Sleep 1.4
-Type "s"
-Sleep 0.3
-Type "s"
-Sleep 0.3
+Type " "
+Sleep 2
 Type "e"
 Sleep 0.2
 Up@30ms 57
