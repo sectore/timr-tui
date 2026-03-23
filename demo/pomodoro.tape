@@ -20,7 +20,7 @@ Type "m" # hide menu
 Show
 # --- POMODORO WORK ---
 Sleep .5
-Type "s" # start
+Type " " # start
 Sleep 2.3
 Type "e"
 Sleep 0.2
@@ -31,7 +31,7 @@ Sleep 4
 # --- POMODORO PAUSE ---
 Ctrl+Right
 Sleep 0.5
-Type "s"
+Type " "
 Sleep 2.3
 Type "e"
 Sleep 0.2

@@ -17,7 +17,6 @@ Type "cargo run -- -r -m countdown -d -c 1 --blink=on"
 Enter
 Sleep 0.2
 Type "m"
-Type ":::"
 Show
-Type "s"
+Type " "
 Sleep 4

@@ -12,7 +12,7 @@ Set Margin 1
 # --- START ---
 Set LoopOffset 4
 Hide
-Type "cargo run -- -m l"
+Type "cargo run -- -r -m l"
 Enter
 Sleep .2
 Type "m" # hide menu

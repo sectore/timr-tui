@@ -12,22 +12,18 @@ Set Margin 1
 # --- START ---
 Set LoopOffset 4
 Hide
-Type "cargo run -- -r -d -c 10:00"
+Type "cargo run -- -r -d -c 10:00 --blink=on"
 Enter
 Sleep .2
 Type "m" # hide menu
 Show
 # --- COUNTDOWN ---
 Sleep .5
-Type "s"
-Sleep 1.4
-Type "s"
-Sleep 0.3
-Type "s"
-Sleep 0.3
+Type " "
+Sleep 2
 Type "e"
 Sleep 0.1
 Down@10ms 65
 Sleep 0.1
 Type "s"
-Sleep 3
+Sleep 5

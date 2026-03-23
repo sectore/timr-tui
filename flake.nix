@@ -46,6 +46,39 @@
           CARGO_BUILD_RUSTFLAGS = "-C target-feature=+crt-static";
         });
 
+      vhs = pkgs.buildGoModule (finalAttrs: {
+        pname = "vhs";
+        version = "0.11.0";
+
+        src = pkgs.fetchFromGitHub {
+          owner = "charmbracelet";
+          repo = "vhs";
+          tag = "v${finalAttrs.version}";
+          # hash = nixpkgs.lib.fakeSha256;
+          hash = "sha256-VOiI+ddiax04QtCcDr6ze53kd/HHGbfQE3j/32iq4Ro=";
+        };
+
+        # vendorHash = nixpkgs.lib.fakeSha256;
+        vendorHash = "sha256-cgKLYUATtn4hMdIOXZe9JWYNUOrX3S6BDfvS+rIWDfM=";
+
+        nativeBuildInputs = [pkgs.makeBinaryWrapper];
+
+        ldflags = [
+          "-s"
+          "-w"
+          "-X=main.Version=${finalAttrs.version}"
+        ];
+
+        postInstall = ''
+          wrapProgram $out/bin/vhs --prefix PATH : ${
+            pkgs.lib.makeBinPath (
+              [pkgs.ffmpeg pkgs.ttyd]
+              ++ pkgs.lib.optionals pkgs.stdenv.hostPlatform.isLinux [pkgs.chromium]
+            )
+          }
+        '';
+      });
+
       # Windows cross-compilation build
       # @see https://crane.dev/examples/cross-windows.html
       windowsBuild = let
@@ -74,6 +107,7 @@
           packages =
             [
               toolchain
+              vhs
               pkgs.just
               pkgs.nixd
               pkgs.alejandra
