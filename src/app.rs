@@ -324,6 +324,8 @@ impl App {
                 }
                 // toogle menu
                 KeyCode::Char('m') => app.footer.set_show_menu(!app.footer.get_show_menu()),
+                KeyCode::Up => app.footer.set_show_menu(true),
+                KeyCode::Down => app.footer.set_show_menu(false),
                 _ => {}
             };
         };

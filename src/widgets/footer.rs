@@ -102,9 +102,14 @@ impl StatefulWidget for Footer {
         Block::new()
             .borders(Borders::TOP)
             .title(Line::from(vec![
-                Span::styled("m", BOLD),
-                Span::from(SPACE),
-                Span::from(if state.show_menu { "hide" } else { "show" }),
+                Span::styled(
+                    if state.show_menu {
+                        scrollbar::VERTICAL.end
+                    } else {
+                        scrollbar::VERTICAL.begin
+                    },
+                    BOLD,
+                ),
                 Span::from(SPACE),
                 Span::from("menu"),
                 Span::from(SPACE),
