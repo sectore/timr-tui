@@ -1,5 +1,15 @@
 # Changelog
 
+## v1.8.1 - 2026-04-15
+
+### Fix
+
+- (arch) Error when installing with yay [#168](https://github.com/sectore/timr-tui/issues/168)
+
+### Misc
+
+- (deps) Rust 1.94.1 [#169](https://github.com/sectore/timr-tui/pull/169)
+
 ## v1.8.0 - 2026-03-23
 
 ### Features
