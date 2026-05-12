@@ -265,7 +265,7 @@ impl App {
                 KeyCode::Char('2') => app.content = Content::Timer,
                 KeyCode::Char('3') => app.content = Content::Pomodoro,
                 KeyCode::Char('4') => app.content = Content::Event,
-                KeyCode::Char('0') => app.content = Content::LocalTime,
+                KeyCode::Char('5') => app.content = Content::LocalTime,
                 // switch `screens`
                 KeyCode::Right if !app.vim_motions => {
                     app.content = app.content.next();
