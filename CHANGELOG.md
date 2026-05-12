@@ -2,6 +2,10 @@
 
 ## [unreleased]
 
+### Fix
+
+- Fix keybinding for local time screen [#172](https://github.com/sectore/timr-tui/pull/172)
+
 ### Misc
 
 - (deps) Rust 1.95.0 [#171](https://github.com/sectore/timr-tui/pull/171)
