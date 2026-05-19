@@ -1,5 +1,5 @@
 use crate::{
-    common::{AppTime, Style},
+    common::{AppTime, AppTimeFormat, Style},
     constants::TICK_VALUE_MS,
     duration::{DurationEx, MAX_DURATION},
     events::{AppEventTx, TuiEvent, TuiEventHandler},
@@ -41,6 +41,8 @@ pub struct CountdownState {
     edit_time: Option<EditTimeState>,
     /// Whether Vim motions are enabled
     vim_motions: bool,
+    /// Frozen target time label captured when countdown finishes
+    frozen_target_label: Option<String>,
 }
 
 impl CountdownState {
@@ -82,6 +84,7 @@ impl CountdownState {
             app_time,
             edit_time: None,
             vim_motions,
+            frozen_target_label: None,
         }
     }
 
@@ -144,6 +147,23 @@ impl CountdownState {
     pub fn is_time_edit_mode(&self) -> bool {
         self.edit_time.is_some()
     }
+
+    /// Returns the target local time (when the countdown will reach zero)
+    fn target_time_label(&self) -> Option<String> {
+        if self.clock.is_initial() {
+            return None;
+        }
+        // Return frozen label once countdown is done
+        if let Some(label) = &self.frozen_target_label {
+            return Some(label.clone());
+        }
+        Some(self.format_target_time())
+    }
+
+    fn format_target_time(&self) -> String {
+        let target = self.time_to_edit();
+        AppTime::Local(target).format(&AppTimeFormat::Hh12Mm)
+    }
 }
 
 impl TuiEventHandler for CountdownState {
@@ -151,7 +171,12 @@ impl TuiEventHandler for CountdownState {
         match event {
             TuiEvent::Tick => {
                 if !self.clock.is_done() {
+                    let was_running = self.clock.is_running();
                     self.clock.tick();
+                    // Freeze target label the moment countdown finishes
+                    if was_running && self.clock.is_done() {
+                        self.frozen_target_label = Some(self.format_target_time());
+                    }
                 } else {
                     self.clock.update_done_count();
                     self.elapsed_clock.tick();
@@ -329,6 +354,8 @@ impl TuiEventHandler for CountdownState {
                     // reset both clocks to use intial values
                     self.clock.reset();
                     self.elapsed_clock.reset();
+                    // reset frozen target label
+                    self.frozen_target_label = None;
 
                     // reset `edit_time` back initial value
                     let time = self.time_to_edit();
@@ -443,17 +470,26 @@ impl StatefulWidget for Countdown {
                 .to_uppercase(),
             );
             let widget = ClockWidget::new(self.style, self.blink);
+            let target_label = state.target_time_label().map(Line::raw);
+            let target_height: u16 = if target_label.is_some() { 2 } else { 0 };
 
             let area = area.centered(
                 Constraint::Length(max(
                     widget.get_width(state.clock.get_format(), state.clock.with_decis),
                     label.width() as u16,
                 )),
-                Constraint::Length(widget.get_height() + 1 /* height of label */),
+                Constraint::Length(widget.get_height() + 1 + target_height),
             );
-            let [v1, v2] =
-                Layout::vertical(Constraint::from_lengths([widget.get_height(), 1])).areas(area);
+            let [v0, v1, v2] = Layout::vertical(Constraint::from_lengths([
+                target_height,
+                widget.get_height(),
+                1,
+            ]))
+            .areas(area);
 
+            if let Some(tl) = target_label {
+                tl.centered().render(v0, buf);
+            }
             widget.render(v1, buf, &mut state.clock);
             label.centered().render(v2, buf);
         }
