@@ -2,6 +2,10 @@
 
 ## [unreleased]
 
+### Features
+
+- (countdown) Show finish time (formatted, optional) [#174](https://github.com/sectore/timr-tui/pull/174) by @MkP369, [#175](https://github.com/sectore/timr-tui/pull/175)
+
 ### Fix
 
 - Fix keybinding for local time screen [#172](https://github.com/sectore/timr-tui/pull/172)

@@ -25,6 +25,7 @@ pub struct CountdownStateArgs {
     pub current_value: Duration,
     pub elapsed_value: Duration,
     pub app_time: AppTime,
+    pub target_time_format: Option<AppTimeFormat>,
     pub with_decis: bool,
     pub app_tx: AppEventTx,
     pub vim_motions: bool,
@@ -37,6 +38,10 @@ pub struct CountdownState {
     /// clock to count time after `DONE` - similar to Mission Elapsed Time (MET)
     elapsed_clock: ClockState<clock::Timer>,
     app_time: AppTime,
+    /// target time format
+    target_time_format: Option<AppTimeFormat>,
+    /// target time coundown will finish
+    target_time: OffsetDateTime,
     /// Edit by local time
     edit_time: Option<EditTimeState>,
     /// Whether Vim motions are enabled
@@ -53,6 +58,7 @@ impl CountdownState {
             elapsed_value,
             with_decis,
             app_time,
+            target_time_format: app_time_format,
             app_tx,
             vim_motions,
         } = args;
@@ -82,6 +88,8 @@ impl CountdownState {
                 ClockMode::Initial
             }),
             app_time,
+            target_time_format: app_time_format,
+            target_time: OffsetDateTime::from(app_time),
             edit_time: None,
             vim_motions,
             frozen_target_label: None,
@@ -107,6 +115,10 @@ impl CountdownState {
 
     pub fn set_app_time(&mut self, app_time: AppTime) {
         self.app_time = app_time;
+    }
+
+    pub fn set_app_time_format(&mut self, value: Option<AppTimeFormat>) {
+        self.target_time_format = value;
     }
 
     fn time_to_edit(&self) -> OffsetDateTime {
@@ -147,23 +159,6 @@ impl CountdownState {
     pub fn is_time_edit_mode(&self) -> bool {
         self.edit_time.is_some()
     }
-
-    /// Returns the target local time (when the countdown will reach zero)
-    fn target_time_label(&self) -> Option<String> {
-        if self.clock.is_initial() {
-            return None;
-        }
-        // Return frozen label once countdown is done
-        if let Some(label) = &self.frozen_target_label {
-            return Some(label.clone());
-        }
-        Some(self.format_target_time())
-    }
-
-    fn format_target_time(&self) -> String {
-        let target = self.time_to_edit();
-        AppTime::Local(target).format(&AppTimeFormat::Hh12Mm)
-    }
 }
 
 impl TuiEventHandler for CountdownState {
@@ -171,11 +166,10 @@ impl TuiEventHandler for CountdownState {
         match event {
             TuiEvent::Tick => {
                 if !self.clock.is_done() {
-                    let was_running = self.clock.is_running();
                     self.clock.tick();
                     // Freeze target label the moment countdown finishes
-                    if was_running && self.clock.is_done() {
-                        self.frozen_target_label = Some(self.format_target_time());
+                    if !self.clock.is_done() {
+                        self.target_time = self.time_to_edit();
                     }
                 } else {
                     self.clock.update_done_count();
@@ -470,28 +464,34 @@ impl StatefulWidget for Countdown {
                 .to_uppercase(),
             );
             let widget = ClockWidget::new(self.style, self.blink);
-            let target_label = state.target_time_label().map(Line::raw);
-            let target_height: u16 = if target_label.is_some() { 2 } else { 0 };
+            let label_target_time = Line::raw(
+                if let Some(tf) = state.target_time_format
+                    // hide target time if we edit by time - no duplication of information then
+                    && !state.is_time_edit_mode()
+                {
+                    format!("Finish {}", AppTime::Local(state.target_time).format(&tf))
+                } else {
+                    " ".to_owned()
+                }
+                .to_uppercase(),
+            );
 
             let area = area.centered(
                 Constraint::Length(max(
-                    widget.get_width(state.clock.get_format(), state.clock.with_decis),
-                    label.width() as u16,
+                    max(
+                        widget.get_width(state.clock.get_format(), state.clock.with_decis),
+                        label.width() as u16,
+                    ),
+                    label_target_time.width() as u16,
                 )),
-                Constraint::Length(widget.get_height() + 1 + target_height),
+                Constraint::Length(widget.get_height() + 2),
             );
-            let [v0, v1, v2] = Layout::vertical(Constraint::from_lengths([
-                target_height,
-                widget.get_height(),
-                1,
-            ]))
-            .areas(area);
+            let [v0, v1, v2] =
+                Layout::vertical(Constraint::from_lengths([widget.get_height(), 1, 1])).areas(area);
 
-            if let Some(tl) = target_label {
-                tl.centered().render(v0, buf);
-            }
-            widget.render(v1, buf, &mut state.clock);
-            label.centered().render(v2, buf);
+            widget.render(v0, buf, &mut state.clock);
+            label.centered().render(v1, buf);
+            label_target_time.centered().render(v2, buf);
         }
     }
 }
