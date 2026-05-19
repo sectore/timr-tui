@@ -164,10 +164,7 @@ impl TuiEventHandler for CountdownState {
             TuiEvent::Tick => {
                 if !self.clock.is_done() {
                     self.clock.tick();
-                    // Freeze target label the moment countdown finishes
-                    if !self.clock.is_done() {
-                        self.target_time = self.time_to_edit();
-                    }
+                    self.target_time = self.time_to_edit();
                 } else {
                     self.clock.update_done_count();
                     self.elapsed_clock.tick();
