@@ -46,8 +46,6 @@ pub struct CountdownState {
     edit_time: Option<EditTimeState>,
     /// Whether Vim motions are enabled
     vim_motions: bool,
-    /// Frozen target time label captured when countdown finishes
-    frozen_target_label: Option<String>,
 }
 
 impl CountdownState {
@@ -92,7 +90,6 @@ impl CountdownState {
             target_time: OffsetDateTime::from(app_time),
             edit_time: None,
             vim_motions,
-            frozen_target_label: None,
         }
     }
 
@@ -348,8 +345,6 @@ impl TuiEventHandler for CountdownState {
                     // reset both clocks to use intial values
                     self.clock.reset();
                     self.elapsed_clock.reset();
-                    // reset frozen target label
-                    self.frozen_target_label = None;
 
                     // reset `edit_time` back initial value
                     let time = self.time_to_edit();
