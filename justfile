@@ -1,6 +1,6 @@
 # The `--fmt` command is currently unstable.
 
-set unstable := true
+set unstable
 
 # list commands
 default:
