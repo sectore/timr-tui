@@ -10,11 +10,11 @@ Set Margin 1
 # --- START ---
 Set LoopOffset 4
 Hide
-Type "cargo run -- -r -c 25:38 --blink=on"
+Type "cargo run -- -r -c 25:38"
 Enter
 Sleep .2
 Type "m" # hide menu
-Type ":::" # show local time
+Type ":::" # show finish/local time
 Show
 # --- COUNTDOWN ---
 Type " "
