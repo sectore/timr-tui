@@ -1,10 +1,10 @@
 # Changelog
 
-## [unreleased]
+## v1.9.0 - 2026-05-26
 
 ### Features
 
-- (countdown) Show finish time (formatted, optional) [#174](https://github.com/sectore/timr-tui/pull/174) by @MkP369, [#175](https://github.com/sectore/timr-tui/pull/175), [#176](https://github.com/sectore/timr-tui/pull/176), [#177](https://github.com/sectore/timr-tui/pull/177), [#178](https://github.com/sectore/timr-tui/pull/178)
+- (countdown) Add finish time (toggleable) [#174](https://github.com/sectore/timr-tui/pull/174) by @MkP369, [#175](https://github.com/sectore/timr-tui/pull/175), [#176](https://github.com/sectore/timr-tui/pull/176), [#177](https://github.com/sectore/timr-tui/pull/177), [#178](https://github.com/sectore/timr-tui/pull/178)
 
 ### Fix
 
