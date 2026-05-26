@@ -4,7 +4,7 @@
 
 ### Features
 
-- (countdown) Show finish time (formatted, optional) [#174](https://github.com/sectore/timr-tui/pull/174) by @MkP369, [#175](https://github.com/sectore/timr-tui/pull/175), [#176](https://github.com/sectore/timr-tui/pull/176)
+- (countdown) Show finish time (formatted, optional) [#174](https://github.com/sectore/timr-tui/pull/174) by @MkP369, [#175](https://github.com/sectore/timr-tui/pull/175), [#176](https://github.com/sectore/timr-tui/pull/176), [#177](https://github.com/sectore/timr-tui/pull/177)
 
 ### Fix
 
