@@ -1,6 +1,6 @@
 # The `--fmt` command is currently unstable.
 
-set unstable
+set unstable := true
 
 # list commands
 default:
@@ -104,6 +104,13 @@ alias dcm := demo-countdown-met
 [group('demo')]
 demo-countdown-met:
     vhs demo/countdown-met.tape
+
+alias dcf := demo-countdown-finish
+
+# build demo: countdown + met
+[group('demo')]
+demo-countdown-finish:
+    vhs demo/countdown-finish.tape
 
 alias ds := demo-style
 
