@@ -188,6 +188,7 @@ Note: To enable Vim motions key binding, run with `--vim=on` once. It will be st
 | ----------------- | ------------------ |
 | <kbd>ctrl+e</kbd> | edit by local time |
 | <kbd>ctrl+s</kbd> | save initial value |
+| <kbd>:</kbd>      | toggle finish time |
 
 ## Appearance
 
