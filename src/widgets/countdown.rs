@@ -424,11 +424,15 @@ impl StatefulWidget for Countdown {
             let widget = EditTimeWidget::new(self.style);
             let area = area.centered(
                 Constraint::Length(max(widget.get_width(), label.width() as u16)),
-                Constraint::Length(widget.get_height() + 1 /* height of label */),
+                Constraint::Length(
+                    // 2 = heights of empty label + `label`
+                    widget.get_height() + 2,
+                ),
             );
-            let [v1, v2] =
-                Layout::vertical(Constraint::from_lengths([widget.get_height(), 1])).areas(area);
+            let [v0, v1, v2] =
+                Layout::vertical(Constraint::from_lengths([1, widget.get_height(), 1])).areas(area);
 
+            Line::raw("").centered().render(v0, buf);
             widget.render(v1, buf, edit_time);
             label.centered().render(v2, buf);
         } else {
@@ -476,14 +480,19 @@ impl StatefulWidget for Countdown {
                     ),
                     label_target_time.width() as u16,
                 )),
-                Constraint::Length(widget.get_height() + 2),
+                Constraint::Length(
+                    // 3 = heights of empty label + `label` + `label_target_time`
+                    widget.get_height() + 3,
+                ),
             );
-            let [v0, v1, v2] =
-                Layout::vertical(Constraint::from_lengths([widget.get_height(), 1, 1])).areas(area);
+            let [v0, v1, v2, v3] =
+                Layout::vertical(Constraint::from_lengths([1, widget.get_height(), 1, 1]))
+                    .areas(area);
 
-            widget.render(v0, buf, &mut state.clock);
-            label.centered().render(v1, buf);
-            label_target_time.centered().render(v2, buf);
+            Line::raw("").centered().render(v0, buf);
+            widget.render(v1, buf, &mut state.clock);
+            label.centered().render(v2, buf);
+            label_target_time.centered().render(v3, buf);
         }
     }
 }
