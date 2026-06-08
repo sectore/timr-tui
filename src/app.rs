@@ -74,6 +74,7 @@ pub struct AppArgs {
     pub content: Content,
     pub pomodoro_mode: PomodoroMode,
     pub pomodoro_round: u64,
+    pub pomodoro_auto_switch: bool,
     pub initial_value_work: Duration,
     pub current_value_work: Duration,
     pub initial_value_pause: Duration,
@@ -129,6 +130,7 @@ impl From<FromAppArgs> for App {
             style: args.style.unwrap_or(stg.style),
             pomodoro_mode: stg.pomodoro_mode,
             pomodoro_round: stg.pomodoro_count,
+            pomodoro_auto_switch: stg.pomodoro_auto_switch,
             initial_value_work: args.work.unwrap_or(stg.inital_value_work),
             // invalidate `current_value_work` if an initial value is set via args
             current_value_work: args.work.unwrap_or(stg.current_value_work),
@@ -172,6 +174,7 @@ impl App {
             with_decis,
             pomodoro_mode,
             pomodoro_round,
+            pomodoro_auto_switch,
             event,
             notification,
             blink,
@@ -233,6 +236,7 @@ impl App {
                 round: pomodoro_round,
                 app_tx: app_tx.clone(),
                 vim_motions,
+                auto_switch: pomodoro_auto_switch,
             }),
             local_time: LocalTimeState::new(LocalTimeStateArgs {
                 app_time,
@@ -513,6 +517,7 @@ impl App {
             with_decis: self.with_decis,
             pomodoro_mode: self.pomodoro.get_mode().clone(),
             pomodoro_count: self.pomodoro.get_round(),
+            pomodoro_auto_switch: self.pomodoro.get_auto_switch(),
             inital_value_work: Duration::from(*self.pomodoro.get_clock_work().get_initial_value()),
             current_value_work: Duration::from(*self.pomodoro.get_clock_work().get_current_value()),
             inital_value_pause: Duration::from(
@@ -590,6 +595,7 @@ impl StatefulWidget for AppWidget {
             selected_content: state.content,
             app_edit_mode: state.get_edit_mode(),
             app_time: state.app_time,
+            pomodoro_auto_switch: state.pomodoro.get_auto_switch(),
         }
         .render(v2, buf, &mut state.footer);
     }
