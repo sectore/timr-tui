@@ -2,6 +2,10 @@
 
 ## [unreleased]
 
+### Features
+
+- (pomodoro) auto switch `work` / `pause` (optional) [#183](https://github.com/sectore/timr-tui/issues/183)
+
 ### Misc
 
 - (deps) Latest Ratatui `v0.30.1` et al. (incl. `update-cargo-deps`/`update-changelog` skills) [#182](https://github.com/sectore/timr-tui/pull/182)
