@@ -233,6 +233,7 @@ impl App {
                 round: pomodoro_round,
                 app_tx: app_tx.clone(),
                 vim_motions,
+                auto_switch: true, // TODO: get from storage
             }),
             local_time: LocalTimeState::new(LocalTimeStateArgs {
                 app_time,

@@ -429,11 +429,16 @@ impl<T> ClockState<T> {
     pub fn reset(&mut self) {
         self.mode = Mode::Initial;
         self.current_value = self.initial_value;
+        self.done_count = None;
         self.update_format();
     }
 
     pub fn is_done(&self) -> bool {
         self.mode == Mode::Done
+    }
+
+    pub fn is_done_counted(&self) -> bool {
+        self.is_done() && self.done_count.is_none()
     }
 
     fn done(&mut self) {
