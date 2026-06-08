@@ -134,6 +134,10 @@ impl PomodoroState {
         self.round
     }
 
+    pub fn get_auto_switch(&self) -> bool {
+        self.auto_switch
+    }
+
     pub fn set_with_decis(&mut self, with_decis: bool) {
         self.clock_map.work.with_decis = with_decis;
         self.clock_map.pause.with_decis = with_decis;
