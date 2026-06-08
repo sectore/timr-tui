@@ -15,6 +15,10 @@ Check [README](./README.md) chapter `Development` to get all information about h
 - Rare or no comments are preferred instead of commenting everything which the code already describes
 - Keep tests compact and simple
 
+# Skills
+
+Project-specific skills are stored in `.agents/skills/`. Reference them when a matching task comes up.
+
 # Agent Guidelines
 
 - Keep your answers compact, but explicit. An user will ask if something is missing.
