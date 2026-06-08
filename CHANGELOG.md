@@ -5,6 +5,7 @@
 ### Misc
 
 - (deps) Rust 1.96.0 (incl. `update-rust-version` skill)
+- (deps) Latest Ratatui `v0.30.1` et al.
 
 ## v1.9.0 - 2026-05-26
 
