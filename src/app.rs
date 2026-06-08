@@ -595,6 +595,7 @@ impl StatefulWidget for AppWidget {
             selected_content: state.content,
             app_edit_mode: state.get_edit_mode(),
             app_time: state.app_time,
+            pomodoro_auto_switch: state.pomodoro.get_auto_switch(),
         }
         .render(v2, buf, &mut state.footer);
     }
