@@ -82,15 +82,7 @@ Prepend `https://blog.rust-lang.org` to the resulting path. Use the full URL in 
 
 ### 9. Update CHANGELOG.md
 
-Add an `[unreleased]` section at the top (if not already present):
-
-```markdown
-## [unreleased]
-
-### Misc
-
-- (deps) Rust {new version}
-```
+Follow the `update-changelog` skill. Entry: `(deps) Rust {new version}`.
 
 ### 10. Commit
 

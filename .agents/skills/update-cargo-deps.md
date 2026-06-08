@@ -49,15 +49,7 @@ Should complete without errors.
 
 ### 7. Update CHANGELOG.md
 
-Add an `[unreleased]` section at the top (if not already present):
-
-```markdown
-## [unreleased]
-
-### Misc
-
-- (deps) update deps
-```
+Follow the `update-changelog` skill. Entry: `(deps) update deps ({dd-mm-yyyy})`.
 
 ### 8. Commit
 
