@@ -9,6 +9,7 @@
 
 ### Misc
 
+- (dprint): include `md` files, exclude `target` dir [#185](https://github.com/sectore/timr-tui/issues/185)
 - (deps) Latest Ratatui `v0.30.1` et al. (incl. `update-cargo-deps`/`update-changelog` skills) [#182](https://github.com/sectore/timr-tui/pull/182)
 - (deps) Rust 1.96.0 (incl. `update-rust-version` skill) [#181](https://github.com/sectore/timr-tui/pull/181)
 
