@@ -81,6 +81,7 @@ pub struct PomodoroState {
     round: u64,
     pause_duration: PauseDuration,
     vim_motions: bool,
+    auto_switch: bool,
 }
 
 pub struct PomodoroStateArgs {
@@ -93,6 +94,7 @@ pub struct PomodoroStateArgs {
     pub app_tx: AppEventTx,
     pub round: u64,
     pub vim_motions: bool,
+    pub auto_switch: bool,
 }
 
 impl PomodoroState {
@@ -107,6 +109,7 @@ impl PomodoroState {
             app_tx,
             round,
             vim_motions,
+            auto_switch,
         } = args;
         Self {
             mode,
@@ -131,6 +134,7 @@ impl PomodoroState {
             round,
             pause_duration,
             vim_motions,
+            auto_switch,
         }
     }
 
@@ -170,16 +174,45 @@ impl PomodoroState {
         &self.pause_duration
     }
 
+    pub fn get_auto_switch(&self) -> bool {
+        self.auto_switch
+    }
+
     pub fn set_with_decis(&mut self, with_decis: bool) {
         self.clock_map.work.with_decis = with_decis;
         self.clock_map.pause.with_decis = with_decis;
     }
 
-    pub fn next(&mut self) {
+    fn switch_mode(&mut self) {
         self.mode = match self.mode {
             Mode::Pause => Mode::Work,
             Mode::Work => Mode::Pause,
         };
+    }
+
+    // Switch `Mode` extended:
+    // 1a. stop current clock
+    // 1b. count round (from pause -> work only)
+    // 2. switch `mode`
+    // 3. run new clock
+    fn switch_mode_auto(&mut self) {
+        match self.mode {
+            Mode::Pause => {
+                self.get_clock_pause_mut().reset();
+                self.round += 1;
+                let pause_initial = self.pause_duration.for_round(self.round);
+                self.get_clock_pause_mut().set_initial_value(pause_initial.into());
+                self.switch_mode();
+                self.get_clock_work_mut().run();
+            }
+            Mode::Work => {
+                self.get_clock_work_mut().reset();
+                let pause_initial = self.pause_duration.for_round(self.round);
+                self.get_clock_pause_mut().set_initial_value(pause_initial.into());
+                self.switch_mode();
+                self.get_clock_pause_mut().run();
+            }
+        }
     }
 }
 
@@ -190,6 +223,9 @@ impl TuiEventHandler for PomodoroState {
             TuiEvent::Tick => {
                 self.get_clock_mut().tick();
                 self.get_clock_mut().update_done_count();
+                if self.auto_switch && self.get_clock().is_done_counted() {
+                    self.switch_mode_auto();
+                }
             }
             // EDIT mode
             TuiEvent::Crossterm(CrosstermEvent::Key(key)) if edit_mode => match key.code {
@@ -270,18 +306,25 @@ impl TuiEventHandler for PomodoroState {
                 }
                 // toggle WORK/PAUSE
                 KeyCode::Left if key.modifiers.contains(KeyModifiers::CONTROL) && !self.vim_motions => {
-                    // `next` is acting as same as a "prev" function we don't have
-                    self.next();
+                    self.auto_switch = false;
+                    self.switch_mode();
                 }
                 KeyCode::Char('h') if key.modifiers.contains(KeyModifiers::CONTROL) && self.vim_motions => {
-                    self.next();
+                    self.auto_switch = false;
+                    self.switch_mode();
                 }
                 // toggle WORK/PAUSE
                 KeyCode::Right if key.modifiers.contains(KeyModifiers::CONTROL) && !self.vim_motions => {
-                    self.next();
+                    self.auto_switch = false;
+                    self.switch_mode();
                 }
                 KeyCode::Char('l') if key.modifiers.contains(KeyModifiers::CONTROL) && self.vim_motions => {
-                    self.next();
+                    self.auto_switch = false;
+                    self.switch_mode();
+                }
+                // toggle autoswitch
+                KeyCode::Char('a') => {
+                    self.auto_switch = !self.auto_switch;
                 }
                 // reset rounds AND clocks
                 KeyCode::Char('r') if key.modifiers.contains(KeyModifiers::CONTROL) => {

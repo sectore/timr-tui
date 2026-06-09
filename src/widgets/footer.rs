@@ -53,6 +53,7 @@ pub struct Footer {
     pub selected_content: Content,
     pub app_edit_mode: AppEditMode,
     pub app_time: AppTime,
+    pub pomodoro_auto_switch: bool,
 }
 
 const SPACE: &str = " "; // single (empty) SPACE
@@ -306,6 +307,23 @@ impl StatefulWidget for Footer {
                                                 Span::styled(format!("^{}", symbol_right), BOLD),
                                                 Span::from(SPACE),
                                                 Span::styled("switch work/pause screens", ITALIC),
+                                            ]);
+
+                                            spans.extend_from_slice(&[
+                                                Span::from(WIDE_SPACE),
+                                                Span::styled("a", BOLD),
+                                                Span::from(SPACE),
+                                                Span::styled(
+                                                    format!(
+                                                        "auto switch {}",
+                                                        if self.pomodoro_auto_switch {
+                                                            "off"
+                                                        } else {
+                                                            "on"
+                                                        }
+                                                    ),
+                                                    ITALIC,
+                                                ),
                                             ]);
                                         }
                                         spans
