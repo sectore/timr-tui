@@ -178,6 +178,11 @@ impl PomodoroState {
         self.auto_switch
     }
 
+    fn init_pause_clock(&mut self) {
+        let initial = self.pause_duration.for_round(self.round);
+        self.get_clock_pause_mut().set_initial_value(initial.into());
+    }
+
     pub fn set_with_decis(&mut self, with_decis: bool) {
         self.clock_map.work.with_decis = with_decis;
         self.clock_map.pause.with_decis = with_decis;
@@ -200,15 +205,13 @@ impl PomodoroState {
             Mode::Pause => {
                 self.get_clock_pause_mut().reset();
                 self.round += 1;
-                let pause_initial = self.pause_duration.for_round(self.round);
-                self.get_clock_pause_mut().set_initial_value(pause_initial.into());
+                self.init_pause_clock();
                 self.switch_mode();
                 self.get_clock_work_mut().run();
             }
             Mode::Work => {
                 self.get_clock_work_mut().reset();
-                let pause_initial = self.pause_duration.for_round(self.round);
-                self.get_clock_pause_mut().set_initial_value(pause_initial.into());
+                self.init_pause_clock();
                 self.switch_mode();
                 self.get_clock_pause_mut().run();
             }
