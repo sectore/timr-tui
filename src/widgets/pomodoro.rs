@@ -178,7 +178,7 @@ impl PomodoroState {
         self.auto_switch
     }
 
-    fn init_pause_clock(&mut self) {
+    fn update_pause_initial(&mut self) {
         let initial = self.pause_duration.for_round(self.round);
         self.get_clock_pause_mut().set_initial_value(initial.into());
     }
@@ -205,13 +205,13 @@ impl PomodoroState {
             Mode::Pause => {
                 self.get_clock_pause_mut().reset();
                 self.round += 1;
-                self.init_pause_clock();
+                self.update_pause_initial();
                 self.switch_mode();
                 self.get_clock_work_mut().run();
             }
             Mode::Work => {
                 self.get_clock_work_mut().reset();
-                self.init_pause_clock();
+                self.update_pause_initial();
                 self.switch_mode();
                 self.get_clock_pause_mut().run();
             }
@@ -333,8 +333,7 @@ impl TuiEventHandler for PomodoroState {
                 KeyCode::Char('r') if key.modifiers.contains(KeyModifiers::CONTROL) => {
                     self.round = 1;
                     self.get_clock_work_mut().reset();
-                    let pause_initial = self.pause_duration.for_round(self.round);
-                    self.get_clock_pause_mut().set_initial_value(pause_initial.into());
+                    self.update_pause_initial();
                     self.get_clock_pause_mut().reset();
                 }
                 // reset current clock
@@ -342,8 +341,7 @@ impl TuiEventHandler for PomodoroState {
                     // increase round before (!!) resetting the clock
                     if self.get_mode() == &Mode::Work && self.get_clock().is_done() {
                         self.round += 1;
-                        let pause_initial = self.pause_duration.for_round(self.round);
-                        self.get_clock_pause_mut().set_initial_value(pause_initial.into());
+                        self.update_pause_initial();
                     }
                     self.get_clock_mut().reset();
                 }
