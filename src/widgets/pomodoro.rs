@@ -362,7 +362,7 @@ impl StatefulWidget for PomodoroWidget {
     type State = PomodoroState;
     fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
         let clock_widget = ClockWidget::new(self.style, self.blink);
-        let special_pause = state.get_mode() == &Mode::Pause
+        let is_special_pause = state.get_mode() == &Mode::Pause
             && state
                 .get_pause_duration()
                 .is_special_round(state.get_round());
@@ -370,7 +370,7 @@ impl StatefulWidget for PomodoroWidget {
             (format!(
                 "Pomodoro {} {}{}",
                 state.mode.clone(),
-                if special_pause { "Special " } else { "" },
+                if is_special_pause { "Special " } else { "" },
                 state.get_clock_mut().get_mode()
             ))
             .to_uppercase(),

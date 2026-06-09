@@ -104,9 +104,9 @@ impl From<FromAppArgs> for App {
     fn from(args: FromAppArgs) -> Self {
         let FromAppArgs { args, stg, app_tx } = args;
 
-        let pause_from_args = args.pause.is_some();
+        let is_pause_from_args = args.pause.is_some();
         let pause_duration = args.pause.unwrap_or(stg.pause_duration);
-        let current_value_pause = if pause_from_args {
+        let current_value_pause = if is_pause_from_args {
             pause_duration.for_round(stg.pomodoro_count)
         } else {
             stg.current_value_pause
@@ -124,7 +124,7 @@ impl From<FromAppArgs> for App {
                 Some(mode) => mode,
                 // check other args (especially durations)
                 None => {
-                    if args.work.is_some() || pause_from_args {
+                    if args.work.is_some() || is_pause_from_args {
                         Content::Pomodoro
                     } else if args.countdown.is_some() {
                         Content::Countdown
