@@ -2,6 +2,7 @@ use crate::{
     common::{Content, Style, Toggle},
     duration,
     event::{Event, parse_event},
+    widgets::pomodoro::PauseDuration,
 };
 #[cfg(feature = "sound")]
 use crate::{sound, sound::SoundError};
@@ -24,10 +25,10 @@ pub struct Args {
     )]
     pub work: Option<Duration>,
 
-    #[arg(long, short, value_parser = duration::parse_duration,
-        help = "Pause time to count down from. Formats: 'ss', 'mm:ss', 'hh:mm:ss'"
+    #[arg(long, short, value_parser = pause_duration_parser,
+        help = "Pause duration. Single value (every round): '5:00'. Variable: 'regular,special[,every_n_rounds]' - special pause every N rounds, default every 4. Examples: '5:00,25:00' or '5:00,30:00,5'. Duration formats: 'ss', 'mm:ss', 'hh:mm:ss'."
     )]
-    pub pause: Option<Duration>,
+    pub pause: Option<PauseDuration>,
 
     #[arg(
         long,
@@ -92,6 +93,73 @@ pub struct Args {
         value_hint = clap::ValueHint::DirPath,
     )]
     pub log: Option<PathBuf>,
+}
+
+fn pause_duration_parser(s: &str) -> Result<PauseDuration, String> {
+    let parse = |s| duration::parse_duration(s).map_err(|e| e.to_string());
+    let parts: Vec<&str> = s.splitn(3, ',').collect();
+    match parts.as_slice() {
+        [single] => Ok(PauseDuration::Fixed(parse(single)?)),
+        [regular, special] => Ok(PauseDuration::Variable {
+            regular: parse(regular)?,
+            special: parse(special)?,
+            special_every: 4,
+        }),
+        [regular, special, every] => Ok(PauseDuration::Variable {
+            regular: parse(regular)?,
+            special: parse(special)?,
+            special_every: every.parse::<u64>().map_err(|e| e.to_string())?,
+        }),
+        _ => Err("expected 'duration' or 'regular,special[,every_n_rounds]'".to_owned()),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::duration::ONE_MINUTE;
+
+    use super::*;
+    use std::time::Duration;
+
+    const FIVE_MIN: Duration = ONE_MINUTE.saturating_mul(5);
+    const TEN_MIN: Duration = ONE_MINUTE.saturating_mul(10);
+
+    #[test]
+    fn pause_parser_fixed() {
+        assert_eq!(
+            pause_duration_parser("5:00").unwrap(),
+            PauseDuration::Fixed(FIVE_MIN)
+        );
+    }
+
+    #[test]
+    fn pause_parser_variable() {
+        assert_eq!(
+            pause_duration_parser("5:00,10:00,4").unwrap(),
+            PauseDuration::Variable {
+                regular: FIVE_MIN,
+                special: TEN_MIN,
+                special_every: 4,
+            }
+        );
+    }
+
+    #[test]
+    fn pause_parser_variable_default_every() {
+        assert_eq!(
+            pause_duration_parser("5:00,10:00").unwrap(),
+            PauseDuration::Variable {
+                regular: FIVE_MIN,
+                special: TEN_MIN,
+                special_every: 4,
+            }
+        );
+    }
+
+    #[test]
+    fn pause_parser_invalid() {
+        assert!(pause_duration_parser("invalid-duration").is_err());
+    }
 }
 
 #[cfg(feature = "sound")]

@@ -13,7 +13,9 @@ use crate::{
         footer::{Footer, FooterState},
         header::Header,
         local_time::{LocalTimeState, LocalTimeStateArgs, LocalTimeWidget},
-        pomodoro::{Mode as PomodoroMode, PomodoroState, PomodoroStateArgs, PomodoroWidget},
+        pomodoro::{
+            Mode as PomodoroMode, PauseDuration, PomodoroState, PomodoroStateArgs, PomodoroWidget,
+        },
         timer::{Timer, TimerState},
     },
 };
@@ -77,7 +79,7 @@ pub struct AppArgs {
     pub pomodoro_auto_switch: bool,
     pub initial_value_work: Duration,
     pub current_value_work: Duration,
-    pub initial_value_pause: Duration,
+    pub pause_duration: PauseDuration,
     pub current_value_pause: Duration,
     pub initial_value_countdown: Duration,
     pub current_value_countdown: Duration,
@@ -102,6 +104,14 @@ impl From<FromAppArgs> for App {
     fn from(args: FromAppArgs) -> Self {
         let FromAppArgs { args, stg, app_tx } = args;
 
+        let is_pause_from_args = args.pause.is_some();
+        let pause_duration = args.pause.unwrap_or(stg.pause_duration);
+        let current_value_pause = if is_pause_from_args {
+            pause_duration.for_round(stg.pomodoro_count)
+        } else {
+            stg.current_value_pause
+        };
+
         App::new(AppArgs {
             with_decis: args.decis || stg.with_decis,
             show_menu: args.menu || stg.show_menu,
@@ -114,7 +124,7 @@ impl From<FromAppArgs> for App {
                 Some(mode) => mode,
                 // check other args (especially durations)
                 None => {
-                    if args.work.is_some() || args.pause.is_some() {
+                    if args.work.is_some() || is_pause_from_args {
                         Content::Pomodoro
                     } else if args.countdown.is_some() {
                         Content::Countdown
@@ -134,9 +144,8 @@ impl From<FromAppArgs> for App {
             initial_value_work: args.work.unwrap_or(stg.inital_value_work),
             // invalidate `current_value_work` if an initial value is set via args
             current_value_work: args.work.unwrap_or(stg.current_value_work),
-            initial_value_pause: args.pause.unwrap_or(stg.inital_value_pause),
-            // invalidate `current_value_pause` if an initial value is set via args
-            current_value_pause: args.pause.unwrap_or(stg.current_value_pause),
+            pause_duration,
+            current_value_pause,
             initial_value_countdown: args.countdown.unwrap_or(stg.inital_value_countdown),
             // invalidate `current_value_countdown` if an initial value is set via args
             current_value_countdown: args.countdown.unwrap_or(stg.inital_value_countdown),
@@ -163,7 +172,7 @@ impl App {
             vim_motions,
             app_time_format,
             initial_value_work,
-            initial_value_pause,
+            pause_duration,
             initial_value_countdown,
             current_value_work,
             current_value_pause,
@@ -230,7 +239,7 @@ impl App {
                 mode: pomodoro_mode,
                 initial_value_work,
                 current_value_work,
-                initial_value_pause,
+                pause_duration,
                 current_value_pause,
                 with_decis,
                 round: pomodoro_round,
@@ -520,9 +529,7 @@ impl App {
             pomodoro_auto_switch: self.pomodoro.get_auto_switch(),
             inital_value_work: Duration::from(*self.pomodoro.get_clock_work().get_initial_value()),
             current_value_work: Duration::from(*self.pomodoro.get_clock_work().get_current_value()),
-            inital_value_pause: Duration::from(
-                *self.pomodoro.get_clock_pause().get_initial_value(),
-            ),
+            pause_duration: self.pomodoro.get_pause_duration().clone(),
             current_value_pause: Duration::from(
                 *self.pomodoro.get_clock_pause().get_current_value(),
             ),

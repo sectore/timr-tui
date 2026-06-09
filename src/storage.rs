@@ -1,13 +1,23 @@
 use crate::{
     common::{AppTimeFormat, Content, Style, Toggle},
+    duration::ONE_MINUTE,
     event::Event,
-    widgets::pomodoro::Mode as PomodoroMode,
+    widgets::pomodoro::{Mode as PomodoroMode, PauseDuration},
 };
 use color_eyre::eyre::Result;
 use serde::{Deserialize, Deserializer, Serialize};
 use std::fs;
 use std::path::PathBuf;
 use std::time::Duration;
+
+const DEFAULT_WORK: Duration = ONE_MINUTE.saturating_mul(25); /* 25min */
+const DEFAULT_PAUSE: Duration = ONE_MINUTE.saturating_mul(5); /* 5min */
+const DEFAULT_COUNTDOWN: Duration = ONE_MINUTE.saturating_mul(10); /* 10min */
+const DEFAULT_PAUSE_DURATION: PauseDuration = PauseDuration::Fixed(DEFAULT_PAUSE);
+
+fn default_pause_duration() -> PauseDuration {
+    DEFAULT_PAUSE_DURATION
+}
 
 fn deserialize_app_time_format<'de, D>(deserializer: D) -> Result<AppTimeFormat, D::Error>
 where
@@ -40,7 +50,8 @@ pub struct AppStorage {
     pub inital_value_work: Duration,
     pub current_value_work: Duration,
     // pomodoro -> pause
-    pub inital_value_pause: Duration,
+    #[serde(default = "default_pause_duration")]
+    pub pause_duration: PauseDuration,
     pub current_value_pause: Duration,
     // countdown
     pub inital_value_countdown: Duration,
@@ -56,9 +67,6 @@ pub struct AppStorage {
 
 impl Default for AppStorage {
     fn default() -> Self {
-        const DEFAULT_WORK: Duration = Duration::from_secs(60 * 25); /* 25min */
-        const DEFAULT_PAUSE: Duration = Duration::from_secs(60 * 5); /* 5min */
-        const DEFAULT_COUNTDOWN: Duration = Duration::from_secs(60 * 10); /* 10min */
         AppStorage {
             content: Content::default(),
             show_menu: true,
@@ -75,7 +83,7 @@ impl Default for AppStorage {
             inital_value_work: DEFAULT_WORK,
             current_value_work: DEFAULT_WORK,
             // pomodoro -> pause
-            inital_value_pause: DEFAULT_PAUSE,
+            pause_duration: DEFAULT_PAUSE_DURATION,
             current_value_pause: DEFAULT_PAUSE,
             // countdown
             inital_value_countdown: DEFAULT_COUNTDOWN,

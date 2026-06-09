@@ -15,6 +15,40 @@ use serde::{Deserialize, Serialize};
 use std::{cmp::max, time::Duration};
 use strum::Display;
 
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+pub enum PauseDuration {
+    Fixed(Duration),
+    Variable {
+        regular: Duration,
+        special: Duration,
+        special_every: u64,
+    },
+}
+
+impl PauseDuration {
+    pub fn is_special_round(&self, round: u64) -> bool {
+        match self {
+            Self::Variable { special_every, .. } => round.is_multiple_of(*special_every),
+            Self::Fixed(_) => false,
+        }
+    }
+
+    pub fn for_round(&self, round: u64) -> Duration {
+        match self {
+            Self::Fixed(d) => *d,
+            Self::Variable {
+                regular, special, ..
+            } => {
+                if self.is_special_round(round) {
+                    *special
+                } else {
+                    *regular
+                }
+            }
+        }
+    }
+}
+
 #[derive(Debug, Clone, Display, Hash, Eq, PartialEq, Deserialize, Serialize)]
 pub enum Mode {
     Work,
@@ -45,6 +79,7 @@ pub struct PomodoroState {
     mode: Mode,
     clock_map: ClockMap,
     round: u64,
+    pause_duration: PauseDuration,
     vim_motions: bool,
     auto_switch: bool,
 }
@@ -53,7 +88,7 @@ pub struct PomodoroStateArgs {
     pub mode: Mode,
     pub initial_value_work: Duration,
     pub current_value_work: Duration,
-    pub initial_value_pause: Duration,
+    pub pause_duration: PauseDuration,
     pub current_value_pause: Duration,
     pub with_decis: bool,
     pub app_tx: AppEventTx,
@@ -68,7 +103,7 @@ impl PomodoroState {
             mode,
             initial_value_work,
             current_value_work,
-            initial_value_pause,
+            pause_duration,
             current_value_pause,
             with_decis,
             app_tx,
@@ -88,7 +123,7 @@ impl PomodoroState {
                 })
                 .with_name("Work".to_owned()),
                 pause: ClockState::<Countdown>::new(ClockStateArgs {
-                    initial_value: initial_value_pause,
+                    initial_value: pause_duration.for_round(round),
                     current_value: current_value_pause,
                     tick_value: Duration::from_millis(TICK_VALUE_MS),
                     with_decis,
@@ -97,6 +132,7 @@ impl PomodoroState {
                 .with_name("Pause".to_owned()),
             },
             round,
+            pause_duration,
             vim_motions,
             auto_switch,
         }
@@ -134,8 +170,17 @@ impl PomodoroState {
         self.round
     }
 
+    pub fn get_pause_duration(&self) -> &PauseDuration {
+        &self.pause_duration
+    }
+
     pub fn get_auto_switch(&self) -> bool {
         self.auto_switch
+    }
+
+    fn update_pause_initial(&mut self) {
+        let initial = self.pause_duration.for_round(self.round);
+        self.get_clock_pause_mut().set_initial_value(initial.into());
     }
 
     pub fn set_with_decis(&mut self, with_decis: bool) {
@@ -160,11 +205,13 @@ impl PomodoroState {
             Mode::Pause => {
                 self.get_clock_pause_mut().reset();
                 self.round += 1;
+                self.update_pause_initial();
                 self.switch_mode();
                 self.get_clock_work_mut().run();
             }
             Mode::Work => {
                 self.get_clock_work_mut().reset();
+                self.update_pause_initial();
                 self.switch_mode();
                 self.get_clock_pause_mut().run();
             }
@@ -286,6 +333,7 @@ impl TuiEventHandler for PomodoroState {
                 KeyCode::Char('r') if key.modifiers.contains(KeyModifiers::CONTROL) => {
                     self.round = 1;
                     self.get_clock_work_mut().reset();
+                    self.update_pause_initial();
                     self.get_clock_pause_mut().reset();
                 }
                 // reset current clock
@@ -293,6 +341,7 @@ impl TuiEventHandler for PomodoroState {
                     // increase round before (!!) resetting the clock
                     if self.get_mode() == &Mode::Work && self.get_clock().is_done() {
                         self.round += 1;
+                        self.update_pause_initial();
                     }
                     self.get_clock_mut().reset();
                 }
@@ -313,10 +362,15 @@ impl StatefulWidget for PomodoroWidget {
     type State = PomodoroState;
     fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
         let clock_widget = ClockWidget::new(self.style, self.blink);
+        let is_special_pause = state.get_mode() == &Mode::Pause
+            && state
+                .get_pause_duration()
+                .is_special_round(state.get_round());
         let label = Line::raw(
             (format!(
-                "Pomodoro {} {}",
+                "Pomodoro {} {}{}",
                 state.mode.clone(),
+                if is_special_pause { "Special " } else { "" },
                 state.get_clock_mut().get_mode()
             ))
             .to_uppercase(),
