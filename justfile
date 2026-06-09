@@ -26,7 +26,7 @@ alias f := format
 [group('misc')]
 format:
     just --fmt
-    dprint fmt **/*.md
+    dprint fmt
     cargo fmt
 
 alias l := lint
