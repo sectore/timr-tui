@@ -48,3 +48,6 @@ tui-input = "0.15.3"
 
 [features]
 sound = ["dep:rodio", "dep:thiserror"]
+
+[dev-dependencies]
+insta = "1.47.2"
