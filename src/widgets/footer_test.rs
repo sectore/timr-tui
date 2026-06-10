@@ -50,13 +50,19 @@ fn test_menu_countdown_stopped() {
 
 #[test]
 fn test_menu_countdown_running() {
-    let w = Footer { running_clock: true, ..w() };
+    let w = Footer {
+        running_clock: true,
+        ..w()
+    };
     assert(w, st());
 }
 
 #[test]
 fn test_menu_countdown_edit_mode() {
-    let w = Footer { app_edit_mode: AppEditMode::Clock, ..w() };
+    let w = Footer {
+        app_edit_mode: AppEditMode::Clock,
+        ..w()
+    };
     assert(w, st());
 }
 
@@ -64,19 +70,30 @@ fn test_menu_countdown_edit_mode() {
 
 #[test]
 fn test_menu_timer_stopped() {
-    let w = Footer { selected_content: Content::Timer, ..w() };
+    let w = Footer {
+        selected_content: Content::Timer,
+        ..w()
+    };
     assert(w, st());
 }
 
 #[test]
 fn test_menu_timer_running() {
-    let w = Footer { selected_content: Content::Timer, running_clock: true, ..w() };
+    let w = Footer {
+        selected_content: Content::Timer,
+        running_clock: true,
+        ..w()
+    };
     assert(w, st());
 }
 
 #[test]
 fn test_menu_timer_edit_mode() {
-    let w = Footer { selected_content: Content::Timer, app_edit_mode: AppEditMode::Clock, ..w() };
+    let w = Footer {
+        selected_content: Content::Timer,
+        app_edit_mode: AppEditMode::Clock,
+        ..w()
+    };
     assert(w, st());
 }
 
@@ -84,19 +101,30 @@ fn test_menu_timer_edit_mode() {
 
 #[test]
 fn test_menu_pomodoro_auto_switch_off() {
-    let w = Footer { selected_content: Content::Pomodoro, ..w() };
+    let w = Footer {
+        selected_content: Content::Pomodoro,
+        ..w()
+    };
     assert(w, st());
 }
 
 #[test]
 fn test_menu_pomodoro_auto_switch_on() {
-    let w = Footer { selected_content: Content::Pomodoro, pomodoro_auto_switch: true, ..w() };
+    let w = Footer {
+        selected_content: Content::Pomodoro,
+        pomodoro_auto_switch: true,
+        ..w()
+    };
     assert(w, st());
 }
 
 #[test]
 fn test_menu_pomodoro_edit_mode() {
-    let w = Footer { selected_content: Content::Pomodoro, app_edit_mode: AppEditMode::Clock, ..w() };
+    let w = Footer {
+        selected_content: Content::Pomodoro,
+        app_edit_mode: AppEditMode::Clock,
+        ..w()
+    };
     assert(w, st());
 }
 
@@ -104,13 +132,20 @@ fn test_menu_pomodoro_edit_mode() {
 
 #[test]
 fn test_menu_event() {
-    let w = Footer { selected_content: Content::Event, ..w() };
+    let w = Footer {
+        selected_content: Content::Event,
+        ..w()
+    };
     assert(w, st());
 }
 
 #[test]
 fn test_menu_event_edit_mode() {
-    let w = Footer { selected_content: Content::Event, app_edit_mode: AppEditMode::Event, ..w() };
+    let w = Footer {
+        selected_content: Content::Event,
+        app_edit_mode: AppEditMode::Event,
+        ..w()
+    };
     assert(w, st());
 }
 
@@ -118,7 +153,10 @@ fn test_menu_event_edit_mode() {
 
 #[test]
 fn test_menu_local_time() {
-    let w = Footer { selected_content: Content::LocalTime, ..w() };
+    let w = Footer {
+        selected_content: Content::LocalTime,
+        ..w()
+    };
     assert(w, st());
 }
 
@@ -132,7 +170,10 @@ fn test_menu_countdown_vim() {
 
 #[test]
 fn test_menu_countdown_edit_mode_vim() {
-    let w = Footer { app_edit_mode: AppEditMode::Clock, ..w() };
+    let w = Footer {
+        app_edit_mode: AppEditMode::Clock,
+        ..w()
+    };
     let st = st().with_vim_motions(true);
     assert(w, st);
 }
