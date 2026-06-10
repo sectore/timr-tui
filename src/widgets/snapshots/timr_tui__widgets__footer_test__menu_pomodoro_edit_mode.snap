@@ -1,10 +1,10 @@
 ---
-source: src/widgets/test_utils.rs
+source: src/widgets/footer_test.rs
 expression: t.backend()
 ---
 " m hide menu ───────────────────────────────────────────────────────────────────────────────────────────────────────────"
-" screens      1 countdown   2 timer   3 pomodoro   4 event   5 local time   h or l switch screens                       "
+" screens      1 countdown   2 timer   3 pomodoro   4 event   5 local time   ← or → switch screens                       "
 " appearance   , change style   . toggle deciseconds   : toggle local time                                               "
 " controls     s save changes   ^s save initial value   esc skip changes                                                 "
-"              h or l move selection   k edit up   ^k edit up fast   j edit down   ^j edit down fast                     "
+"              ← or → move selection   ↑ edit up   ^↑ edit up fast   ↓ edit down   ^↓ edit down fast                     "
 "                                                                                                                        "

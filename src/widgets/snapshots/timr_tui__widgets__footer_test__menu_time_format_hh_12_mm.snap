@@ -1,8 +1,8 @@
 ---
-source: src/widgets/test_utils.rs
+source: src/widgets/footer_test.rs
 expression: t.backend()
 ---
-" m hide menu ──────────────────────────────────────────────────────────────────────────────────────────────────── 14:30 "
+" m hide menu ────────────────────────────────────────────────────────────────────────────────────────────────── 2:30 PM "
 " screens      1 countdown   2 timer   3 pomodoro   4 event   5 local time   ← or → switch screens                       "
 " appearance   , change style   . toggle deciseconds   : toggle local time                                               "
 " controls     space start   e edit   ^e edit by local time   r reset clock                                              "
