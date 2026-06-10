@@ -5,7 +5,7 @@
 ### Features
 
 - (pomodoro) variable pause duration [#184](https://github.com/sectore/timr-tui/issues/184)
-- (pomodoro) auto switch `work` / `pause` (optional) [#183](https://github.com/sectore/timr-tui/issues/183)
+- (pomodoro) auto switch `work` / `pause` (optional) [#183](https://github.com/sectore/timr-tui/issues/183), [#186](https://github.com/sectore/timr-tui/issues/186)
 
 ### Misc
 

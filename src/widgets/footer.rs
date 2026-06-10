@@ -122,9 +122,9 @@ impl StatefulWidget for Footer {
             .title(Line::from(vec![
                 Span::styled("m", BOLD),
                 Span::from(SPACE),
-                Span::from(if state.show_menu { "hide" } else { "show" }),
+                Span::styled(if state.show_menu { "hide" } else { "show" }, ITALIC),
                 Span::from(SPACE),
-                Span::from("menu"),
+                Span::styled("menu", ITALIC),
                 Span::from(SPACE),
             ]))
             .title(
@@ -332,11 +332,11 @@ impl StatefulWidget for Footer {
                                                 Span::from(SPACE),
                                                 Span::styled(
                                                     format!(
-                                                        "auto switch {}",
+                                                        "{} auto switch",
                                                         if self.pomodoro_auto_switch {
-                                                            "off"
+                                                            "disable"
                                                         } else {
-                                                            "on"
+                                                            "enable"
                                                         }
                                                     ),
                                                     ITALIC,
