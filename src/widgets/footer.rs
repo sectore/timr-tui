@@ -315,11 +315,11 @@ impl StatefulWidget for Footer {
                                                 Span::from(SPACE),
                                                 Span::styled(
                                                     format!(
-                                                        "auto switch {}",
+                                                        "{} auto switch",
                                                         if self.pomodoro_auto_switch {
-                                                            "off"
+                                                            "disable"
                                                         } else {
-                                                            "on"
+                                                            "enable"
                                                         }
                                                     ),
                                                     ITALIC,
