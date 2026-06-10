@@ -13,6 +13,8 @@ pub mod footer_test;
 pub mod header;
 pub mod local_time;
 pub mod pomodoro;
+#[cfg(test)]
+pub mod pomodoro_test;
 pub mod progressbar;
 #[cfg(test)]
 pub mod test_utils;
