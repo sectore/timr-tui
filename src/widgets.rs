@@ -10,10 +10,10 @@ pub mod event;
 pub mod footer;
 #[cfg(test)]
 pub mod footer_test;
-#[cfg(test)]
-pub mod test_utils;
 pub mod header;
 pub mod local_time;
 pub mod pomodoro;
 pub mod progressbar;
+#[cfg(test)]
+pub mod test_utils;
 pub mod timer;
