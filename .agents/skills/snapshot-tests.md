@@ -5,16 +5,10 @@ Uses [`insta`](https://insta.rs/) with `ratatui::backend::TestBackend`.
 ## Run
 
 ```bash
-cargo test
+just test  # or: just t
 ```
 
-## Generate / Update snapshots
-
-```bash
-cargo insta test
-```
-
-Writes `.snap.new` files for new or changed snapshots.
+Fails on snapshot mismatch — use for CI and catching regressions.
 
 ## Review
 
@@ -23,6 +17,14 @@ cargo insta review
 ```
 
 Interactively accept or reject each `.snap.new` file. Accepted snapshots replace the existing `.snap` file and must be committed.
+
+## After any UI change
+
+```bash
+just test          # run tests, generates .snap.new for changed output
+cargo insta review # review diffs, accept if intentional
+ga src/widgets/snapshots/ && gc -S
+```
 
 ## Structure
 
