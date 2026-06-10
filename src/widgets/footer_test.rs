@@ -1,10 +1,14 @@
+use ratatui::{Terminal, backend::TestBackend};
+
 use crate::{
     common::{AppEditMode, AppTime, AppTimeFormat, Content},
     widgets::{
         footer::{Footer, FooterState},
-        test_utils::{AssertSnapshotArgs, FIXED_TIME, assert_snapshot},
+        test_utils::{DrawArgs, FIXED_TIME, draw},
     },
 };
+
+use insta::assert_snapshot;
 
 // create widget with `default` (test) values
 fn w() -> Footer {
@@ -26,26 +30,28 @@ fn st() -> FooterState {
     )
 }
 
-fn assert(w: Footer, st: FooterState) {
-    assert_snapshot(AssertSnapshotArgs {
+fn terminal(w: Footer, st: FooterState) -> Terminal<TestBackend> {
+    draw(DrawArgs {
         widget: w,
         state: st,
         width: 120,
         height: 6,
-    });
+    })
 }
 
 #[test]
 fn test_menu_hidden() {
     let st = st().with_show_menu(false);
-    assert(w(), st);
+    let t = terminal(w(), st);
+    assert_snapshot!("menu_hidden", t.backend());
 }
 
 // countdown
 
 #[test]
 fn test_menu_countdown_stopped() {
-    assert(w(), st());
+    let t = terminal(w(), st());
+    assert_snapshot!("menu_countdown_stopped", t.backend());
 }
 
 #[test]
@@ -54,7 +60,8 @@ fn test_menu_countdown_running() {
         running_clock: true,
         ..w()
     };
-    assert(w, st());
+    let t = terminal(w, st());
+    assert_snapshot!("menu_countdown_running", t.backend());
 }
 
 #[test]
@@ -63,7 +70,8 @@ fn test_menu_countdown_edit_mode() {
         app_edit_mode: AppEditMode::Clock,
         ..w()
     };
-    assert(w, st());
+    let t = terminal(w, st());
+    assert_snapshot!("menu_countdown_edit_mode", t.backend());
 }
 
 // timer
@@ -74,7 +82,8 @@ fn test_menu_timer_stopped() {
         selected_content: Content::Timer,
         ..w()
     };
-    assert(w, st());
+    let t = terminal(w, st());
+    assert_snapshot!("menu_timer_stopped", t.backend());
 }
 
 #[test]
@@ -84,7 +93,8 @@ fn test_menu_timer_running() {
         running_clock: true,
         ..w()
     };
-    assert(w, st());
+    let t = terminal(w, st());
+    assert_snapshot!("menu_timer_running", t.backend());
 }
 
 #[test]
@@ -94,7 +104,8 @@ fn test_menu_timer_edit_mode() {
         app_edit_mode: AppEditMode::Clock,
         ..w()
     };
-    assert(w, st());
+    let t = terminal(w, st());
+    assert_snapshot!("menu_timer_edit_mode", t.backend());
 }
 
 // pomodoro
@@ -105,7 +116,8 @@ fn test_menu_pomodoro_auto_switch_off() {
         selected_content: Content::Pomodoro,
         ..w()
     };
-    assert(w, st());
+    let t = terminal(w, st());
+    assert_snapshot!("menu_pomodoro_auto_switch_off", t.backend());
 }
 
 #[test]
@@ -115,7 +127,8 @@ fn test_menu_pomodoro_auto_switch_on() {
         pomodoro_auto_switch: true,
         ..w()
     };
-    assert(w, st());
+    let t = terminal(w, st());
+    assert_snapshot!("menu_pomodoro_auto_switch_on", t.backend());
 }
 
 #[test]
@@ -125,7 +138,8 @@ fn test_menu_pomodoro_edit_mode() {
         app_edit_mode: AppEditMode::Clock,
         ..w()
     };
-    assert(w, st());
+    let t = terminal(w, st());
+    assert_snapshot!("menu_pomodoro_edit_mode", t.backend());
 }
 
 // event
@@ -136,7 +150,8 @@ fn test_menu_event() {
         selected_content: Content::Event,
         ..w()
     };
-    assert(w, st());
+    let t = terminal(w, st());
+    assert_snapshot!("menu_event", t.backend());
 }
 
 #[test]
@@ -146,7 +161,8 @@ fn test_menu_event_edit_mode() {
         app_edit_mode: AppEditMode::Event,
         ..w()
     };
-    assert(w, st());
+    let t = terminal(w, st());
+    assert_snapshot!("menu_event_edit_mode", t.backend());
 }
 
 // local time
@@ -157,7 +173,8 @@ fn test_menu_local_time() {
         selected_content: Content::LocalTime,
         ..w()
     };
-    assert(w, st());
+    let t = terminal(w, st());
+    assert_snapshot!("menu_local_time", t.backend());
 }
 
 // vim motions
@@ -165,7 +182,8 @@ fn test_menu_local_time() {
 #[test]
 fn test_menu_countdown_vim() {
     let st = st().with_vim_motions(true);
-    assert(w(), st);
+    let t = terminal(w(), st);
+    assert_snapshot!("menu_countdown_vim", t.backend());
 }
 
 #[test]
@@ -175,7 +193,8 @@ fn test_menu_countdown_edit_mode_vim() {
         ..w()
     };
     let st = st().with_vim_motions(true);
-    assert(w, st);
+    let t = terminal(w, st);
+    assert_snapshot!("menu_countdown_edit_mode_vim", t.backend());
 }
 
 // time formats
@@ -183,17 +202,20 @@ fn test_menu_countdown_edit_mode_vim() {
 #[test]
 fn test_menu_time_format_hh_mm_ss() {
     let st = st().with_app_time_format(AppTimeFormat::HhMmSs);
-    assert(w(), st);
+    let t = terminal(w(), st);
+    assert_snapshot!("menu_time_format_hh_mm_ss", t.backend());
 }
 
 #[test]
 fn test_menu_time_format_hh_mm() {
     let st = st().with_app_time_format(AppTimeFormat::HhMm);
-    assert(w(), st);
+    let t = terminal(w(), st);
+    assert_snapshot!("menu_time_format_hh_mm", t.backend());
 }
 
 #[test]
 fn test_menu_time_format_hh_12_mm() {
     let st = st().with_app_time_format(AppTimeFormat::Hh12Mm);
-    assert(w(), st);
+    let t = terminal(w(), st);
+    assert_snapshot!("menu_time_format_hh_12_mm", t.backend());
 }
