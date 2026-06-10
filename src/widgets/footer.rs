@@ -47,6 +47,23 @@ impl FooterState {
     }
 }
 
+#[cfg(test)]
+impl FooterState {
+    pub fn with_show_menu(mut self, value: bool) -> Self {
+        self.show_menu = value;
+        self
+    }
+    pub fn with_vim_motions(mut self, value: bool) -> Self {
+        self.vim_motions = value;
+        self
+    }
+
+    pub fn with_app_time_format(mut self, value: AppTimeFormat) -> Self {
+        self.app_time_format = Some(value);
+        self
+    }
+}
+
 #[derive(Debug)]
 pub struct Footer {
     pub running_clock: bool,
