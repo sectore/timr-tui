@@ -112,6 +112,7 @@
               pkgs.nixd
               pkgs.alejandra
               pkgs.dprint
+              cargo-insta
             ]
             # pkgs needed to play sound on Linux
             ++ lib.optionals stdenv.isLinux [
