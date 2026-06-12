@@ -17,7 +17,7 @@
 - (skills) add skills: `snapshot-tests`, `update-cargo-deps`, `update-changelog`, `update-rust-version` [#181](https://github.com/sectore/timr-tui/pull/181), [#182](https://github.com/sectore/timr-tui/pull/182), [#187](https://github.com/sectore/timr-tui/pull/187), [#190](https://github.com/sectore/timr-tui/pull/190), [#195](https://github.com/sectore/timr-tui/pull/195), [#196](https://github.com/sectore/timr-tui/pull/196)
 - (test) extend `clock_elements` buffer tests [#198](https://github.com/sectore/timr-tui/pull/198)
 - (test) add `header` buffer tests [#195](https://github.com/sectore/timr-tui/pull/195)
-- (test) widget snapshot tests [#187](https://github.com/sectore/timr-tui/pull/187), [#188](https://github.com/sectore/timr-tui/pull/188), [#189](https://github.com/sectore/timr-tui/pull/189), [#190](https://github.com/sectore/timr-tui/pull/190), [#191](https://github.com/sectore/timr-tui/pull/191), [#192](https://github.com/sectore/timr-tui/pull/192), [#193](https://github.com/sectore/timr-tui/pull/193)
+- (test) widget snapshot tests [#187](https://github.com/sectore/timr-tui/pull/187), [#188](https://github.com/sectore/timr-tui/pull/188), [#189](https://github.com/sectore/timr-tui/pull/189), [#190](https://github.com/sectore/timr-tui/pull/190), [#191](https://github.com/sectore/timr-tui/pull/191), [#192](https://github.com/sectore/timr-tui/pull/192), [#193](https://github.com/sectore/timr-tui/pull/193), [#199](https://github.com/sectore/timr-tui/pull/199)
 - (dprint): include `md` files, exclude `target` dir [#185](https://github.com/sectore/timr-tui/issues/185)
 - (deps) Latest Ratatui `v0.30.1` et al. [#182](https://github.com/sectore/timr-tui/pull/182)
 - (deps) Rust 1.96.0 [#181](https://github.com/sectore/timr-tui/pull/181)

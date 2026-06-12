@@ -4,6 +4,8 @@ pub mod clock_elements;
 pub mod clock_elements_test;
 #[cfg(test)]
 pub mod clock_test;
+#[cfg(test)]
+pub mod clock_widget_test;
 pub mod countdown;
 #[cfg(test)]
 pub mod countdown_test;
