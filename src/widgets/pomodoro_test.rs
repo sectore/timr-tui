@@ -3,7 +3,7 @@ use crate::{
     duration::{ONE_MINUTE, ONE_SECOND},
     widgets::{
         pomodoro::{Mode, PauseDuration, PomodoroState, PomodoroStateArgs, PomodoroWidget},
-        test_utils::{DrawArgs, draw},
+        test_utils::{Action, DrawArgs, draw},
     },
 };
 use insta::assert_snapshot;
@@ -67,21 +67,24 @@ fn test_work_pause_decis() {
 fn test_work_play() {
     let st = st()
         .with_current_work(WORK - ONE_MINUTE)
-        .with_work_running();
+        .with_action(Action::StartStop);
     let t = terminal(w(), st);
     assert_snapshot!("work_play", t.backend());
 }
 
 #[test]
 fn test_work_done() {
-    let st = st().with_work_done();
+    let st = st()
+        .with_current_work(Duration::ZERO)
+        .with_action(Action::StartStop)
+        .with_tick();
     let t = terminal(w(), st);
     assert_snapshot!("work_done", t.backend());
 }
 
 #[test]
 fn test_work_edit_minutes() {
-    let st = st().with_work_edit();
+    let st = st().with_action(Action::Edit);
     let t = terminal(w(), st);
     assert_snapshot!("work_edit_minutes", t.backend());
 }
@@ -90,7 +93,7 @@ fn test_work_edit_minutes() {
 fn test_work_edit_seconds() {
     let st = st()
         .with_current_work(ONE_SECOND.saturating_mul(12))
-        .with_work_edit();
+        .with_action(Action::Edit);
     let t = terminal(w(), st);
     assert_snapshot!("work_edit_seconds", t.backend());
 }
