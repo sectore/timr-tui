@@ -9,6 +9,8 @@ pub mod countdown;
 pub mod countdown_test;
 pub mod edit_time;
 pub mod event;
+#[cfg(test)]
+pub mod event_test;
 pub mod footer;
 #[cfg(test)]
 pub mod footer_test;
