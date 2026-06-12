@@ -1,0 +1,20 @@
+---
+source: src/widgets/countdown_test.rs
+expression: t.backend()
+---
+"                                                                      "
+"                                                                      "
+"                                                                      "
+"                                                                      "
+"                                                                      "
+"                                 ██ █████                             "
+"                                 ██    ██                             "
+"                                 ██ █████                             "
+"                                 ██ ██                                "
+"                                 ██ █████                             "
+"                              ───────────                             "
+"                       COUNTDOWN [EDIT SECONDS]                       "
+"                                                                      "
+"                                                                      "
+"                                                                      "
+"                                                                      "
