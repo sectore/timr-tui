@@ -15,6 +15,8 @@ pub mod footer;
 #[cfg(test)]
 pub mod footer_test;
 pub mod header;
+#[cfg(test)]
+pub mod header_test;
 pub mod local_time;
 #[cfg(test)]
 pub mod local_time_test;
