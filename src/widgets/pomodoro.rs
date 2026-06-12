@@ -1,5 +1,3 @@
-#[cfg(test)]
-use crate::widgets::test_utils::Action;
 use crate::{
     common::Style,
     constants::TICK_VALUE_MS,
@@ -218,30 +216,6 @@ impl PomodoroState {
                 self.get_clock_pause_mut().run();
             }
         }
-    }
-}
-
-// Test helpers
-#[cfg(test)]
-impl PomodoroState {
-    pub fn with_current_work(mut self, value: Duration) -> Self {
-        self.get_clock_work_mut().set_current_value(value.into());
-        self
-    }
-
-    pub fn with_decis(mut self, value: bool) -> Self {
-        self.set_with_decis(value);
-        self
-    }
-
-    pub fn with_action(mut self, action: Action) -> Self {
-        self.update(action.into());
-        self
-    }
-
-    pub fn with_tick(mut self) -> Self {
-        self.update(TuiEvent::Tick);
-        self
     }
 }
 
