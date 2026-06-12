@@ -256,6 +256,11 @@ impl App {
                 event,
                 with_decis,
                 app_tx: app_tx.clone(),
+                event_time_format: if footer_toggle_app_time == Toggle::On {
+                    Some(app_time_format)
+                } else {
+                    None
+                },
             }),
             footer: FooterState::new(
                 show_menu,
@@ -329,6 +334,7 @@ impl App {
                         }
                         app.footer.set_app_time_format(new_format);
                         app.countdown.set_app_time_format(new_format);
+                        app.event.set_app_time_format(new_format);
                     }
                 }
                 KeyCode::Char(',') => {

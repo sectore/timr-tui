@@ -12,7 +12,7 @@ use tui_input::Input;
 use tui_input::backend::crossterm::EventHandler;
 
 use crate::{
-    common::{AppTime, ClockTypeId, Style as DigitStyle},
+    common::{AppTime, AppTimeFormat, ClockTypeId, Style as DigitStyle},
     duration::CalendarDuration,
     event::Event,
     events::{AppEvent, AppEventTx, TuiEvent, TuiEventHandler},
@@ -65,6 +65,7 @@ pub struct EventState {
     app_time: OffsetDateTime,
     start_time: OffsetDateTime,
     with_decis: bool,
+    event_time_format: Option<AppTimeFormat>,
     /// counter to simulate `DONE` state
     /// Default value: `None`
     done_count: Option<u64>,
@@ -83,6 +84,7 @@ pub struct EventStateArgs {
     pub event: Event,
     pub with_decis: bool,
     pub app_tx: AppEventTx,
+    pub event_time_format: Option<AppTimeFormat>,
 }
 
 impl EventState {
@@ -92,6 +94,7 @@ impl EventState {
             event,
             with_decis,
             app_tx,
+            event_time_format,
         } = args;
 
         let app_datetime = OffsetDateTime::from(app_time);
@@ -106,6 +109,7 @@ impl EventState {
             app_time: app_datetime,
             start_time: app_datetime,
             with_decis,
+            event_time_format,
             done_count: None,
             app_tx,
             input_datetime: Input::default().with_value(input_datetime_value),
@@ -128,6 +132,10 @@ impl EventState {
 
     pub fn set_with_decis(&mut self, with_decis: bool) {
         self.with_decis = with_decis;
+    }
+
+    pub fn set_app_time_format(&mut self, format: Option<AppTimeFormat>) {
+        self.event_time_format = format;
     }
 
     pub fn get_event(&self) -> Event {
@@ -498,13 +506,15 @@ impl StatefulWidget for EventWidget {
                     };
                 };
 
-                Paragraph::new(format!(
-                    "{} {}",
-                    prefix.to_uppercase(),
-                    state.input_datetime.value()
-                ))
-                .centered()
-                .render(v2, buf);
+                let date = AppTime::Local(state.event_time).format_date();
+                let datetime_label = if let Some(tf) = state.event_time_format {
+                    format!("{} {}", date, AppTime::Local(state.event_time).format(&tf))
+                } else {
+                    date
+                };
+                Paragraph::new(format!("{} {}", prefix.to_uppercase(), datetime_label))
+                    .centered()
+                    .render(v2, buf);
             }
         };
 

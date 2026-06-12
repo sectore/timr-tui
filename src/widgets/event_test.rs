@@ -1,5 +1,5 @@
 use crate::{
-    common::{AppTime, Style},
+    common::{AppTime, AppTimeFormat, Style},
     event::Event,
     widgets::{
         event::{EventState, EventStateArgs, EventWidget},
@@ -20,6 +20,7 @@ fn args() -> EventStateArgs {
         event: Event::default(),
         with_decis: false,
         app_tx: app_tx(),
+        event_time_format: None,
     }
 }
 
@@ -47,6 +48,36 @@ fn terminal(w: EventWidget, st: EventState) -> Terminal<TestBackend> {
 fn test_event_since() {
     let t = terminal(w(), st_with_args(args()));
     assert_snapshot!("event_since", t.backend());
+}
+
+#[test]
+fn test_event_since_hhmmss() {
+    let st = st_with_args(EventStateArgs {
+        event_time_format: Some(AppTimeFormat::HhMmSs),
+        ..args()
+    });
+    let t = terminal(w(), st);
+    assert_snapshot!("event_since_hhmmss", t.backend());
+}
+
+#[test]
+fn test_event_since_hhmm() {
+    let st = st_with_args(EventStateArgs {
+        event_time_format: Some(AppTimeFormat::HhMm),
+        ..args()
+    });
+    let t = terminal(w(), st);
+    assert_snapshot!("event_since_hhmm", t.backend());
+}
+
+#[test]
+fn test_event_since_hh12mm() {
+    let st = st_with_args(EventStateArgs {
+        event_time_format: Some(AppTimeFormat::Hh12Mm),
+        ..args()
+    });
+    let t = terminal(w(), st);
+    assert_snapshot!("event_since_hh12mm", t.backend());
 }
 
 #[test]
