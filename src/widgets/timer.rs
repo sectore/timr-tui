@@ -102,7 +102,7 @@ impl TuiEventHandler for TimerState {
             // default mode
             TuiEvent::Crossterm(CrosstermEvent::Key(key)) => match key.code {
                 // Toggle run/pause
-                KeyCode::Char(' ') | KeyCode::Char('s') /* TODO: deprecated, remove it in next version */ => {
+                KeyCode::Char(' ') => {
                     self.clock.toggle_pause();
                 }
                 // reset clock

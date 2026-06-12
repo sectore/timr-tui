@@ -4,14 +4,22 @@
 
 ### Features
 
+- (event) support changing of local time format [#194](https://github.com/sectore/timr-tui/pull/194)
 - (pomodoro) variable pause duration [#184](https://github.com/sectore/timr-tui/issues/184)
 - (pomodoro) auto switch `work` / `pause` (optional) [#183](https://github.com/sectore/timr-tui/issues/183), [#186](https://github.com/sectore/timr-tui/issues/186)
 
+### Fix
+
+- (keys) remove deprecated `s` keybinding to start/stop [#197](https://github.com/sectore/timr-tui/pull/197)
+
 ### Misc
 
+- (skills) add skills: `snapshot-tests`, `update-cargo-deps`, `update-changelog`, `update-rust-version` [#181](https://github.com/sectore/timr-tui/pull/181), [#182](https://github.com/sectore/timr-tui/pull/182), [#187](https://github.com/sectore/timr-tui/pull/187), [#190](https://github.com/sectore/timr-tui/pull/190), [#195](https://github.com/sectore/timr-tui/pull/195), [#196](https://github.com/sectore/timr-tui/pull/196)
+- (test) add `header` buffer tests [#195](https://github.com/sectore/timr-tui/pull/195)
+- (test) widget snapshot tests [#187](https://github.com/sectore/timr-tui/pull/187), [#188](https://github.com/sectore/timr-tui/pull/188), [#189](https://github.com/sectore/timr-tui/pull/189), [#190](https://github.com/sectore/timr-tui/pull/190), [#191](https://github.com/sectore/timr-tui/pull/191), [#192](https://github.com/sectore/timr-tui/pull/192), [#193](https://github.com/sectore/timr-tui/pull/193)
 - (dprint): include `md` files, exclude `target` dir [#185](https://github.com/sectore/timr-tui/issues/185)
-- (deps) Latest Ratatui `v0.30.1` et al. (incl. `update-cargo-deps`/`update-changelog` skills) [#182](https://github.com/sectore/timr-tui/pull/182)
-- (deps) Rust 1.96.0 (incl. `update-rust-version` skill) [#181](https://github.com/sectore/timr-tui/pull/181)
+- (deps) Latest Ratatui `v0.30.1` et al. [#182](https://github.com/sectore/timr-tui/pull/182)
+- (deps) Rust 1.96.0 [#181](https://github.com/sectore/timr-tui/pull/181)
 
 ## v1.9.0 - 2026-05-26
 

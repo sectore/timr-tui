@@ -300,7 +300,7 @@ impl TuiEventHandler for PomodoroState {
             // default mode
             TuiEvent::Crossterm(CrosstermEvent::Key(key)) => match key.code {
                 // Toggle run/pause
-                KeyCode::Char(' ') | KeyCode::Char('s') /* TODO: deprecated, remove it in next version */ => {
+                KeyCode::Char(' ') => {
                     self.get_clock_mut().toggle_pause();
                 }
                 // Enter edit mode
@@ -308,20 +308,28 @@ impl TuiEventHandler for PomodoroState {
                     self.get_clock_mut().toggle_edit();
                 }
                 // toggle WORK/PAUSE
-                KeyCode::Left if key.modifiers.contains(KeyModifiers::CONTROL) && !self.vim_motions => {
+                KeyCode::Left
+                    if key.modifiers.contains(KeyModifiers::CONTROL) && !self.vim_motions =>
+                {
                     self.auto_switch = false;
                     self.switch_mode();
                 }
-                KeyCode::Char('h') if key.modifiers.contains(KeyModifiers::CONTROL) && self.vim_motions => {
+                KeyCode::Char('h')
+                    if key.modifiers.contains(KeyModifiers::CONTROL) && self.vim_motions =>
+                {
                     self.auto_switch = false;
                     self.switch_mode();
                 }
                 // toggle WORK/PAUSE
-                KeyCode::Right if key.modifiers.contains(KeyModifiers::CONTROL) && !self.vim_motions => {
+                KeyCode::Right
+                    if key.modifiers.contains(KeyModifiers::CONTROL) && !self.vim_motions =>
+                {
                     self.auto_switch = false;
                     self.switch_mode();
                 }
-                KeyCode::Char('l') if key.modifiers.contains(KeyModifiers::CONTROL) && self.vim_motions => {
+                KeyCode::Char('l')
+                    if key.modifiers.contains(KeyModifiers::CONTROL) && self.vim_motions =>
+                {
                     self.auto_switch = false;
                     self.switch_mode();
                 }
