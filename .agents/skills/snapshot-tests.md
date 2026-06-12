@@ -36,7 +36,9 @@ ga src/widgets/snapshots/ && gc -S
 
 1. Create `src/widgets/<widget>_test.rs`
 2. Register it in `src/widgets.rs`: `#[cfg(test)] pub mod <widget>_test;`
-3. Follow the pattern in `pomodoro_test.rs` or `countdown_test.rs`: default args function + struct update syntax to override only what differs + state transitions driven via `TuiEventHandler::update()` — no test-only setter methods in widget code
+3. Choose the right test pattern:
+   - **Snapshot** (`StatefulWidget` with complex output): follow `pomodoro_test.rs` or `countdown_test.rs` — default args function + struct update syntax to override only what differs + state transitions driven via `TuiEventHandler::update()` — no test-only setter methods in widget code
+   - **Buffer** (plain `Widget` with simple/predictable output): use `Buffer::empty(rect)` + `widget.render(rect, &mut b)` + `assert_eq!(b, Buffer::with_lines([...]))` — see `header_test.rs` and `clock_elements_test.rs`
 4. Create tests step by step, not all at once
 
 ## Keybindings
