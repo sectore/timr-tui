@@ -15,13 +15,19 @@ fn test_header_none() {
 #[test]
 fn test_header_progress() {
     let mut b = Buffer::empty(RECT);
-    Header { percentage: Some(50) }.render(RECT, &mut b);
+    Header {
+        percentage: Some(50),
+    }
+    .render(RECT, &mut b);
     assert_eq!(b, Buffer::with_lines(["━━━━━─────"]));
 }
 
 #[test]
 fn test_header_progress_full() {
     let mut b = Buffer::empty(RECT);
-    Header { percentage: Some(100) }.render(RECT, &mut b);
+    Header {
+        percentage: Some(100),
+    }
+    .render(RECT, &mut b);
     assert_eq!(b, Buffer::with_lines(["━━━━━━━━━━"]));
 }
