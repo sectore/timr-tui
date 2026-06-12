@@ -386,7 +386,6 @@ fn format_offsetdatetime(dt: &OffsetDateTime) -> String {
     .unwrap_or_else(|e| format!("time format error: {}", e))
 }
 
-
 #[derive(Debug)]
 pub struct EventWidget {
     pub style: DigitStyle,
