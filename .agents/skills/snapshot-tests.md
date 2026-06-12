@@ -28,13 +28,17 @@ ga src/widgets/snapshots/ && gc -S
 
 ## Structure
 
-- `src/widgets/test_utils.rs` — shared helper (`assert_snapshot`, `FIXED_TIME`, `AssertSnapshotArgs`)
+- `src/widgets/test_utils.rs` — shared test helpers
 - `src/widgets/snapshots/` — stored snapshot files
-- Each widget has its own `*_test.rs` file with `w()`, `st()`, and a local `assert()` wrapper
+- Each widget has its own `*_test.rs` file following the pattern in `pomodoro_test.rs`
 
 ## Adding a new widget test
 
 1. Create `src/widgets/<widget>_test.rs`
 2. Register it in `src/widgets.rs`: `#[cfg(test)] pub mod <widget>_test;`
-3. Define `w()`, `st()`, and `assert()` following the pattern in `footer_test.rs`
-4. If state needs test-only builder methods, add a `#[cfg(test)] impl` block in the widget's `.rs` file
+3. Follow the pattern in `pomodoro_test.rs` or `countdown_test.rs`: default args function + struct update syntax to override only what differs + state transitions driven via `TuiEventHandler::update()` — no test-only setter methods in widget code
+4. Create tests step by step, not all at once
+
+## Keybindings
+
+`Key` in `test_utils.rs` is the single source of truth for key-to-event mappings used in tests. If a keybinding changes, only update the `From<Key> for TuiEvent` impl there.
