@@ -14,6 +14,8 @@ pub mod footer;
 pub mod footer_test;
 pub mod header;
 pub mod local_time;
+#[cfg(test)]
+pub mod local_time_test;
 pub mod pomodoro;
 #[cfg(test)]
 pub mod pomodoro_test;

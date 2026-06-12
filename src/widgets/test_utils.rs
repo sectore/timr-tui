@@ -5,6 +5,7 @@ use time::{OffsetDateTime, macros::datetime};
 use crate::events::TuiEvent;
 
 pub const FIXED_TIME: OffsetDateTime = datetime!(2024-06-10 14:30:00 UTC);
+pub const FIXED_TIME_AM: OffsetDateTime = datetime!(2024-06-10 09:30:00 UTC);
 
 pub enum Key {
     StartStop,
