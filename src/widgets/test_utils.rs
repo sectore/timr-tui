@@ -1,7 +1,25 @@
+use crossterm::event::{Event, KeyCode, KeyEvent, KeyModifiers};
 use ratatui::{Terminal, backend::TestBackend, widgets::StatefulWidget};
 use time::{OffsetDateTime, macros::datetime};
 
+use crate::events::TuiEvent;
+
 pub const FIXED_TIME: OffsetDateTime = datetime!(2024-06-10 14:30:00 UTC);
+
+pub enum Key {
+    StartStop,
+    Edit,
+}
+
+impl From<Key> for TuiEvent {
+    fn from(action: Key) -> Self {
+        let code = match action {
+            Key::StartStop => KeyCode::Char(' '),
+            Key::Edit => KeyCode::Char('e'),
+        };
+        TuiEvent::Crossterm(Event::Key(KeyEvent::new(code, KeyModifiers::NONE)))
+    }
+}
 
 pub struct DrawArgs<W>
 where

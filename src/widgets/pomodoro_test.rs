@@ -1,9 +1,10 @@
 use crate::{
     common::Style,
     duration::{ONE_MINUTE, ONE_SECOND},
+    events::{TuiEvent, TuiEventHandler},
     widgets::{
         pomodoro::{Mode, PauseDuration, PomodoroState, PomodoroStateArgs, PomodoroWidget},
-        test_utils::{DrawArgs, draw},
+        test_utils::{DrawArgs, Key, draw},
     },
 };
 use insta::assert_snapshot;
@@ -24,8 +25,8 @@ fn w() -> PomodoroWidget {
     }
 }
 
-fn st() -> PomodoroState {
-    PomodoroState::new(PomodoroStateArgs {
+fn args() -> PomodoroStateArgs {
+    PomodoroStateArgs {
         mode: Mode::Work,
         initial_value_work: WORK,
         current_value_work: WORK,
@@ -36,7 +37,15 @@ fn st() -> PomodoroState {
         round: 1,
         vim_motions: false,
         auto_switch: false,
-    })
+    }
+}
+
+fn st_with_args(args: PomodoroStateArgs) -> PomodoroState {
+    PomodoroState::new(args)
+}
+
+fn st() -> PomodoroState {
+    st_with_args(args())
 }
 
 fn terminal(w: PomodoroWidget, st: PomodoroState) -> Terminal<TestBackend> {
@@ -58,39 +67,52 @@ fn test_work_pause() {
 
 #[test]
 fn test_work_pause_decis() {
-    let st = st().with_decis(true);
+    let st = st_with_args(PomodoroStateArgs {
+        with_decis: true,
+        ..args()
+    });
     let t = terminal(w(), st);
     assert_snapshot!("work_pause_decis", t.backend());
 }
 
 #[test]
 fn test_work_play() {
-    let st = st()
-        .with_current_work(WORK - ONE_MINUTE)
-        .with_work_running();
+    let mut st = st_with_args(PomodoroStateArgs {
+        current_value_work: WORK - ONE_MINUTE,
+        ..args()
+    });
+    st.update(Key::StartStop.into());
     let t = terminal(w(), st);
     assert_snapshot!("work_play", t.backend());
 }
 
 #[test]
 fn test_work_done() {
-    let st = st().with_work_done();
+    let mut st = st_with_args(PomodoroStateArgs {
+        current_value_work: Duration::ZERO,
+        ..args()
+    });
+    st.update(Key::StartStop.into());
+    st.update(TuiEvent::Tick);
     let t = terminal(w(), st);
     assert_snapshot!("work_done", t.backend());
 }
 
 #[test]
 fn test_work_edit_minutes() {
-    let st = st().with_work_edit();
+    let mut st = st();
+    st.update(Key::Edit.into());
     let t = terminal(w(), st);
     assert_snapshot!("work_edit_minutes", t.backend());
 }
 
 #[test]
 fn test_work_edit_seconds() {
-    let st = st()
-        .with_current_work(ONE_SECOND.saturating_mul(12))
-        .with_work_edit();
+    let mut st = st_with_args(PomodoroStateArgs {
+        current_value_work: ONE_SECOND.saturating_mul(12),
+        ..args()
+    });
+    st.update(Key::Edit.into());
     let t = terminal(w(), st);
     assert_snapshot!("work_edit_seconds", t.backend());
 }
