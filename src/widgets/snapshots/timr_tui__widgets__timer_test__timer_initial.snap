@@ -1,0 +1,20 @@
+---
+source: src/widgets/timer_test.rs
+expression: t.backend()
+---
+"                                                                      "
+"                                                                      "
+"                                                                      "
+"                                                                      "
+"                                                                      "
+"                                 █████                                "
+"                                 ██ ██                                "
+"                                 ██ ██                                "
+"                                 ██ ██                                "
+"                                 █████                                "
+"                                                                      "
+"                               TIMER []                               "
+"                                                                      "
+"                                                                      "
+"                                                                      "
+"                                                                      "

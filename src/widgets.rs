@@ -21,3 +21,5 @@ pub mod progressbar;
 #[cfg(test)]
 pub mod test_utils;
 pub mod timer;
+#[cfg(test)]
+pub mod timer_test;
