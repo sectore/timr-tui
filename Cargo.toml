@@ -16,8 +16,12 @@ exclude = [
     "demo/*.tape",
     "result/*",
     "*.mp3",
-    ".claude",
+    "src/**/*test*",
+    "src/**/snapshots/*",
+    ".agents",
+    "AGENTS.md",
     "CLAUDE.md",
+    ".claude",
 ]
 
 [dependencies]
