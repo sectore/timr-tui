@@ -17,19 +17,19 @@ pub const MINS_PER_HOUR: u64 = 60;
 // https://doc.rust-lang.org/src/core/time.rs.html#36
 const HOURS_PER_DAY: u64 = 24;
 
-pub const ONE_DECI_SECOND: Duration = Duration::from_millis(100);
-pub const ONE_SECOND: Duration = Duration::from_secs(1);
-pub const ONE_MINUTE: Duration = Duration::from_secs(SECS_PER_MINUTE);
-pub const ONE_HOUR: Duration = Duration::from_secs(MINS_PER_HOUR * SECS_PER_MINUTE);
-pub const ONE_DAY: Duration = Duration::from_secs(HOURS_PER_DAY * MINS_PER_HOUR * SECS_PER_MINUTE);
-pub const ONE_YEAR: Duration =
-    Duration::from_secs(DAYS_PER_YEAR * HOURS_PER_DAY * MINS_PER_HOUR * SECS_PER_MINUTE);
-
 // Days per year
 // "There are 365 days in a year in a common year of the Gregorian calendar and 366 days in a leap year.
 // Leap years occur every four years. The average number of days in a year is 365.2425 days."
 // ^ https://www.math.net/days-in-a-year
 const DAYS_PER_YEAR: u64 = 365; // ignore leap year of 366 days
+
+pub const ONE_DECI_SECOND: Duration = Duration::from_millis(100);
+pub const ONE_SECOND: Duration = Duration::from_secs(1);
+pub const ONE_MINUTE: Duration = Duration::from_mins(1);
+pub const ONE_HOUR: Duration = Duration::from_hours(1);
+pub const ONE_DAY: Duration = Duration::from_hours(HOURS_PER_DAY);
+// As long as `from_days` is not stable, we still need to use `from_hours` to get `ONE_YEAR`
+pub const ONE_YEAR: Duration = Duration::from_hours(DAYS_PER_YEAR * HOURS_PER_DAY);
 
 // max. 9999y 364d 23:59:59.9 (10k years - 1 decisecond)
 pub const MAX_DURATION: Duration = ONE_YEAR
