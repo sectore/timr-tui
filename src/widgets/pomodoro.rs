@@ -215,11 +215,11 @@ impl PomodoroState {
                     self.next_round();
                 }
                 // switch
-                self.mode = Mode::Work
+                self.mode = Mode::Work;
             }
             Mode::Work => {
                 // switch
-                self.mode = Mode::Pause
+                self.mode = Mode::Pause;
             }
         }
     }
@@ -362,10 +362,9 @@ impl TuiEventHandler for PomodoroState {
                     self.get_clock_pause_mut().reset();
                     self.get_clock_work_mut().reset();
                 }
-                // reset both clocks
+                // reset current clock
                 KeyCode::Char('r') => {
-                    self.get_clock_work_mut().reset();
-                    self.get_clock_pause_mut().reset();
+                    self.get_clock_mut().reset();
                 }
                 _ => return Some(event),
             },
