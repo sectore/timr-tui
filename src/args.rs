@@ -30,6 +30,9 @@ pub struct Args {
     )]
     pub pause: Option<PauseDuration>,
 
+    #[arg(long, help = "Enable auto-switch between `work` and `pause` screens.")]
+    pub auto_switch: bool,
+
     #[arg(
         long,
         short = 'e',
