@@ -15,6 +15,21 @@ use serde::{Deserialize, Serialize};
 use std::{cmp::max, time::Duration};
 use strum::Display;
 
+fn work_clock_name(round: u64) -> String {
+    format!("work (round {round})")
+}
+
+fn pause_clock_name(round: u64, pause_duration: &PauseDuration) -> String {
+    format!(
+        "{} (round {round})",
+        if pause_duration.is_special_round(round) {
+            "pause special"
+        } else {
+            "pause"
+        }
+    )
+}
+
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 pub enum PauseDuration {
     Fixed(Duration),
@@ -121,7 +136,7 @@ impl PomodoroState {
                     with_decis,
                     app_tx: Some(app_tx.clone()),
                 })
-                .with_name("Work".to_owned()),
+                .with_name(work_clock_name(round)),
                 pause: ClockState::<Countdown>::new(ClockStateArgs {
                     initial_value: pause_duration.for_round(round),
                     current_value: current_value_pause,
@@ -129,7 +144,7 @@ impl PomodoroState {
                     with_decis,
                     app_tx: Some(app_tx),
                 })
-                .with_name("Pause".to_owned()),
+                .with_name(pause_clock_name(round, &pause_duration)),
             },
             round,
             pause_duration,
@@ -178,6 +193,14 @@ impl PomodoroState {
         self.auto_switch
     }
 
+    fn update_clock_names(&mut self) {
+        let round = self.round;
+        let work_name = work_clock_name(round);
+        let pause_name = pause_clock_name(round, &self.pause_duration);
+        self.get_clock_work_mut().set_name(work_name);
+        self.get_clock_pause_mut().set_name(pause_name);
+    }
+
     fn update_pause_initial(&mut self) {
         let initial = self.pause_duration.for_round(self.round);
         self.get_clock_pause_mut().set_initial_value(initial.into());
@@ -191,6 +214,7 @@ impl PomodoroState {
     fn next_round(&mut self) {
         // increase round before (!!) updating the clock
         self.round += 1;
+        self.update_clock_names();
         self.update_pause_initial();
         self.get_clock_pause_mut().reset();
         self.get_clock_work_mut().reset();
@@ -201,6 +225,7 @@ impl PomodoroState {
         if self.round > 1 {
             self.round -= 1;
         }
+        self.update_clock_names();
         self.update_pause_initial();
         self.get_clock_pause_mut().reset();
         self.get_clock_work_mut().reset();
