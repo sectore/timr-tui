@@ -140,7 +140,7 @@ impl From<FromAppArgs> for App {
             style: args.style.unwrap_or(stg.style),
             pomodoro_mode: stg.pomodoro_mode,
             pomodoro_round: stg.pomodoro_count,
-            pomodoro_auto_switch: stg.pomodoro_auto_switch,
+            pomodoro_auto_switch: args.auto_switch || stg.pomodoro_auto_switch,
             initial_value_work: args.work.unwrap_or(stg.inital_value_work),
             // invalidate `current_value_work` if an initial value is set via args
             current_value_work: args.work.unwrap_or(stg.current_value_work),

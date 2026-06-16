@@ -1,5 +1,11 @@
 # Changelog
 
+## [unreleased]
+
+### Features
+
+- (cli) Add `--auto-switch` argument [#203](https://github.com/sectore/timr-tui/pull/203)
+
 ## v1.10.0 - 2026-06-16
 
 ### Features
