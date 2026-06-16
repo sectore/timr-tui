@@ -212,6 +212,10 @@ impl<T> ClockState<T> {
         self.name.clone().unwrap_or_default()
     }
 
+    pub fn set_name(&mut self, name: String) {
+        self.name = Some(name);
+    }
+
     pub fn get_type_id(&self) -> &ClockTypeId {
         &self.type_id
     }
