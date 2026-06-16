@@ -17,6 +17,7 @@
 
 ### Misc
 
+- (docs) Update all demos [#201](https://github.com/sectore/timr-tui/pull/201)
 - (skills) add skills: `snapshot-tests`, `update-cargo-deps`, `update-changelog`, `update-rust-version` [#181](https://github.com/sectore/timr-tui/pull/181), [#182](https://github.com/sectore/timr-tui/pull/182), [#187](https://github.com/sectore/timr-tui/pull/187), [#190](https://github.com/sectore/timr-tui/pull/190), [#195](https://github.com/sectore/timr-tui/pull/195), [#196](https://github.com/sectore/timr-tui/pull/196)
 - (test) extend `clock_elements` buffer tests [#198](https://github.com/sectore/timr-tui/pull/198)
 - (test) add `header` buffer tests [#195](https://github.com/sectore/timr-tui/pull/195)

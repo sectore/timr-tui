@@ -79,10 +79,17 @@ demo-all:
 
 alias dp := demo-pomodoro
 
-# build demo: pomodoro
+# build demo: pomodoro + auto-switch + special pause
 [group('demo')]
 demo-pomodoro:
     vhs demo/pomodoro.tape
+
+alias dpas := demo-pomodoro-auto-special
+
+# build demo: pomodoro
+[group('demo')]
+demo-pomodoro-auto-special:
+    vhs demo/pomodoro-auto-special.tape
 
 alias dt := demo-timer
 

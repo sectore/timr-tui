@@ -12,10 +12,15 @@ Set Margin 1
 # --- START ---
 Set LoopOffset 4
 Hide
-Type "cargo run -- -r -m c"
+Type "cargo run -- -r -m t"
 Enter
-Sleep 0.2
 Type "m" # hide menu
+Type "e"
+Up@1ms 60 # secs
+Left
+Up@1ms 20 # mins
+Type "s" # save
+Sleep 0.2
 Show
 # --- toggle local time ---
 Type@1s ":::"
