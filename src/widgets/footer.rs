@@ -252,6 +252,20 @@ impl StatefulWidget for Footer {
                                             Span::styled("^r", BOLD),
                                             Span::from(SPACE),
                                             Span::styled("reset clocks/rounds", ITALIC),
+                                            Span::from(WIDE_SPACE),
+                                            Span::styled("a", BOLD),
+                                            Span::from(SPACE),
+                                            Span::styled(
+                                                format!(
+                                                    "{} auto switch",
+                                                    if self.pomodoro_auto_switch {
+                                                        "disable"
+                                                    } else {
+                                                        "enable"
+                                                    }
+                                                ),
+                                                ITALIC,
+                                            ),
                                         ]);
                                     }
                                     spans
@@ -323,24 +337,15 @@ impl StatefulWidget for Footer {
                                                 Span::from(SPACE),
                                                 Span::styled(format!("^{}", symbol_right), BOLD),
                                                 Span::from(SPACE),
-                                                Span::styled("switch work/pause screens", ITALIC),
-                                            ]);
-
-                                            spans.extend_from_slice(&[
+                                                Span::styled("switch work/pause", ITALIC),
                                                 Span::from(WIDE_SPACE),
-                                                Span::styled("a", BOLD),
+                                                Span::styled(symbol_up, BOLD),
                                                 Span::from(SPACE),
-                                                Span::styled(
-                                                    format!(
-                                                        "{} auto switch",
-                                                        if self.pomodoro_auto_switch {
-                                                            "disable"
-                                                        } else {
-                                                            "enable"
-                                                        }
-                                                    ),
-                                                    ITALIC,
-                                                ),
+                                                Span::styled("next round", ITALIC),
+                                                Span::from(WIDE_SPACE),
+                                                Span::styled(symbol_down, BOLD),
+                                                Span::from(SPACE),
+                                                Span::styled("previous round", ITALIC),
                                             ]);
                                         }
                                         spans

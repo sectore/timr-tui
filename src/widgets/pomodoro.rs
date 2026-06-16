@@ -188,34 +188,46 @@ impl PomodoroState {
         self.clock_map.pause.with_decis = with_decis;
     }
 
-    fn switch_mode(&mut self) {
-        self.mode = match self.mode {
-            Mode::Pause => Mode::Work,
-            Mode::Work => Mode::Pause,
-        };
+    fn next_round(&mut self) {
+        // increase round before (!!) updating the clock
+        self.round += 1;
+        self.update_pause_initial();
+        self.get_clock_pause_mut().reset();
+        self.get_clock_work_mut().reset();
     }
 
-    // Switch `Mode` extended:
-    // 1a. stop current clock
-    // 1b. count round (from pause -> work only)
-    // 2. switch `mode`
-    // 3. run new clock
-    fn switch_mode_auto(&mut self) {
+    fn prev_round(&mut self) {
+        // decrease round before (!!) updating the clock
+        if self.round > 1 {
+            self.round -= 1;
+        }
+        self.update_pause_initial();
+        self.get_clock_pause_mut().reset();
+        self.get_clock_work_mut().reset();
+    }
+
+    // Switch `Mode`
+    fn switch_mode(&mut self) {
         match self.mode {
             Mode::Pause => {
-                self.get_clock_pause_mut().reset();
-                self.round += 1;
-                self.update_pause_initial();
-                self.switch_mode();
-                self.get_clock_work_mut().run();
+                // count round if both clocks are done
+                if self.get_clock_pause().is_done() && self.get_clock_work().is_done() {
+                    self.next_round();
+                }
+                // switch
+                self.mode = Mode::Work;
             }
             Mode::Work => {
-                self.get_clock_work_mut().reset();
-                self.update_pause_initial();
-                self.switch_mode();
-                self.get_clock_pause_mut().run();
+                // switch
+                self.mode = Mode::Pause;
             }
         }
+    }
+
+    // Switch `Mode` automatically
+    fn switch_mode_auto(&mut self) {
+        self.switch_mode();
+        self.get_clock_mut().run();
     }
 }
 
@@ -311,27 +323,33 @@ impl TuiEventHandler for PomodoroState {
                 KeyCode::Left
                     if key.modifiers.contains(KeyModifiers::CONTROL) && !self.vim_motions =>
                 {
-                    self.auto_switch = false;
                     self.switch_mode();
                 }
                 KeyCode::Char('h')
                     if key.modifiers.contains(KeyModifiers::CONTROL) && self.vim_motions =>
                 {
-                    self.auto_switch = false;
                     self.switch_mode();
                 }
                 // toggle WORK/PAUSE
                 KeyCode::Right
                     if key.modifiers.contains(KeyModifiers::CONTROL) && !self.vim_motions =>
                 {
-                    self.auto_switch = false;
                     self.switch_mode();
                 }
                 KeyCode::Char('l')
                     if key.modifiers.contains(KeyModifiers::CONTROL) && self.vim_motions =>
                 {
-                    self.auto_switch = false;
                     self.switch_mode();
+                }
+                // next round
+                KeyCode::Up => self.next_round(),
+                KeyCode::Char('k') if self.vim_motions => {
+                    self.next_round();
+                }
+                // prev. round
+                KeyCode::Down => self.prev_round(),
+                KeyCode::Char('j') if self.vim_motions => {
+                    self.prev_round();
                 }
                 // toggle autoswitch
                 KeyCode::Char('a') => {
@@ -340,17 +358,12 @@ impl TuiEventHandler for PomodoroState {
                 // reset rounds AND clocks
                 KeyCode::Char('r') if key.modifiers.contains(KeyModifiers::CONTROL) => {
                     self.round = 1;
-                    self.get_clock_work_mut().reset();
                     self.update_pause_initial();
                     self.get_clock_pause_mut().reset();
+                    self.get_clock_work_mut().reset();
                 }
                 // reset current clock
                 KeyCode::Char('r') => {
-                    // increase round before (!!) resetting the clock
-                    if self.get_mode() == &Mode::Work && self.get_clock().is_done() {
-                        self.round += 1;
-                        self.update_pause_initial();
-                    }
                     self.get_clock_mut().reset();
                 }
                 _ => return Some(event),

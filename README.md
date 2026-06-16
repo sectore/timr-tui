@@ -180,7 +180,11 @@ Note: To enable Vim motions key binding, run with `--vim=on` once. It will be st
 | <kbd>ctrl+←</kbd> or <kbd>ctrl+→</kbd> | switch work/pause                 |
 | <kbd>ctrl+h</kbd> or <kbd>ctrl+l</kbd> | switch work/pause _(Vim motions)_ |
 | <kbd>a</kbd>                           | toggle auto switch work/pause     |
-| <kbd>ctrl+r</kbd>                      | reset round                       |
+| <kbd>↑</kbd>                           | next round                        |
+| <kbd>k</kbd>                           | next round _(Vim motions)_        |
+| <kbd>↓</kbd>                           | previous round                    |
+| <kbd>j</kbd>                           | previous round _(Vim motions)_    |
+| <kbd>ctrl+r</kbd>                      | reset rounds                      |
 | <kbd>ctrl+s</kbd>                      | save initial value                |
 
 **In `Countdown` screen only:**
