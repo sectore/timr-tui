@@ -15,21 +15,6 @@ use serde::{Deserialize, Serialize};
 use std::{cmp::max, time::Duration};
 use strum::Display;
 
-fn work_clock_name(round: u64) -> String {
-    format!("work (round {round})")
-}
-
-fn pause_clock_name(round: u64, pause_duration: &PauseDuration) -> String {
-    format!(
-        "{} (round {round})",
-        if pause_duration.is_special_round(round) {
-            "pause special"
-        } else {
-            "pause"
-        }
-    )
-}
-
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 pub enum PauseDuration {
     Fixed(Duration),
@@ -97,6 +82,7 @@ pub struct PomodoroState {
     pause_duration: PauseDuration,
     vim_motions: bool,
     auto_switch: bool,
+    max_rounds: Option<u64>,
 }
 
 pub struct PomodoroStateArgs {
@@ -110,6 +96,7 @@ pub struct PomodoroStateArgs {
     pub round: u64,
     pub vim_motions: bool,
     pub auto_switch: bool,
+    pub max_rounds: Option<u64>,
 }
 
 impl PomodoroState {
@@ -125,8 +112,9 @@ impl PomodoroState {
             round,
             vim_motions,
             auto_switch,
+            max_rounds,
         } = args;
-        Self {
+        let mut state = Self {
             mode,
             clock_map: ClockMap {
                 work: ClockState::<Countdown>::new(ClockStateArgs {
@@ -135,22 +123,23 @@ impl PomodoroState {
                     tick_value: Duration::from_millis(TICK_VALUE_MS),
                     with_decis,
                     app_tx: Some(app_tx.clone()),
-                })
-                .with_name(work_clock_name(round)),
+                }),
                 pause: ClockState::<Countdown>::new(ClockStateArgs {
                     initial_value: pause_duration.for_round(round),
                     current_value: current_value_pause,
                     tick_value: Duration::from_millis(TICK_VALUE_MS),
                     with_decis,
                     app_tx: Some(app_tx),
-                })
-                .with_name(pause_clock_name(round, &pause_duration)),
+                }),
             },
             round,
             pause_duration,
             vim_motions,
             auto_switch,
-        }
+            max_rounds,
+        };
+        state.update_clock_names();
+        state
     }
 
     fn get_clock_mut(&mut self) -> &mut ClockState<Countdown> {
@@ -193,12 +182,55 @@ impl PomodoroState {
         self.auto_switch
     }
 
+    pub fn get_max_rounds(&self) -> Option<u64> {
+        self.max_rounds
+    }
+
+    fn is_last_round(&self) -> bool {
+        self.max_rounds.is_some_and(|m| self.round >= m)
+    }
+
+    #[allow(dead_code)]
+    pub fn is_complete(&self) -> bool {
+        self.is_last_round() && self.get_clock_work().is_done()
+    }
+
+    fn round_label(&self) -> String {
+        match self.max_rounds {
+            Some(max) => format!("round {} of {}", self.round, max),
+            None => format!("round {}", self.round),
+        }
+    }
+
+    fn update_work_name(&mut self) {
+        let name = if self.is_last_round() {
+            "work (last round)".to_owned()
+        } else {
+            format!("work ({})", self.round_label())
+        };
+        self.get_clock_work_mut().set_name(name);
+    }
+
+    fn update_pause_name(&mut self) {
+        let name = if self.is_last_round() {
+            "pause (last round)".to_owned()
+        } else {
+            format!(
+                "{} ({})",
+                if self.pause_duration.is_special_round(self.round) {
+                    "pause special"
+                } else {
+                    "pause"
+                },
+                self.round_label()
+            )
+        };
+        self.get_clock_pause_mut().set_name(name);
+    }
+
     fn update_clock_names(&mut self) {
-        let round = self.round;
-        let work_name = work_clock_name(round);
-        let pause_name = pause_clock_name(round, &self.pause_duration);
-        self.get_clock_work_mut().set_name(work_name);
-        self.get_clock_pause_mut().set_name(pause_name);
+        self.update_work_name();
+        self.update_pause_name();
     }
 
     fn update_pause_initial(&mut self) {
@@ -212,12 +244,14 @@ impl PomodoroState {
     }
 
     fn next_round(&mut self) {
-        // increase round before (!!) updating the clock
-        self.round += 1;
-        self.update_clock_names();
-        self.update_pause_initial();
-        self.get_clock_pause_mut().reset();
-        self.get_clock_work_mut().reset();
+        if !self.is_last_round() {
+            // increase round before (!!) updating the clock
+            self.round += 1;
+            self.update_clock_names();
+            self.update_pause_initial();
+            self.get_clock_pause_mut().reset();
+            self.get_clock_work_mut().reset();
+        }
     }
 
     fn prev_round(&mut self) {
@@ -251,8 +285,10 @@ impl PomodoroState {
 
     // Switch `Mode` automatically
     fn switch_mode_auto(&mut self) {
-        self.switch_mode();
-        self.get_clock_mut().run();
+        if !self.is_last_round() {
+            self.switch_mode();
+            self.get_clock_mut().run();
+        }
     }
 }
 
@@ -421,7 +457,13 @@ impl StatefulWidget for PomodoroWidget {
             ))
             .to_uppercase(),
         );
-        let label_round = Line::raw((format!("round {}", state.get_round(),)).to_uppercase());
+        let label_round = Line::raw(if state.is_last_round() {
+            "LAST ROUND".to_owned()
+        } else if let Some(max) = state.get_max_rounds() {
+            format!("ROUND {} OF {}", state.get_round(), max)
+        } else {
+            format!("ROUND {}", state.get_round())
+        });
 
         let area = area.centered(
             Constraint::Length(max(

@@ -46,6 +46,8 @@ pub struct AppStorage {
     pub pomodoro_mode: PomodoroMode,
     pub pomodoro_count: u64,
     pub pomodoro_auto_switch: bool,
+    #[serde(default)]
+    pub pomodoro_max_rounds: Option<u64>,
     // pomodoro -> work
     pub inital_value_work: Duration,
     pub current_value_work: Duration,
@@ -79,6 +81,7 @@ impl Default for AppStorage {
             pomodoro_mode: PomodoroMode::Work,
             pomodoro_count: 1,
             pomodoro_auto_switch: false,
+            pomodoro_max_rounds: None,
             // pomodoro -> work
             inital_value_work: DEFAULT_WORK,
             current_value_work: DEFAULT_WORK,

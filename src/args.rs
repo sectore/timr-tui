@@ -30,6 +30,9 @@ pub struct Args {
     )]
     pub pause: Option<PauseDuration>,
 
+    #[arg(long, help = "Maximum number of pomodoro rounds. 0 = unlimited.")]
+    pub max_rounds: Option<u64>,
+
     #[arg(long, help = "Enable auto-switch between `work` and `pause` screens.")]
     pub auto_switch: bool,
 
