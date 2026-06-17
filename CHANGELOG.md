@@ -14,6 +14,10 @@
 
 - (notification) show `Pomodoro` or `Tabata` instead of `Countdown` [#209](https://github.com/sectore/timr-tui/pull/209)
 
+### Misc
+
+- (docs) add `tabata` screen etc. [#209](https://github.com/sectore/timr-tui/pull/209)
+
 ## v1.10.0 - 2026-06-16
 
 ### Features

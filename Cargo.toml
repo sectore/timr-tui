@@ -1,7 +1,7 @@
 [package]
 name = "timr-tui"
 version = "1.10.0"
-description = "TUI to organize your time: Pomodoro, Countdown, Timer, Event."
+description = "TUI to organize your time: Pomodoro, Tabata, Countdown, Timer, Event."
 edition = "2024"
 # Reminder: Always keep `channel` in `rust-toolchain.toml` in sync with `rust-version`.
 rust-version = "1.96.0"
@@ -9,7 +9,7 @@ homepage = "https://github.com/sectore/timr-tui"
 repository = "https://github.com/sectore/timr-tui"
 readme = "README.md"
 license = "MIT"
-keywords = ["tui", "timer", "countdown", "pomodoro"]
+keywords = ["tui", "timer", "countdown", "pomodoro", "tabata"]
 categories = ["command-line-utilities"]
 exclude = [
     ".github/*",
