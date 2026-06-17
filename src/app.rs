@@ -77,6 +77,7 @@ pub struct AppArgs {
     pub pomodoro_mode: PomodoroMode,
     pub pomodoro_round: u64,
     pub pomodoro_auto_switch: bool,
+    pub pomodoro_max_rounds: Option<u64>,
     pub initial_value_work: Duration,
     pub current_value_work: Duration,
     pub pause_duration: PauseDuration,
@@ -141,6 +142,11 @@ impl From<FromAppArgs> for App {
             pomodoro_mode: stg.pomodoro_mode,
             pomodoro_round: stg.pomodoro_count,
             pomodoro_auto_switch: args.auto_switch || stg.pomodoro_auto_switch,
+            pomodoro_max_rounds: args
+                .max_rounds
+                // 0 -> resets `max_rounds`
+                .and_then(|n| (n > 0).then_some(n))
+                .or(stg.pomodoro_max_rounds),
             initial_value_work: args.work.unwrap_or(stg.inital_value_work),
             // invalidate `current_value_work` if an initial value is set via args
             current_value_work: args.work.unwrap_or(stg.current_value_work),
@@ -184,6 +190,7 @@ impl App {
             pomodoro_mode,
             pomodoro_round,
             pomodoro_auto_switch,
+            pomodoro_max_rounds,
             event,
             notification,
             blink,
@@ -246,6 +253,7 @@ impl App {
                 app_tx: app_tx.clone(),
                 vim_motions,
                 auto_switch: pomodoro_auto_switch,
+                max_rounds: pomodoro_max_rounds,
             }),
             local_time: LocalTimeState::new(LocalTimeStateArgs {
                 app_time,
@@ -533,6 +541,7 @@ impl App {
             pomodoro_mode: self.pomodoro.get_mode().clone(),
             pomodoro_count: self.pomodoro.get_round(),
             pomodoro_auto_switch: self.pomodoro.get_auto_switch(),
+            pomodoro_max_rounds: self.pomodoro.get_max_rounds(),
             inital_value_work: Duration::from(*self.pomodoro.get_clock_work().get_initial_value()),
             current_value_work: Duration::from(*self.pomodoro.get_clock_work().get_current_value()),
             pause_duration: self.pomodoro.get_pause_duration().clone(),
