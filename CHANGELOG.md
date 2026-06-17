@@ -4,7 +4,7 @@
 
 ### Features
 
-- (pomodoro) tabata easter egg [#207](https://github.com/sectore/timr-tui/pull/207)
+- (pomodoro) auto-detect `Tabata` [#207](https://github.com/sectore/timr-tui/pull/207)
 - (pomodoro) introduce `max rounds` to limit sessions [#205](https://github.com/sectore/timr-tui/pull/205), [#206](https://github.com/sectore/timr-tui/pull/206)
 - (notification) detailed pomodoro status in system notification [#204](https://github.com/sectore/timr-tui/pull/204)
 - (cli) Add `--auto-switch` argument [#203](https://github.com/sectore/timr-tui/pull/203)
