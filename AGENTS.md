@@ -1,6 +1,6 @@
 # About
 
-`timr-tui` is a TUI to maintain productivity and focus by providing different timers: Pomodoro, Countdown, Timer, Events.
+`timr-tui` is a TUI to maintain productivity and focus by providing different timers: Pomodoro, Tabata, Countdown, Timer, Events.
 
 Built with Rust using `Ratatui` as the main library.
 
