@@ -18,6 +18,7 @@ fn w() -> Footer {
         app_edit_mode: AppEditMode::None,
         app_time: AppTime::Local(FIXED_TIME),
         pomodoro_auto_switch: false,
+        is_tabata: false,
     }
 }
 
@@ -195,6 +196,19 @@ fn test_menu_countdown_edit_mode_vim() {
     let st = st().with_vim_motions(true);
     let t = terminal(w, st);
     assert_snapshot!("menu_countdown_edit_mode_vim", t.backend());
+}
+
+// tabata
+
+#[test]
+fn test_menu_tabata() {
+    let w = Footer {
+        selected_content: Content::Pomodoro,
+        is_tabata: true,
+        ..w()
+    };
+    let t = terminal(w, st());
+    assert_snapshot!("menu_tabata", t.backend());
 }
 
 // time formats

@@ -1,6 +1,6 @@
 use crate::{
     common::Style,
-    constants::TICK_VALUE_MS,
+    constants::{TABATA_MAX_ROUNDS, TABATA_PAUSE, TABATA_WORK, TICK_VALUE_MS},
     events::{AppEventTx, TuiEvent, TuiEventHandler},
     widgets::clock::{ClockState, ClockStateArgs, ClockWidget, Countdown},
 };
@@ -193,6 +193,12 @@ impl PomodoroState {
     #[allow(dead_code)]
     pub fn is_complete(&self) -> bool {
         self.is_last_round() && self.get_clock_work().is_done()
+    }
+
+    pub fn is_tabata(&self) -> bool {
+        *self.get_clock_work().get_initial_value() == TABATA_WORK.into()
+            && self.pause_duration == PauseDuration::Fixed(TABATA_PAUSE)
+            && self.max_rounds == Some(TABATA_MAX_ROUNDS)
     }
 
     fn round_label(&self) -> String {
@@ -476,7 +482,12 @@ impl StatefulWidget for PomodoroWidget {
                 .is_special_round(state.get_round());
         let label = Line::raw(
             (format!(
-                "Pomodoro {} {}{}",
+                "{} {} {}{}",
+                if state.is_tabata() {
+                    "Tabata"
+                } else {
+                    "Pomodoro"
+                },
                 state.mode.clone(),
                 if is_special_pause { "Special " } else { "" },
                 state.get_clock_mut().get_mode()

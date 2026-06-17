@@ -407,6 +407,14 @@ impl App {
                             ClockTypeId::Timer => {
                                 format!("{name} stopped by reaching its maximum value.")
                             }
+                            ClockTypeId::Countdown if app.content == Content::Pomodoro => {
+                                let prefix = if app.pomodoro.is_tabata() {
+                                    "Tabata"
+                                } else {
+                                    "Pomodoro"
+                                };
+                                format!("{prefix} {name} done!")
+                            }
                             _ => format!("{type_id:?} {name} done!"),
                         };
                         // notification
@@ -618,6 +626,7 @@ impl StatefulWidget for AppWidget {
             app_edit_mode: state.get_edit_mode(),
             app_time: state.app_time,
             pomodoro_auto_switch: state.pomodoro.get_auto_switch(),
+            is_tabata: state.pomodoro.is_tabata(),
         }
         .render(v2, buf, &mut state.footer);
     }
