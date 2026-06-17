@@ -407,9 +407,7 @@ impl App {
                             ClockTypeId::Timer => {
                                 format!("{name} stopped by reaching its maximum value.")
                             }
-                            ClockTypeId::Countdown
-                                if app.content == Content::Pomodoro =>
-                            {
+                            ClockTypeId::Countdown if app.content == Content::Pomodoro => {
                                 let prefix = if app.pomodoro.is_tabata() {
                                     "Tabata"
                                 } else {
