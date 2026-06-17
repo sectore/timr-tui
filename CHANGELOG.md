@@ -4,6 +4,7 @@
 
 ### Features
 
+- (pomodoro) `--max-rounds` arg to limit sessions [#205](https://github.com/sectore/timr-tui/pull/205)
 - (notification) detailed pomodoro status in system notification [#204](https://github.com/sectore/timr-tui/pull/204)
 - (cli) Add `--auto-switch` argument [#203](https://github.com/sectore/timr-tui/pull/203)
 
