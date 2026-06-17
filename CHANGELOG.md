@@ -10,6 +10,10 @@
 - (notification) detailed pomodoro status in system notification [#204](https://github.com/sectore/timr-tui/pull/204)
 - (cli) Add `--auto-switch` argument [#203](https://github.com/sectore/timr-tui/pull/203)
 
+### Fix
+
+- (notification) show `Pomodoro` or `Tabata` instead of `Countdown` [#209](https://github.com/sectore/timr-tui/pull/209)
+
 ## v1.10.0 - 2026-06-16
 
 ### Features

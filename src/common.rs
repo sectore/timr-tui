@@ -1,6 +1,7 @@
 use clap::ValueEnum;
 use ratatui::symbols::shade;
 use serde::{Deserialize, Serialize};
+use std::fmt;
 use strum::EnumString;
 use time::{OffsetDateTime, format_description};
 
@@ -48,6 +49,48 @@ pub enum ClockTypeId {
     Countdown,
     Timer,
     Event,
+}
+
+#[derive(Debug, Clone)]
+pub struct ClockName(String);
+
+impl fmt::Display for ClockName {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl From<String> for ClockName {
+    fn from(s: String) -> Self {
+        Self(s)
+    }
+}
+
+impl From<&str> for ClockName {
+    fn from(s: &str) -> Self {
+        Self(s.to_owned())
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct ClockDescription(String);
+
+impl fmt::Display for ClockDescription {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl From<String> for ClockDescription {
+    fn from(s: String) -> Self {
+        Self(s)
+    }
+}
+
+impl From<&str> for ClockDescription {
+    fn from(s: &str) -> Self {
+        Self(s.to_owned())
+    }
 }
 
 #[derive(Debug, Copy, Clone, ValueEnum, Default, Serialize, Deserialize)]

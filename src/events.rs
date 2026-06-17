@@ -6,7 +6,7 @@ use tokio::sync::mpsc;
 use tokio::time::interval;
 use tokio_stream::{StreamMap, wrappers::IntervalStream};
 
-use crate::common::ClockTypeId;
+use crate::common::{ClockDescription, ClockName, ClockTypeId};
 use crate::constants::TICK_VALUE_MS;
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
@@ -24,7 +24,7 @@ pub enum TuiEvent {
 
 #[derive(Clone, Debug)]
 pub enum AppEvent {
-    ClockDone(ClockTypeId, String),
+    ClockDone(ClockTypeId, ClockName, Option<ClockDescription>),
     SetCursor(Option<Position>),
 }
 

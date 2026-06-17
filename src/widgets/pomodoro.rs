@@ -1,5 +1,5 @@
 use crate::{
-    common::Style,
+    common::{ClockDescription, ClockName, Style},
     constants::{TABATA_MAX_ROUNDS, TABATA_PAUSE, TABATA_WORK, TICK_VALUE_MS},
     events::{AppEventTx, TuiEvent, TuiEventHandler},
     widgets::clock::{ClockState, ClockStateArgs, ClockWidget, Countdown},
@@ -208,13 +208,25 @@ impl PomodoroState {
         }
     }
 
+    fn pomodoro_name(&self) -> ClockName {
+        ClockName::from(if self.is_tabata() {
+            "Tabata"
+        } else {
+            "Pomodoro"
+        })
+    }
+
     fn update_work_name(&mut self) {
-        let name = format!("work ({})", self.round_label());
-        self.get_clock_work_mut().set_name(name);
+        let name = self.pomodoro_name();
+        let description = ClockDescription::from(format!("work ({})", self.round_label()));
+        let clock = self.get_clock_work_mut();
+        clock.set_name(name);
+        clock.set_description(description);
     }
 
     fn update_pause_name(&mut self) {
-        let name = format!(
+        let name = self.pomodoro_name();
+        let description = ClockDescription::from(format!(
             "{} ({})",
             if self.pause_duration.is_special_round(self.round) {
                 "pause special"
@@ -222,8 +234,10 @@ impl PomodoroState {
                 "pause"
             },
             self.round_label()
-        );
-        self.get_clock_pause_mut().set_name(name);
+        ));
+        let clock = self.get_clock_pause_mut();
+        clock.set_name(name);
+        clock.set_description(description);
     }
 
     fn update_clock_names(&mut self) {

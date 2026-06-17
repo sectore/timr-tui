@@ -1,5 +1,5 @@
 use crate::{
-    common::{AppTime, AppTimeFormat, Style},
+    common::{AppTime, AppTimeFormat, ClockName, Style},
     constants::TICK_VALUE_MS,
     duration::{DurationEx, MAX_DURATION},
     events::{AppEventTx, TuiEvent, TuiEventHandler},
@@ -76,7 +76,7 @@ impl CountdownState {
                 with_decis: false,
                 app_tx: None,
             })
-            .with_name("MET".to_owned())
+            .with_name(ClockName::from("MET"))
             // A previous `elapsed_value > 0` means the `Clock` was running before,
             // but not in `Initial` state anymore. Updating `Mode` here
             // is needed to handle `Event::Tick` in `EventHandler::update` properly

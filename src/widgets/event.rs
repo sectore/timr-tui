@@ -12,7 +12,7 @@ use tui_input::Input;
 use tui_input::backend::crossterm::EventHandler;
 
 use crate::{
-    common::{AppTime, AppTimeFormat, ClockTypeId, Style as DigitStyle},
+    common::{AppTime, AppTimeFormat, ClockName, ClockTypeId, Style as DigitStyle},
     duration::CalendarDuration,
     event::Event,
     events::{AppEvent, AppEventTx, TuiEvent, TuiEventHandler},
@@ -165,7 +165,8 @@ impl EventState {
                 // send notification
                 _ = self.app_tx.send(AppEvent::ClockDone(
                     ClockTypeId::Event,
-                    self.title.clone().unwrap_or("".into()),
+                    ClockName::from(self.title.clone().unwrap_or_default()),
+                    None,
                 ));
             }
             // count (possible) `done`
