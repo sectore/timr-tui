@@ -243,6 +243,19 @@ impl PomodoroState {
         self.clock_map.pause.with_decis = with_decis;
     }
 
+    pub fn increase_max_rounds(&mut self) {
+        self.max_rounds = Some(self.max_rounds.map_or(1, |n| n + 1));
+        self.update_clock_names();
+    }
+
+    pub fn decrease_max_rounds(&mut self) {
+        self.max_rounds = self.max_rounds.and_then(|n| (n > 1).then_some(n - 1));
+        if let Some(max) = self.max_rounds {
+            self.round = self.round.min(max);
+        }
+        self.update_clock_names();
+    }
+
     fn next_round(&mut self) {
         if !self.is_last_round() {
             // increase round before (!!) updating the clock
@@ -401,6 +414,23 @@ impl TuiEventHandler for PomodoroState {
                     if key.modifiers.contains(KeyModifiers::CONTROL) && self.vim_motions =>
                 {
                     self.switch_mode();
+                }
+                // increase/decrease max rounds
+                KeyCode::Up if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                    self.increase_max_rounds();
+                }
+                KeyCode::Char('k')
+                    if key.modifiers.contains(KeyModifiers::CONTROL) && self.vim_motions =>
+                {
+                    self.increase_max_rounds();
+                }
+                KeyCode::Down if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                    self.decrease_max_rounds();
+                }
+                KeyCode::Char('j')
+                    if key.modifiers.contains(KeyModifiers::CONTROL) && self.vim_motions =>
+                {
+                    self.decrease_max_rounds();
                 }
                 // next round
                 KeyCode::Up => self.next_round(),

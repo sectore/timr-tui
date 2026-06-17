@@ -346,6 +346,14 @@ impl StatefulWidget for Footer {
                                                 Span::styled(symbol_down, BOLD),
                                                 Span::from(SPACE),
                                                 Span::styled("previous round", ITALIC),
+                                                Span::from(WIDE_SPACE),
+                                                Span::styled(format!("^{}", symbol_up), BOLD),
+                                                Span::from(SPACE),
+                                                Span::styled("max rounds up", ITALIC),
+                                                Span::from(WIDE_SPACE),
+                                                Span::styled(format!("^{}", symbol_down), BOLD),
+                                                Span::from(SPACE),
+                                                Span::styled("max rounds down", ITALIC),
                                             ]);
                                         }
                                         spans
