@@ -1,5 +1,6 @@
 use crate::{
     common::Style,
+    constants::{TABATA_MAX_ROUNDS, TABATA_PAUSE, TABATA_WORK},
     duration::{ONE_MINUTE, ONE_SECOND},
     events::{TuiEvent, TuiEventHandler},
     widgets::{
@@ -150,4 +151,37 @@ fn test_work_edit_seconds() {
     st.update(Key::Edit.into());
     let t = terminal(w(), st);
     assert_snapshot!("work_edit_seconds", t.backend());
+}
+
+// tabata
+
+#[test]
+fn test_tabata_work() {
+    let st = st_with_args(PomodoroStateArgs {
+        initial_value_work: TABATA_WORK,
+        current_value_work: TABATA_WORK,
+        pause_duration: PauseDuration::Fixed(TABATA_PAUSE),
+        current_value_pause: TABATA_PAUSE,
+        max_rounds: Some(TABATA_MAX_ROUNDS),
+        ..args()
+    });
+    assert!(st.is_tabata());
+    let t = terminal(w(), st);
+    assert_snapshot!("tabata_work", t.backend());
+}
+
+#[test]
+fn test_tabata_pause() {
+    let st = st_with_args(PomodoroStateArgs {
+        initial_value_work: TABATA_WORK,
+        current_value_work: TABATA_WORK,
+        pause_duration: PauseDuration::Fixed(TABATA_PAUSE),
+        current_value_pause: TABATA_PAUSE,
+        max_rounds: Some(TABATA_MAX_ROUNDS),
+        mode: Mode::Pause,
+        ..args()
+    });
+    assert!(st.is_tabata());
+    let t = terminal(w(), st);
+    assert_snapshot!("tabata_pause", t.backend());
 }

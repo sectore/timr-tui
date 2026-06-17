@@ -71,6 +71,7 @@ pub struct Footer {
     pub app_edit_mode: AppEditMode,
     pub app_time: AppTime,
     pub pomodoro_auto_switch: bool,
+    pub is_tabata: bool,
 }
 
 const SPACE: &str = " "; // single (empty) SPACE
@@ -106,7 +107,10 @@ impl StatefulWidget for Footer {
         let content_labels: BTreeMap<Content, &str> = BTreeMap::from([
             (Content::Countdown, "countdown"),
             (Content::Timer, "timer"),
-            (Content::Pomodoro, "pomodoro"),
+            (
+                Content::Pomodoro,
+                if self.is_tabata { "tabata" } else { "pomodoro" },
+            ),
             (Content::Event, "event"),
             (Content::LocalTime, "local time"),
         ]);
