@@ -110,7 +110,7 @@ impl From<FromAppArgs> for App {
             .tabata
             .then_some(PauseDuration::Fixed(TABATA_PAUSE))
             .or(args.pause);
-        let effective_max_rounds = args.tabata.then_some(TABATA_MAX_ROUNDS).or(args.max_rounds);
+        let max_rounds_from_args = args.tabata.then_some(TABATA_MAX_ROUNDS).or(args.max_rounds);
 
         let is_pause_from_args = pause_from_args.is_some();
         let pause_duration = pause_from_args.unwrap_or(stg.pause_duration);
@@ -149,7 +149,7 @@ impl From<FromAppArgs> for App {
             pomodoro_mode: stg.pomodoro_mode,
             pomodoro_round: stg.pomodoro_count,
             pomodoro_auto_switch: args.auto_switch || args.tabata || stg.pomodoro_auto_switch,
-            pomodoro_max_rounds: effective_max_rounds
+            pomodoro_max_rounds: max_rounds_from_args
                 // 0 -> resets `max_rounds`
                 .and_then(|n| (n > 0).then_some(n))
                 .or(stg.pomodoro_max_rounds),
