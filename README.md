@@ -96,6 +96,7 @@ Options:
   -w, --work <WORK>                  Work time to count down from. Formats: 'ss', 'mm:ss', 'hh:mm:ss'
   -p, --pause <PAUSE>                Pause duration. Single value (every round): '5:00'. Variable: 'regular,special[,every_n_rounds]' - special pause every N rounds, default every 4. Examples: '5:00,25:00' or '5:00,30:00,5'. Duration formats: 'ss', 'mm:ss', 'hh:mm:ss'.
       --auto-switch                  Enable auto-switch between `work` and `pause` screens.
+      --max-rounds <MAX_ROUNDS>      Maximum number of pomodoro rounds. 0 = unlimited.
   -e, --event <EVENT>                Event date time and title (optional). Format: 'YYYY-MM-DD HH:MM:SS' or 'time=YYYY-MM-DD HH:MM:SS[,title=...]'. Examples: '2025-10-10 14:30:00' or 'time=2025-10-10 14:30:00,title=My Event'.
   -d, --decis                        Show deciseconds.
   -m, --mode <MODE>                  Mode to start with. [possible values: countdown, timer, pomodoro, event, localtime]
@@ -176,17 +177,21 @@ Note: To enable Vim motions key binding, run with `--vim=on` once. It will be st
 
 **In `Pomodoro` screen only:**
 
-| Key                                    | Description                       |
-| -------------------------------------- | --------------------------------- |
-| <kbd>ctrl+←</kbd> or <kbd>ctrl+→</kbd> | switch work/pause                 |
-| <kbd>ctrl+h</kbd> or <kbd>ctrl+l</kbd> | switch work/pause _(Vim motions)_ |
-| <kbd>a</kbd>                           | toggle auto switch work/pause     |
-| <kbd>↑</kbd>                           | next round                        |
-| <kbd>k</kbd>                           | next round _(Vim motions)_        |
-| <kbd>↓</kbd>                           | previous round                    |
-| <kbd>j</kbd>                           | previous round _(Vim motions)_    |
-| <kbd>ctrl+r</kbd>                      | reset rounds                      |
-| <kbd>ctrl+s</kbd>                      | save initial value                |
+| Key                                    | Description                         |
+| -------------------------------------- | ----------------------------------- |
+| <kbd>ctrl+←</kbd> or <kbd>ctrl+→</kbd> | switch work/pause                   |
+| <kbd>ctrl+h</kbd> or <kbd>ctrl+l</kbd> | switch work/pause _(Vim motions)_   |
+| <kbd>a</kbd>                           | toggle auto switch work/pause       |
+| <kbd>↑</kbd>                           | next round                          |
+| <kbd>k</kbd>                           | next round _(Vim motions)_          |
+| <kbd>↓</kbd>                           | previous round                      |
+| <kbd>j</kbd>                           | previous round _(Vim motions)_      |
+| <kbd>ctrl+↑</kbd>                      | increase max rounds                 |
+| <kbd>ctrl+k</kbd>                      | increase max rounds _(Vim motions)_ |
+| <kbd>ctrl+↓</kbd>                      | decrease max rounds                 |
+| <kbd>ctrl+j</kbd>                      | decrease max rounds _(Vim motions)_ |
+| <kbd>ctrl+r</kbd>                      | reset rounds                        |
+| <kbd>ctrl+s</kbd>                      | save initial value                  |
 
 **In `Countdown` screen only:**
 

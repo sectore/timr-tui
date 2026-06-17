@@ -203,28 +203,20 @@ impl PomodoroState {
     }
 
     fn update_work_name(&mut self) {
-        let name = if self.is_last_round() {
-            "work (last round)".to_owned()
-        } else {
-            format!("work ({})", self.round_label())
-        };
+        let name = format!("work ({})", self.round_label());
         self.get_clock_work_mut().set_name(name);
     }
 
     fn update_pause_name(&mut self) {
-        let name = if self.is_last_round() {
-            "pause (last round)".to_owned()
-        } else {
-            format!(
-                "{} ({})",
-                if self.pause_duration.is_special_round(self.round) {
-                    "pause special"
-                } else {
-                    "pause"
-                },
-                self.round_label()
-            )
-        };
+        let name = format!(
+            "{} ({})",
+            if self.pause_duration.is_special_round(self.round) {
+                "pause special"
+            } else {
+                "pause"
+            },
+            self.round_label()
+        );
         self.get_clock_pause_mut().set_name(name);
     }
 
@@ -241,6 +233,23 @@ impl PomodoroState {
     pub fn set_with_decis(&mut self, with_decis: bool) {
         self.clock_map.work.with_decis = with_decis;
         self.clock_map.pause.with_decis = with_decis;
+    }
+
+    pub fn increase_max_rounds(&mut self) {
+        self.max_rounds = Some(self.max_rounds.map_or(1, |n| n + 1));
+        self.clamp_round();
+    }
+
+    pub fn decrease_max_rounds(&mut self) {
+        self.max_rounds = self.max_rounds.and_then(|n| (n > 1).then_some(n - 1));
+        self.clamp_round();
+    }
+
+    fn clamp_round(&mut self) {
+        if let Some(max) = self.max_rounds {
+            self.round = self.round.min(max);
+        }
+        self.update_clock_names();
     }
 
     fn next_round(&mut self) {
@@ -402,6 +411,23 @@ impl TuiEventHandler for PomodoroState {
                 {
                     self.switch_mode();
                 }
+                // increase/decrease max rounds
+                KeyCode::Up if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                    self.increase_max_rounds();
+                }
+                KeyCode::Char('k')
+                    if key.modifiers.contains(KeyModifiers::CONTROL) && self.vim_motions =>
+                {
+                    self.increase_max_rounds();
+                }
+                KeyCode::Down if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                    self.decrease_max_rounds();
+                }
+                KeyCode::Char('j')
+                    if key.modifiers.contains(KeyModifiers::CONTROL) && self.vim_motions =>
+                {
+                    self.decrease_max_rounds();
+                }
                 // next round
                 KeyCode::Up => self.next_round(),
                 KeyCode::Char('k') if self.vim_motions => {
@@ -457,19 +483,16 @@ impl StatefulWidget for PomodoroWidget {
             ))
             .to_uppercase(),
         );
-        let label_round = Line::raw(if state.is_last_round() {
-            "LAST ROUND".to_owned()
-        } else if let Some(max) = state.get_max_rounds() {
-            format!("ROUND {} OF {}", state.get_round(), max)
-        } else {
-            format!("ROUND {}", state.get_round())
+        let label_round = Line::raw(match state.get_max_rounds() {
+            Some(max) => format!("ROUND {} OF {}", state.get_round(), max),
+            None => format!("ROUND {}", state.get_round()),
         });
 
         let area = area.centered(
             Constraint::Length(max(
                 clock_widget
                     .get_width(state.get_clock().get_format(), state.get_clock().with_decis),
-                label.width() as u16,
+                max(label.width() as u16, label_round.width() as u16),
             )),
             Constraint::Length(
                 // empty label + height of `label` + `label_round`
