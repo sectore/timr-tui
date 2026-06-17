@@ -33,6 +33,12 @@ pub struct Args {
     #[arg(long, help = "Maximum number of pomodoro rounds. 0 = unlimited.")]
     pub max_rounds: Option<u64>,
 
+    #[arg(
+        long,
+        help = "Tabata regimen: work 20s, pause 10s, 8 rounds, auto-switch enabled."
+    )]
+    pub tabata: bool,
+
     #[arg(long, help = "Enable auto-switch between `work` and `pause` screens.")]
     pub auto_switch: bool,
 
