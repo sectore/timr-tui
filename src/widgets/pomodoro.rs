@@ -190,6 +190,7 @@ impl PomodoroState {
         self.max_rounds.is_some_and(|m| self.round >= m)
     }
 
+    #[allow(dead_code)]
     pub fn is_complete(&self) -> bool {
         self.is_last_round() && self.get_clock_work().is_done()
     }
