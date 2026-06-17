@@ -13,7 +13,7 @@ use ratatui::{
 
 use crate::widgets::clock_elements::FOUR_DIGITS_WIDTH;
 use crate::{
-    common::{ClockTypeId, Style as DigitStyle},
+    common::{ClockDescription, ClockName, ClockTypeId, Style as DigitStyle},
     duration::{
         ClockDuration, DurationEx, MAX_DURATION, ONE_DAY, ONE_DECI_SECOND, ONE_HOUR, ONE_MINUTE,
         ONE_SECOND, ONE_YEAR,
@@ -177,7 +177,8 @@ pub const MAX_DONE_COUNT: u64 = RANGE_OF_DONE_COUNT * 5;
 
 pub struct ClockState<T> {
     type_id: ClockTypeId,
-    name: Option<String>,
+    name: Option<ClockName>,
+    description: Option<ClockDescription>,
     initial_value: DurationEx,
     current_value: DurationEx,
     prev_value: DurationEx,
@@ -203,17 +204,23 @@ pub struct ClockStateArgs {
 }
 
 impl<T> ClockState<T> {
-    pub fn with_name(mut self, name: String) -> Self {
+    pub fn with_name(mut self, name: ClockName) -> Self {
         self.name = Some(name);
         self
     }
 
-    pub fn get_name(&self) -> String {
-        self.name.clone().unwrap_or_default()
+    pub fn get_name_or_default(&self) -> ClockName {
+        self.name
+            .clone()
+            .unwrap_or_else(|| ClockName::from(format!("{:?}", self.type_id)))
     }
 
-    pub fn set_name(&mut self, name: String) {
+    pub fn set_name(&mut self, name: ClockName) {
         self.name = Some(name);
+    }
+
+    pub fn set_description(&mut self, description: ClockDescription) {
+        self.description = Some(description);
     }
 
     pub fn get_type_id(&self) -> &ClockTypeId {
@@ -449,9 +456,10 @@ impl<T> ClockState<T> {
         if !self.is_done() {
             self.mode = Mode::Done;
             let type_id = self.get_type_id().clone();
-            let name = self.get_name();
+            let name = self.get_name_or_default();
+            let description = self.description.clone();
             if let Some(tx) = &self.app_tx {
-                _ = tx.send(AppEvent::ClockDone(type_id, name));
+                _ = tx.send(AppEvent::ClockDone(type_id, name, description));
             };
             self.done_count = Some(MAX_DONE_COUNT);
         }
@@ -494,6 +502,7 @@ impl ClockState<Countdown> {
         let mut instance = Self {
             type_id: ClockTypeId::Countdown,
             name: None,
+            description: None,
             initial_value: initial_value.into(),
             current_value: current_value.into(),
             prev_value: current_value.into(),
@@ -580,6 +589,7 @@ impl ClockState<Timer> {
         let mut instance = Self {
             type_id: ClockTypeId::Timer,
             name: None,
+            description: None,
             initial_value: initial_value.into(),
             current_value: current_value.into(),
             prev_value: current_value.into(),

@@ -1,6 +1,6 @@
 use crate::{
     args::Args,
-    common::{AppEditMode, AppTime, AppTimeFormat, ClockTypeId, Content, Style, Toggle},
+    common::{AppEditMode, AppTime, AppTimeFormat, ClockName, ClockTypeId, Content, Style, Toggle},
     constants::{TABATA_MAX_ROUNDS, TABATA_PAUSE, TABATA_WORK, TICK_VALUE_MS},
     event::Event,
     events::{self, TuiEventHandler},
@@ -245,7 +245,7 @@ impl App {
                     with_decis,
                     app_tx: Some(app_tx.clone()),
                 })
-                .with_name("Timer".to_owned()),
+                .with_name(ClockName::from("Timer")),
                 vim_motions,
             ),
             pomodoro: PomodoroState::new(PomodoroStateArgs {
@@ -405,7 +405,7 @@ impl App {
         let handle_app_events = |app: &mut Self, event: events::AppEvent| -> Result<bool> {
             let mut trigger_redraw = false;
             match event {
-                events::AppEvent::ClockDone(type_id, name) => {
+                events::AppEvent::ClockDone(type_id, name, description) => {
                     debug!("AppEvent::ClockDone");
 
                     if app.notification == Toggle::On {
@@ -413,15 +413,10 @@ impl App {
                             ClockTypeId::Timer => {
                                 format!("{name} stopped by reaching its maximum value.")
                             }
-                            ClockTypeId::Countdown if app.content == Content::Pomodoro => {
-                                let prefix = if app.pomodoro.is_tabata() {
-                                    "Tabata"
-                                } else {
-                                    "Pomodoro"
-                                };
-                                format!("{prefix} {name} done!")
-                            }
-                            _ => format!("{type_id:?} {name} done!"),
+                            _ => match description {
+                                Some(desc) => format!("{name} {desc} done!"),
+                                None => format!("{name} done!"),
+                            },
                         };
                         // notification
                         let result = notify_rust::Notification::new()
