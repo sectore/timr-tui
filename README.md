@@ -95,8 +95,9 @@ Options:
   -c, --countdown <COUNTDOWN>        Countdown time to start from. Formats: 'Yy Dd hh:mm:ss', 'Dd hh:mm:ss', 'Yy mm:ss', 'Dd mm:ss', 'Yy ss', 'Dd ss', 'hh:mm:ss', 'mm:ss', 'ss'. Examples: '1y 5d 10:30:00', '2d 4:00', '1d 10', '5:03'.
   -w, --work <WORK>                  Work time to count down from. Formats: 'ss', 'mm:ss', 'hh:mm:ss'
   -p, --pause <PAUSE>                Pause duration. Single value (every round): '5:00'. Variable: 'regular,special[,every_n_rounds]' - special pause every N rounds, default every 4. Examples: '5:00,25:00' or '5:00,30:00,5'. Duration formats: 'ss', 'mm:ss', 'hh:mm:ss'.
-      --auto-switch                  Enable auto-switch between `work` and `pause` screens.
       --max-rounds <MAX_ROUNDS>      Maximum number of pomodoro rounds. 0 = unlimited.
+      --tabata                       Tabata regimen: work 20s, pause 10s, 8 rounds, auto-switch enabled.
+      --auto-switch                  Enable auto-switch between `work` and `pause` screens.
   -e, --event <EVENT>                Event date time and title (optional). Format: 'YYYY-MM-DD HH:MM:SS' or 'time=YYYY-MM-DD HH:MM:SS[,title=...]'. Examples: '2025-10-10 14:30:00' or 'time=2025-10-10 14:30:00,title=My Event'.
   -d, --decis                        Show deciseconds.
   -m, --mode <MODE>                  Mode to start with. [possible values: countdown, timer, pomodoro, event, localtime]

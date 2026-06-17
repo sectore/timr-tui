@@ -1,7 +1,7 @@
 use crate::{
     args::Args,
     common::{AppEditMode, AppTime, AppTimeFormat, ClockTypeId, Content, Style, Toggle},
-    constants::TICK_VALUE_MS,
+    constants::{TABATA_MAX_ROUNDS, TABATA_PAUSE, TABATA_WORK, TICK_VALUE_MS},
     event::Event,
     events::{self, TuiEventHandler},
     storage::AppStorage,
@@ -105,8 +105,15 @@ impl From<FromAppArgs> for App {
     fn from(args: FromAppArgs) -> Self {
         let FromAppArgs { args, stg, app_tx } = args;
 
-        let is_pause_from_args = args.pause.is_some();
-        let pause_duration = args.pause.unwrap_or(stg.pause_duration);
+        let work_from_args = args.tabata.then_some(TABATA_WORK).or(args.work);
+        let pause_from_args = args
+            .tabata
+            .then_some(PauseDuration::Fixed(TABATA_PAUSE))
+            .or(args.pause);
+        let effective_max_rounds = args.tabata.then_some(TABATA_MAX_ROUNDS).or(args.max_rounds);
+
+        let is_pause_from_args = pause_from_args.is_some();
+        let pause_duration = pause_from_args.unwrap_or(stg.pause_duration);
         let current_value_pause = if is_pause_from_args {
             pause_duration.for_round(stg.pomodoro_count)
         } else {
@@ -125,7 +132,7 @@ impl From<FromAppArgs> for App {
                 Some(mode) => mode,
                 // check other args (especially durations)
                 None => {
-                    if args.work.is_some() || is_pause_from_args {
+                    if work_from_args.is_some() || is_pause_from_args {
                         Content::Pomodoro
                     } else if args.countdown.is_some() {
                         Content::Countdown
@@ -141,15 +148,14 @@ impl From<FromAppArgs> for App {
             style: args.style.unwrap_or(stg.style),
             pomodoro_mode: stg.pomodoro_mode,
             pomodoro_round: stg.pomodoro_count,
-            pomodoro_auto_switch: args.auto_switch || stg.pomodoro_auto_switch,
-            pomodoro_max_rounds: args
-                .max_rounds
+            pomodoro_auto_switch: args.auto_switch || args.tabata || stg.pomodoro_auto_switch,
+            pomodoro_max_rounds: effective_max_rounds
                 // 0 -> resets `max_rounds`
                 .and_then(|n| (n > 0).then_some(n))
                 .or(stg.pomodoro_max_rounds),
-            initial_value_work: args.work.unwrap_or(stg.inital_value_work),
+            initial_value_work: work_from_args.unwrap_or(stg.inital_value_work),
             // invalidate `current_value_work` if an initial value is set via args
-            current_value_work: args.work.unwrap_or(stg.current_value_work),
+            current_value_work: work_from_args.unwrap_or(stg.current_value_work),
             pause_duration,
             current_value_pause,
             initial_value_countdown: args.countdown.unwrap_or(stg.inital_value_countdown),
