@@ -194,11 +194,18 @@ impl PomodoroState {
         self.is_last_round() && self.get_clock_work().is_done()
     }
 
+    fn round_label(&self) -> String {
+        match self.max_rounds {
+            Some(max) => format!("round {} of {}", self.round, max),
+            None => format!("round {}", self.round),
+        }
+    }
+
     fn update_work_name(&mut self) {
         let name = if self.is_last_round() {
             "work (last round)".to_owned()
         } else {
-            format!("work (round {})", self.round)
+            format!("work ({})", self.round_label())
         };
         self.get_clock_work_mut().set_name(name);
     }
@@ -208,13 +215,13 @@ impl PomodoroState {
             "pause (last round)".to_owned()
         } else {
             format!(
-                "{} (round {})",
+                "{} ({})",
                 if self.pause_duration.is_special_round(self.round) {
                     "pause special"
                 } else {
                     "pause"
                 },
-                self.round
+                self.round_label()
             )
         };
         self.get_clock_pause_mut().set_name(name);
