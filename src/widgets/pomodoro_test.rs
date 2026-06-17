@@ -37,6 +37,7 @@ fn args() -> PomodoroStateArgs {
         round: 1,
         vim_motions: false,
         auto_switch: false,
+        max_rounds: None,
     }
 }
 
