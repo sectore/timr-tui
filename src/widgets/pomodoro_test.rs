@@ -58,6 +58,40 @@ fn terminal(w: PomodoroWidget, st: PomodoroState) -> Terminal<TestBackend> {
     })
 }
 
+// max rounds
+
+#[test]
+fn test_max_rounds_round_1() {
+    let st = st_with_args(PomodoroStateArgs {
+        max_rounds: Some(3),
+        ..args()
+    });
+    let t = terminal(w(), st);
+    assert_snapshot!("max_rounds_round_1", t.backend());
+}
+
+#[test]
+fn test_max_rounds_round_2() {
+    let st = st_with_args(PomodoroStateArgs {
+        round: 2,
+        max_rounds: Some(3),
+        ..args()
+    });
+    let t = terminal(w(), st);
+    assert_snapshot!("max_rounds_round_2", t.backend());
+}
+
+#[test]
+fn test_max_rounds_last_round() {
+    let st = st_with_args(PomodoroStateArgs {
+        round: 3,
+        max_rounds: Some(3),
+        ..args()
+    });
+    let t = terminal(w(), st);
+    assert_snapshot!("max_rounds_last_round", t.backend());
+}
+
 // work
 
 #[test]
