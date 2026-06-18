@@ -1,8 +1,10 @@
 {
   inputs = {
-    # pinned to last known good before libwebsockets 4.4.5 broke ttyd/vhs (2026-06-10)
-    # see https://github.com/NixOS/nixpkgs/issues/532638#issuecomment-4739338056
-    nixpkgs.url = "github:NixOS/nixpkgs/7f1c78be632c";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    # pinned to last known good before `libwebsockets` 4.4.5 broke ttyd/vhs (2026-06-10)
+    # see https://github.com/NixOS/nixpkgs/issues/532638#issuecomment-4734542554
+    # TODO: Remove when `libwebsockets` is fixed upstream
+    nixpkgs-lws.url = "github:NixOS/nixpkgs/7f1c78be632c";
     flake-utils.url = "github:numtide/flake-utils";
     crane.url = "github:ipetkov/crane";
     fenix = {
@@ -13,13 +15,16 @@
 
   outputs = {
     nixpkgs,
+    nixpkgs-lws,
     flake-utils,
     fenix,
     crane,
     ...
   }:
     flake-utils.lib.eachDefaultSystem (system: let
-      pkgs = nixpkgs.legacyPackages.${system};
+      pkgs = nixpkgs.legacyPackages.${system}.extend (_final: _prev: {
+        libwebsockets = nixpkgs-lws.legacyPackages.${system}.libwebsockets;
+      });
 
       toolchain = fenix.packages.${system}.fromToolchainFile {
         file = ./rust-toolchain.toml;
