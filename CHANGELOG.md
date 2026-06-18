@@ -12,6 +12,7 @@
 
 ### Fix
 
+- (flake) pin `libwebsockets` to fix broken `ttyd`/`vhs` [#212](https://github.com/sectore/timr-tui/pull/212)
 - (notification) show `Pomodoro` or `Tabata` instead of `Countdown` [#209](https://github.com/sectore/timr-tui/pull/209)
 
 ### Misc

@@ -1,6 +1,10 @@
 {
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    # pinned to last known good before `libwebsockets` 4.4.5 broke ttyd/vhs (2026-06-10)
+    # see https://github.com/NixOS/nixpkgs/issues/532638#issuecomment-4734542554
+    # TODO: Remove when `libwebsockets` is fixed upstream
+    nixpkgs-lws.url = "github:NixOS/nixpkgs/7f1c78be632c";
     flake-utils.url = "github:numtide/flake-utils";
     crane.url = "github:ipetkov/crane";
     fenix = {
@@ -11,13 +15,16 @@
 
   outputs = {
     nixpkgs,
+    nixpkgs-lws,
     flake-utils,
     fenix,
     crane,
     ...
   }:
     flake-utils.lib.eachDefaultSystem (system: let
-      pkgs = nixpkgs.legacyPackages.${system};
+      pkgs = nixpkgs.legacyPackages.${system}.extend (_final: _prev: {
+        libwebsockets = nixpkgs-lws.legacyPackages.${system}.libwebsockets;
+      });
 
       toolchain = fenix.packages.${system}.fromToolchainFile {
         file = ./rust-toolchain.toml;
@@ -45,39 +52,6 @@
           CARGO_BUILD_TARGET = "x86_64-unknown-linux-musl";
           CARGO_BUILD_RUSTFLAGS = "-C target-feature=+crt-static";
         });
-
-      vhs = pkgs.buildGoModule (finalAttrs: {
-        pname = "vhs";
-        version = "0.11.0";
-
-        src = pkgs.fetchFromGitHub {
-          owner = "charmbracelet";
-          repo = "vhs";
-          tag = "v${finalAttrs.version}";
-          # hash = nixpkgs.lib.fakeSha256;
-          hash = "sha256-VOiI+ddiax04QtCcDr6ze53kd/HHGbfQE3j/32iq4Ro=";
-        };
-
-        # vendorHash = nixpkgs.lib.fakeSha256;
-        vendorHash = "sha256-cgKLYUATtn4hMdIOXZe9JWYNUOrX3S6BDfvS+rIWDfM=";
-
-        nativeBuildInputs = [pkgs.makeBinaryWrapper];
-
-        ldflags = [
-          "-s"
-          "-w"
-          "-X=main.Version=${finalAttrs.version}"
-        ];
-
-        postInstall = ''
-          wrapProgram $out/bin/vhs --prefix PATH : ${
-            pkgs.lib.makeBinPath (
-              [pkgs.ffmpeg pkgs.ttyd]
-              ++ pkgs.lib.optionals pkgs.stdenv.hostPlatform.isLinux [pkgs.chromium]
-            )
-          }
-        '';
-      });
 
       # Windows cross-compilation build
       # @see https://crane.dev/examples/cross-windows.html
@@ -107,7 +81,7 @@
           packages =
             [
               toolchain
-              vhs
+              pkgs.vhs
               pkgs.just
               pkgs.nixd
               pkgs.alejandra

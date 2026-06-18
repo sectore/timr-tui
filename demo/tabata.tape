@@ -1,5 +1,3 @@
-# Note: PR "support ctrl + arrow keys" https://github.com/charmbracelet/vhs/pull/673 needs to be merged to run this `tape`.
-
 Output demo/tabata.gif
 
 # https://github.com/charmbracelet/vhs/blob/main/THEMES.md
