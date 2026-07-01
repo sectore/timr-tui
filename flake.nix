@@ -1,10 +1,8 @@
 {
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    # pinned to last known good before `libwebsockets` 4.4.5 broke ttyd/vhs (2026-06-10)
-    # see https://github.com/NixOS/nixpkgs/issues/532638#issuecomment-4734542554
-    # TODO: Remove when `libwebsockets` is fixed upstream
-    nixpkgs-lws.url = "github:NixOS/nixpkgs/7f1c78be632c";
+    # TODO: Remove when https://github.com/NixOS/nixpkgs/pull/532936 is merged
+    nixpkgs-lws.url = "github:NixOS/nixpkgs/pull/532936/head";
     flake-utils.url = "github:numtide/flake-utils";
     crane.url = "github:ipetkov/crane";
     fenix = {
@@ -22,6 +20,7 @@
     ...
   }:
     flake-utils.lib.eachDefaultSystem (system: let
+      # TODO: Remove when https://github.com/NixOS/nixpkgs/pull/532936 is merged
       pkgs = nixpkgs.legacyPackages.${system}.extend (_final: _prev: {
         libwebsockets = nixpkgs-lws.legacyPackages.${system}.libwebsockets;
       });
