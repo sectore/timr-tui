@@ -1,5 +1,11 @@
 # Changelog
 
+## [unreleased]
+
+### Misc
+
+- (deps) Rust 1.96.1
+
 ## v1.11.0 - 2026-06-25
 
 ### Features
