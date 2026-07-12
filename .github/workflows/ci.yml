@@ -16,7 +16,9 @@ jobs:
       - name: Check fmt md
         run: nix develop --command dprint check **/*.md
       - name: Run clippy
-        run: nix develop --command cargo clippy -- -D warnings
+        env:
+          CARGO_BUILD_WARNINGS: deny
+        run: nix develop --command cargo clippy
       - name: Run alejandra
         run: nix develop --command alejandra --check flake.nix
 
