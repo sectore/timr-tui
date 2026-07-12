@@ -19,7 +19,7 @@ Always understand what AI provides to you. Never push any code based on [`vibe c
 
 ## Nixpkgs
 
-Steps to update the [timr-tui package](https://github.com/NixOS/nixpkgs/blob/master/pkgs/by-name/ti/timr-tui/package.nix) in [nixpkgs](https://github.com/NixOS/nixpkgs):
+Steps to update the [timr-tui package](https://search.nixos.org/packages?channel=unstable&query=timr-tui) in [nixpkgs](https://github.com/NixOS/nixpkgs):
 
 1. `nix-update timr-tui --version <new-version>` — [nix-update](https://github.com/Mic92/nix-update/) updates version and both hashes (`hash`, `cargoHash`) in `package.nix`
 2. `nix build .#timr-tui` — quick sanity check
