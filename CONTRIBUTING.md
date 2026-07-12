@@ -16,3 +16,13 @@ Use [Figma Design file](https://www.figma.com/community/file/1553076532392275586
 ## AI
 
 Always understand what AI provides to you. Never push any code based on [`vibe coding`](https://en.wikipedia.org/wiki/Vibe_coding) you or anybody else can't follow. Make sure your agent still follows all code styles and conventions suggested above. Use AI for better, not for worse code.
+
+## Nixpkgs
+
+Steps to update the [timr-tui package](https://github.com/NixOS/nixpkgs/blob/master/pkgs/by-name/ti/timr-tui/package.nix) in [nixpkgs](https://github.com/NixOS/nixpkgs):
+
+1. `nix-update timr-tui --version <new-version>` — [nix-update](https://github.com/Mic92/nix-update/) updates version and both hashes (`hash`, `cargoHash`) in `package.nix`
+2. `nix build .#timr-tui` — quick sanity check
+3. `nixpkgs-review wip` — [nixpkgs-review](https://github.com/Mic92/nixpkgs-review) does a full pre-PR build check of uncommitted changes; verify with `timr-tui --version` in the resulting shell
+4. Commit and open PR
+5. `GITHUB_TOKEN=<token> nixpkgs-review pr --post-result <PR-number>` — posts `nixpkgs-review` results as a comment on the PR. Note: `GITHUB_TOKEN` needs to be setup as described [here](https://github.com/Mic92/nixpkgs-review#github-api-token).
