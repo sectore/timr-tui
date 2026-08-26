@@ -1,10 +1,10 @@
 use crate::{
-    common::{AppTime, AppTimeFormat, ClockName, Style},
+    common::{AppTime, AppTimeFormat, Style},
     constants::TICK_VALUE_MS,
     duration::{DurationEx, MAX_DURATION},
     events::{AppEventTx, TuiEvent, TuiEventHandler},
     widgets::{
-        clock::{self, ClockState, ClockStateArgs, ClockWidget, Mode as ClockMode},
+        clock::{self, ClockState, ClockStateArgs, ClockWidget},
         edit_time::{EditTimeState, EditTimeStateArgs, EditTimeWidget},
     },
 };
@@ -23,8 +23,8 @@ use time::OffsetDateTime;
 pub struct CountdownStateArgs {
     pub initial_value: Duration,
     pub current_value: Duration,
-    pub elapsed_value: Duration,
     pub app_time: AppTime,
+    pub target_time: Option<OffsetDateTime>,
     pub target_time_format: Option<AppTimeFormat>,
     pub with_decis: bool,
     pub app_tx: AppEventTx,
@@ -35,17 +35,20 @@ pub struct CountdownStateArgs {
 pub struct CountdownState {
     /// clock to count down
     clock: ClockState<clock::Countdown>,
-    /// clock to count time after `DONE` - similar to Mission Elapsed Time (MET)
-    elapsed_clock: ClockState<clock::Timer>,
     app_time: AppTime,
     /// target time format
     target_time_format: Option<AppTimeFormat>,
-    /// target time coundown will finish
-    target_time: OffsetDateTime,
+    /// target time to finish coundown
+    target_time: Option<OffsetDateTime>,
     /// Edit by local time
     edit_time: Option<EditTimeState>,
     /// Whether Vim motions are enabled
     vim_motions: bool,
+}
+
+fn calc_target_time(app_time: AppTime, current_value: Duration) -> OffsetDateTime {
+    let dd = time::Duration::try_from(current_value).unwrap_or(time::Duration::ZERO);
+    OffsetDateTime::from(app_time).saturating_add(dd)
 }
 
 impl CountdownState {
@@ -53,10 +56,10 @@ impl CountdownState {
         let CountdownStateArgs {
             initial_value,
             current_value,
-            elapsed_value,
             with_decis,
             app_time,
             target_time_format: app_time_format,
+            target_time,
             app_tx,
             vim_motions,
         } = args;
@@ -69,25 +72,11 @@ impl CountdownState {
                 with_decis,
                 app_tx: Some(app_tx.clone()),
             }),
-            elapsed_clock: ClockState::<clock::Timer>::new(ClockStateArgs {
-                initial_value: Duration::ZERO,
-                current_value: elapsed_value,
-                tick_value: Duration::from_millis(TICK_VALUE_MS),
-                with_decis: false,
-                app_tx: None,
-            })
-            .with_name(ClockName::from("MET"))
-            // A previous `elapsed_value > 0` means the `Clock` was running before,
-            // but not in `Initial` state anymore. Updating `Mode` here
-            // is needed to handle `Event::Tick` in `EventHandler::update` properly
-            .with_mode(if elapsed_value.gt(&Duration::ZERO) {
-                ClockMode::Pause
-            } else {
-                ClockMode::Initial
-            }),
             app_time,
             target_time_format: app_time_format,
-            target_time: OffsetDateTime::from(app_time),
+            target_time: Some(
+                target_time.unwrap_or_else(|| calc_target_time(app_time, current_value)),
+            ),
             edit_time: None,
             vim_motions,
         }
@@ -95,7 +84,6 @@ impl CountdownState {
 
     pub fn set_with_decis(&mut self, with_decis: bool) {
         self.clock.with_decis = with_decis;
-        self.elapsed_clock.with_decis = with_decis;
     }
 
     pub fn get_clock(&self) -> &ClockState<clock::Countdown> {
@@ -103,11 +91,11 @@ impl CountdownState {
     }
 
     pub fn is_running(&self) -> bool {
-        self.clock.is_running() || self.elapsed_clock.is_running()
+        self.clock.is_running()
     }
 
-    pub fn get_elapsed_value(&self) -> &DurationEx {
-        self.elapsed_clock.get_current_value()
+    pub fn get_target_time(&self) -> Option<OffsetDateTime> {
+        self.target_time
     }
 
     pub fn set_app_time(&mut self, app_time: AppTime) {
@@ -119,12 +107,7 @@ impl CountdownState {
     }
 
     fn time_to_edit(&self) -> OffsetDateTime {
-        // get current value
-        let d: Duration = (*self.clock.get_current_value()).into();
-        // transform
-        let dd = time::Duration::try_from(d).unwrap_or(time::Duration::ZERO);
-        // substract from `app_time`
-        OffsetDateTime::from(self.app_time).saturating_add(dd)
+        calc_target_time(self.app_time, (*self.clock.get_current_value()).into())
     }
 
     pub fn min_time_to_edit(&self) -> OffsetDateTime {
@@ -164,13 +147,9 @@ impl TuiEventHandler for CountdownState {
             TuiEvent::Tick => {
                 if !self.clock.is_done() {
                     self.clock.tick();
-                    self.target_time = self.time_to_edit();
+                    self.target_time = Some(self.time_to_edit());
                 } else {
                     self.clock.update_done_count();
-                    self.elapsed_clock.tick();
-                    if self.elapsed_clock.is_initial() {
-                        self.elapsed_clock.run();
-                    }
                 }
                 let min_time = self.min_time_to_edit();
                 let max_time = self.max_time_to_edit();
@@ -196,15 +175,11 @@ impl TuiEventHandler for CountdownState {
                         // set initial value
                         self.clock
                             .set_initial_value(*self.clock.get_current_value());
-                        // always reset `elapsed_clock`
-                        self.elapsed_clock.reset();
                     }
                     // Apply changes
                     KeyCode::Char('s') => {
                         // toggle edit mode
                         self.clock.toggle_edit();
-                        // always reset `elapsed_clock`
-                        self.elapsed_clock.reset();
                     }
                     KeyCode::Right if !self.vim_motions => {
                         self.clock.edit_prev();
@@ -266,16 +241,12 @@ impl TuiEventHandler for CountdownState {
                             self.clock
                                 .set_initial_value(*self.clock.get_current_value());
                         }
-                        // always reset `elapsed_clock`
-                        self.elapsed_clock.reset();
                     }
                     // Apply changes of editing by local time
                     KeyCode::Char('s') => {
                         if let Some(edit_time) = &mut self.edit_time.clone() {
                             self.edit_time_done(edit_time)
                         }
-                        // always reset `elapsed_clock`
-                        self.elapsed_clock.reset();
                     }
                     // move edit position to the left
                     KeyCode::Left if !self.vim_motions => {
@@ -339,9 +310,8 @@ impl TuiEventHandler for CountdownState {
             // default mode
             TuiEvent::Crossterm(CrosstermEvent::Key(key)) => match key.code {
                 KeyCode::Char('r') => {
-                    // reset both clocks to use intial values
+                    // reset clock to use intial values
                     self.clock.reset();
-                    self.elapsed_clock.reset();
 
                     // reset `edit_time` back initial value
                     let time = self.time_to_edit();
@@ -350,11 +320,9 @@ impl TuiEventHandler for CountdownState {
                     }
                 }
                 KeyCode::Char(' ') => {
-                    // toggle pause status depending on which clock is running
+                    // toggle pause status
                     if !self.clock.is_done() {
                         self.clock.toggle_pause();
-                    } else {
-                        self.elapsed_clock.toggle_pause();
                     }
 
                     // finish `edit_time` and continue for using `clock`
@@ -370,21 +338,11 @@ impl TuiEventHandler for CountdownState {
                         min: self.min_time_to_edit(),
                         max: self.max_time_to_edit(),
                     }));
-
-                    // pause `elapsed_clock`
-                    if self.elapsed_clock.is_running() {
-                        self.elapsed_clock.toggle_pause();
-                    }
                 }
                 // Enter edit clock mode
                 KeyCode::Char('e') => {
                     // toggle edit mode
                     self.clock.toggle_edit();
-
-                    // pause `elapsed_clock`
-                    if self.elapsed_clock.is_running() {
-                        self.elapsed_clock.toggle_pause();
-                    }
                 }
                 _ => return Some(event),
             },
@@ -435,23 +393,25 @@ impl StatefulWidget for Countdown {
             widget.render(v1, buf, edit_time);
             label.centered().render(v2, buf);
         } else {
+            // elapsed time since `DONE`
+            let elapsed: DurationEx = state
+                .target_time
+                .map(|tt| {
+                    let now: OffsetDateTime = state.app_time.into();
+                    Duration::try_from(now.sub(tt)).unwrap_or(Duration::ZERO)
+                })
+                .unwrap_or(Duration::ZERO)
+                .into();
             let label = Line::raw(
                 if state.clock.is_done() {
                     if state.clock.with_decis {
                         format!(
                             "Countdown {} +{}",
                             state.clock.get_mode(),
-                            state
-                                .elapsed_clock
-                                .get_current_value()
-                                .to_string_with_decis()
+                            elapsed.to_string_with_decis()
                         )
                     } else {
-                        format!(
-                            "Countdown {} +{}",
-                            state.clock.get_mode(),
-                            state.elapsed_clock.get_current_value()
-                        )
+                        format!("Countdown {} +{}", state.clock.get_mode(), elapsed)
                     }
                 } else {
                     format!("Countdown {}", state.clock.get_mode())
@@ -460,11 +420,11 @@ impl StatefulWidget for Countdown {
             );
             let widget = ClockWidget::new(self.style, self.blink);
             let label_target_time = Line::raw(
-                if let Some(tf) = state.target_time_format
+                if let Some((tf, tt)) = state.target_time_format.zip(state.target_time)
                     // hide target time if we edit by time - no duplication of information then
                     && !state.is_time_edit_mode()
                 {
-                    format!("Finish {}", AppTime::Local(state.target_time).format(&tf))
+                    format!("Finish {}", AppTime::Local(tt).format(&tf))
                 } else {
                     " ".to_owned()
                 }

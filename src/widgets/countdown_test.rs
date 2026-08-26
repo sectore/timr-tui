@@ -28,7 +28,7 @@ fn args() -> CountdownStateArgs {
     CountdownStateArgs {
         initial_value: INITIAL,
         current_value: INITIAL,
-        elapsed_value: Duration::ZERO,
+        target_time: None,
         app_time: AppTime::Utc(FIXED_TIME),
         target_time_format: None,
         with_decis: false,
@@ -87,7 +87,7 @@ fn test_countdown_pause() {
 fn test_countdown_done() {
     let st = st_with_args(CountdownStateArgs {
         current_value: Duration::ZERO,
-        elapsed_value: ONE_SECOND.saturating_mul(2),
+        target_time: Some(FIXED_TIME.saturating_sub(time::Duration::seconds(2))),
         ..args()
     });
     let t = terminal(w(), st);

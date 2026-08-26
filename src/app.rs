@@ -21,6 +21,7 @@ use crate::{
 };
 
 use crossterm::event::Event as CrosstermEvent;
+use time::OffsetDateTime;
 
 #[cfg(feature = "sound")]
 use crate::sound::Sound;
@@ -84,7 +85,7 @@ pub struct AppArgs {
     pub current_value_pause: Duration,
     pub initial_value_countdown: Duration,
     pub current_value_countdown: Duration,
-    pub elapsed_value_countdown: Duration,
+    pub target_time_countdown: Option<OffsetDateTime>,
     pub current_value_timer: Duration,
     pub event: Event,
     pub app_tx: events::AppEventTx,
@@ -161,10 +162,10 @@ impl From<FromAppArgs> for App {
             initial_value_countdown: args.countdown.unwrap_or(stg.inital_value_countdown),
             // invalidate `current_value_countdown` if an initial value is set via args
             current_value_countdown: args.countdown.unwrap_or(stg.inital_value_countdown),
-            elapsed_value_countdown: match args.countdown {
+            target_time_countdown: match args.countdown {
                 // reset value if countdown is set by arguments
-                Some(_) => Duration::ZERO,
-                None => stg.elapsed_value_countdown,
+                Some(_) => None,
+                None => stg.target_time_countdown,
             },
             current_value_timer: stg.current_value_timer,
             event: args.event.unwrap_or(stg.event),
@@ -189,7 +190,7 @@ impl App {
             current_value_work,
             current_value_pause,
             current_value_countdown,
-            elapsed_value_countdown,
+            target_time_countdown,
             current_value_timer,
             content,
             with_decis,
@@ -225,7 +226,7 @@ impl App {
             countdown: CountdownState::new(CountdownStateArgs {
                 initial_value: initial_value_countdown,
                 current_value: current_value_countdown,
-                elapsed_value: elapsed_value_countdown,
+                target_time: target_time_countdown,
                 app_time,
                 // target time format is in sync how footer shows its local time
                 target_time_format: if footer_toggle_app_time == Toggle::On {
@@ -561,7 +562,7 @@ impl App {
             current_value_countdown: Duration::from(
                 *self.countdown.get_clock().get_current_value(),
             ),
-            elapsed_value_countdown: Duration::from(*self.countdown.get_elapsed_value()),
+            target_time_countdown: self.countdown.get_target_time(),
             current_value_timer: Duration::from(*self.timer.get_clock().get_current_value()),
             event: self.event.get_event(),
             footer_app_time: self.footer.app_time_format().is_some().into(),

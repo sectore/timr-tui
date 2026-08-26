@@ -58,7 +58,7 @@ pub struct AppStorage {
     // countdown
     pub inital_value_countdown: Duration,
     pub current_value_countdown: Duration,
-    pub elapsed_value_countdown: Duration,
+    pub target_time_countdown: Option<time::OffsetDateTime>,
     // timer
     pub current_value_timer: Duration,
     // event
@@ -91,7 +91,7 @@ impl Default for AppStorage {
             // countdown
             inital_value_countdown: DEFAULT_COUNTDOWN,
             current_value_countdown: DEFAULT_COUNTDOWN,
-            elapsed_value_countdown: Duration::ZERO,
+            target_time_countdown: None,
             // timer
             current_value_timer: Duration::ZERO,
             // event
