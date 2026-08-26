@@ -9,8 +9,8 @@
 
 ### Misc
 
+- (deps) Rust 1.98.0 [#222](https://github.com/sectore/timr-tui/pull/222)
 - (docs) How to update `timr-tui` in `nixpkgs` [#217](https://github.com/sectore/timr-tui/pull/217)
-- (deps) Rust 1.97.x [#216](https://github.com/sectore/timr-tui/pull/216), [#218](https://github.com/sectore/timr-tui/pull/218)
 
 ## v1.11.0 - 2026-06-25
 
