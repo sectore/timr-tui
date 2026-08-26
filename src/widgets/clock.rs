@@ -227,17 +227,8 @@ impl<T> ClockState<T> {
         &self.type_id
     }
 
-    pub fn with_mode(mut self, mode: Mode) -> Self {
-        self.mode = mode;
-        self
-    }
-
     pub fn get_mode(&self) -> &Mode {
         &self.mode
-    }
-
-    pub fn is_initial(&self) -> bool {
-        self.mode == Mode::Initial
     }
 
     pub fn run(&mut self) {
