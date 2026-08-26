@@ -4,6 +4,7 @@
 
 ### Fix
 
+- (countdown) restore initial value from current value [#221](https://github.com/sectore/timr-tui/pull/221)
 - (countdown) sync time since DONE with local time [#220](https://github.com/sectore/timr-tui/pull/220)
 
 ### Misc
