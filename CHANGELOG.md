@@ -2,6 +2,10 @@
 
 ## [unreleased]
 
+### Fix
+
+- (countdown) sync time since DONE with local time [#220](https://github.com/sectore/timr-tui/pull/220)
+
 ### Misc
 
 - (docs) How to update `timr-tui` in `nixpkgs` [#217](https://github.com/sectore/timr-tui/pull/217)
