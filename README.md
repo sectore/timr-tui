@@ -11,14 +11,14 @@ TUI to organize your time: Pomodoro, Tabata, Countdown, Timer, Event.
 
 # Table of Contents
 
-- [Preview](./#preview)
-- [CLI](./#cli)
-- [Keybindings](./#keybindings)
-- [Installation](./#installation)
-- [Development](./#development)
-- [Misc](./#misc)
-- [Contributing](./#contributing)
-- [License](./#license)
+- [Preview](#preview)
+- [CLI](#cli)
+- [Keybindings](#keybindings)
+- [Installation](#installation)
+- [Development](#development)
+- [Misc](#misc)
+- [Contributing](#contributing)
+- [License](#license)
 
 # Preview
 
@@ -381,7 +381,7 @@ C:/Users/{user}/AppData/Local/timr-tui/data/app.data
 
 ## Logs
 
-To get log output, start the app by passing `--log` to `timr-tui`. See [CLI](./#cli) for details.
+To get log output, start the app by passing `--log` to `timr-tui`. See [CLI](#cli) for details.
 
 Logs will be stored in an `app.log` file at following locations:
 
