@@ -10,6 +10,7 @@
 
 ### Misc
 
+- (ci) Bump GitHub actions [#226](https://github.com/sectore/timr-tui/pull/226)
 - (deps) Rust 1.98.0 [#222](https://github.com/sectore/timr-tui/pull/222)
 - (docs) How to update `timr-tui` in `nixpkgs` [#217](https://github.com/sectore/timr-tui/pull/217)
 

@@ -12,7 +12,7 @@ jobs:
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Get version from Cargo.toml
         id: version
         run: |
@@ -39,8 +39,8 @@ jobs:
             binary_name: timr-tui
             arch: x86_64 # `x86_64` by default
     steps:
-      - uses: actions/checkout@v4
-      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: actions/checkout@v7
+      - uses: DeterminateSystems/nix-installer-action@v22
 
       - name: Build (windows)
         if: matrix.os_target == 'windows'
@@ -76,7 +76,7 @@ jobs:
           tar -czf ${{ matrix.binary_name }}-${{ needs.get-version.outputs.version }}-${{ matrix.os_target }}_${{ matrix.arch }}.tar.gz ${{ matrix.binary_name }}
 
       - name: Upload archive
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.os_target }}-build
           path: |
@@ -90,13 +90,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: artifacts
           merge-multiple: true
 
       - name: Create draft release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           draft: true
           tag_name: "v${{ needs.get-version.outputs.version }}"
