@@ -40,7 +40,7 @@ jobs:
             arch: x86_64 # `x86_64` by default
     steps:
       - uses: actions/checkout@v7
-      - uses: DeterminateSystems/nix-installer-action@v22
+      - uses: DeterminateSystems/nix-installer-action@v23
 
       - name: Build (windows)
         if: matrix.os_target == 'windows'
