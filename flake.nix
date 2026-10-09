@@ -65,6 +65,23 @@
           CARGO_BUILD_RUSTFLAGS = "-C target-feature=+crt-static";
         });
 
+      # Linux build w/ sound, dynamically linked against an older glibc to run on most distros
+      linuxSoundBuild = craneLib.buildPackage (commonArgs
+        // {
+          cargoExtraArgs = "--locked --features sound --target x86_64-unknown-linux-gnu.2.28";
+          cargoBuildCommand = "cargoWithProfile zigbuild";
+          # `cargo check` doesn't know the glibc suffix of the target
+          cargoCheckCommand = "true";
+          nativeBuildInputs = [pkgs.cargo-zigbuild pkgs.zig pkgs.pkg-config];
+          buildInputs = [pkgs.alsa-lib];
+          # Nix' `libasound` is used for linking only. At runtime system's `libasound` (w/ its own glibc) is loaded.
+          CARGO_BUILD_RUSTFLAGS = "-C link-arg=-Wl,--allow-shlib-undefined";
+          # zig needs a writable cache
+          preBuild = ''
+            export XDG_CACHE_HOME=$TMPDIR/cache
+          '';
+        });
+
       # Windows cross-compilation build
       # @see https://crane.dev/examples/cross-windows.html
       windowsBuild = let
@@ -85,6 +102,7 @@
         inherit timr;
         default = timr;
         linuxStatic = staticLinuxBuild;
+        linuxSound = linuxSoundBuild;
         windows = windowsBuild;
       };
 
