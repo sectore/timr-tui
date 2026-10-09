@@ -84,19 +84,23 @@
 
       # Windows cross-compilation build
       # @see https://crane.dev/examples/cross-windows.html
-      windowsBuild = let
-        pkgsWindows = import nixpkgs {
-          localSystem = system;
-          crossSystem = {
-            config = "x86_64-w64-mingw32";
-            libc = "msvcrt";
-          };
+      pkgsWindows = import nixpkgs {
+        localSystem = system;
+        crossSystem = {
+          config = "x86_64-w64-mingw32";
+          libc = "msvcrt";
         };
-        craneLibWindows = (crane.mkLib pkgsWindows).overrideToolchain (p: toolchain);
-      in
-        craneLibWindows.buildPackage {
-          inherit (commonArgs) src strictDeps doCheck;
-        };
+      };
+      craneLibWindows = (crane.mkLib pkgsWindows).overrideToolchain (p: toolchain);
+      windowsArgs = {inherit (commonArgs) src strictDeps doCheck;};
+
+      windowsBuild = craneLibWindows.buildPackage windowsArgs;
+
+      # Windows build w/ sound
+      windowsSoundBuild = craneLibWindows.buildPackage (windowsArgs
+        // {
+          cargoExtraArgs = "--locked --features sound";
+        });
     in {
       packages = {
         inherit timr;
@@ -104,6 +108,7 @@
         linuxStatic = staticLinuxBuild;
         linuxSound = linuxSoundBuild;
         windows = windowsBuild;
+        windowsSound = windowsSoundBuild;
       };
 
       devShells.default = with nixpkgs.legacyPackages.${system};
