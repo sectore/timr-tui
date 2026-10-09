@@ -26,18 +26,19 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: ubuntu-latest
-            os_target: linux
-            binary_name: timr-tui
-            arch: x86_64 # based on target 'x86_64-unknown-linux-musl' defined by `CARGO_BUILD_TARGET` in flake.nix
-          - os: ubuntu-latest
-            os_target: windows
-            binary_name: timr-tui.exe
-            arch: x86_64 # based on target 'x86_64-pc-windows-gnu' defined by `CARGO_BUILD_TARGET` in flake.nix
+          # TODO: Re-enable linux + windows builds (disabled while fixing macOS build)
+          # - os: ubuntu-latest
+          #   os_target: linux
+          #   binary_name: timr-tui
+          #   arch: x86_64 # based on target 'x86_64-unknown-linux-musl' defined by `CARGO_BUILD_TARGET` in flake.nix
+          # - os: ubuntu-latest
+          #   os_target: windows
+          #   binary_name: timr-tui.exe
+          #   arch: x86_64 # based on target 'x86_64-pc-windows-gnu' defined by `CARGO_BUILD_TARGET` in flake.nix
           - os: macOS-latest
             os_target: macos
             binary_name: timr-tui
-            arch: x86_64 # `x86_64` by default
+            arch: aarch64 # `macOS-latest` runs on Apple Silicon
     steps:
       - uses: actions/checkout@v7
       - uses: DeterminateSystems/nix-installer-action@v23
@@ -53,6 +54,15 @@ jobs:
       - name: Build (macos)
         if: matrix.os_target == 'macos'
         run: nix build
+
+      - name: Check linked libraries (macos)
+        if: matrix.os_target == 'macos'
+        run: |
+          otool -L result/bin/${{ matrix.binary_name }}
+          if otool -L result/bin/${{ matrix.binary_name }} | grep /nix/store; then
+            echo "::error::Binary links libraries from Nix store"
+            exit 1
+          fi
 
       - name: Copy artifact
         run: |
@@ -84,9 +94,24 @@ jobs:
             artifacts/*.zip
           overwrite: true
 
+  smoke-test-macos:
+    name: Smoke test macos (w/o Nix)
+    needs: [get-version, build]
+    runs-on: macOS-latest
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: macos-build
+
+      - name: Run binary
+        run: |
+          tar -xzf timr-tui-${{ needs.get-version.outputs.version }}-macos_aarch64.tar.gz
+          ./timr-tui --version
+
   create-release:
     name: Create draft release
-    needs: [get-version, build]
+    needs: [get-version, build, smoke-test-macos]
     runs-on: ubuntu-latest
     steps:
       - name: Download all artifacts
