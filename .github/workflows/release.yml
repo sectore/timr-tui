@@ -26,15 +26,14 @@ jobs:
     strategy:
       matrix:
         include:
-          # TODO: Re-enable linux + windows builds (disabled while fixing macOS build)
-          # - os: ubuntu-latest
-          #   os_target: linux
-          #   binary_name: timr-tui
-          #   arch: x86_64 # based on target 'x86_64-unknown-linux-musl' defined by `CARGO_BUILD_TARGET` in flake.nix
-          # - os: ubuntu-latest
-          #   os_target: windows
-          #   binary_name: timr-tui.exe
-          #   arch: x86_64 # based on target 'x86_64-pc-windows-gnu' defined by `CARGO_BUILD_TARGET` in flake.nix
+          - os: ubuntu-latest
+            os_target: linux
+            binary_name: timr-tui
+            arch: x86_64 # based on target 'x86_64-unknown-linux-musl' defined by `CARGO_BUILD_TARGET` in flake.nix
+          - os: ubuntu-latest
+            os_target: windows
+            binary_name: timr-tui.exe
+            arch: x86_64 # based on target 'x86_64-pc-windows-gnu' defined by `CARGO_BUILD_TARGET` in flake.nix
           - os: macOS-latest
             os_target: macos
             binary_name: timr-tui
