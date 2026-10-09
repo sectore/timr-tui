@@ -100,7 +100,7 @@
               cargo-insta
             ]
             # pkgs needed to play sound on Linux
-            ++ lib.optionals stdenv.isLinux [
+            ++ lib.optionals stdenv.hostPlatform.isLinux [
               pkgs.pkg-config
               pkgs.pipewire
               pkgs.alsa-lib
@@ -109,8 +109,8 @@
           inherit (commonArgs) src;
 
           # Environment variables needed discover ALSA/PipeWire properly on Linux
-          LD_LIBRARY_PATH = lib.optionalString stdenv.isLinux "${pkgs.alsa-lib}/lib:${pkgs.pipewire}/lib";
-          ALSA_PLUGIN_DIR = lib.optionalString stdenv.isLinux "${pkgs.pipewire}/lib/alsa-lib";
+          LD_LIBRARY_PATH = lib.optionalString stdenv.hostPlatform.isLinux "${pkgs.alsa-lib}/lib:${pkgs.pipewire}/lib";
+          ALSA_PLUGIN_DIR = lib.optionalString stdenv.hostPlatform.isLinux "${pkgs.pipewire}/lib/alsa-lib";
         };
     });
 }
