@@ -45,6 +45,7 @@
       # Native build
       timr = craneLib.buildPackage (commonArgs
         // {
+          inherit cargoArtifacts;
           # macOS: link system's `libiconv` instead of the one in Nix store to run w/o Nix.
           # Re-sign (ad-hoc) is required, because `install_name_tool` invalidates the signature.
           postFixup = pkgs.lib.optionalString pkgs.stdenv.hostPlatform.isDarwin ''
