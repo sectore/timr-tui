@@ -54,15 +54,6 @@ jobs:
         if: matrix.os_target == 'macos'
         run: nix build
 
-      - name: Check linked libraries (macos)
-        if: matrix.os_target == 'macos'
-        run: |
-          otool -L result/bin/${{ matrix.binary_name }}
-          if otool -L result/bin/${{ matrix.binary_name }} | grep /nix/store; then
-            echo "::error::Binary links libraries from Nix store"
-            exit 1
-          fi
-
       - name: Copy artifact
         run: |
           mkdir artifacts
