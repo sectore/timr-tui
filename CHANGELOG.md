@@ -1,5 +1,11 @@
 # Changelog
 
+## [unreleased]
+
+### Misc
+
+- (deps) Rust 1.99.0
+
 ## v1.11.1 - 2026-09-01
 
 ### Fix
