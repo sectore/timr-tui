@@ -43,7 +43,18 @@
       cargoArtifacts = craneLib.buildDepsOnly commonArgs;
 
       # Native build
-      timr = craneLib.buildPackage commonArgs;
+      timr = craneLib.buildPackage (commonArgs
+        // {
+          # macOS: link system's `libiconv` instead of the one in Nix store to run w/o Nix.
+          # Re-sign (ad-hoc) is required, because `install_name_tool` invalidates the signature.
+          postFixup = pkgs.lib.optionalString pkgs.stdenv.hostPlatform.isDarwin ''
+            install_name_tool -change \
+              ${pkgs.libiconv}/lib/libiconv.2.dylib \
+              /usr/lib/libiconv.2.dylib \
+              $out/bin/timr-tui
+            ${pkgs.darwin.sigtool}/bin/codesign -f -s - $out/bin/timr-tui
+          '';
+        });
 
       # Linux build w/ statically linked binaries
       staticLinuxBuild = craneLib.buildPackage (commonArgs
