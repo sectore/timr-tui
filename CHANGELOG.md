@@ -2,6 +2,10 @@
 
 ## [unreleased]
 
+### Fix
+
+- (macos) run release binary w/o Nix + correct arch (`aarch64`) [#229](https://github.com/sectore/timr-tui/pull/229)
+
 ### Misc
 
 - (deps) Update deps (09-10-2026) [#228](https://github.com/sectore/timr-tui/pull/228)

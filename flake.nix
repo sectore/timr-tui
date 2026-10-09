@@ -43,7 +43,19 @@
       cargoArtifacts = craneLib.buildDepsOnly commonArgs;
 
       # Native build
-      timr = craneLib.buildPackage commonArgs;
+      timr = craneLib.buildPackage (commonArgs
+        // {
+          inherit cargoArtifacts;
+          # macOS: link system's `libiconv` instead of the one in Nix store to run w/o Nix.
+          # Re-sign (ad-hoc) is required, because `install_name_tool` invalidates the signature.
+          postFixup = pkgs.lib.optionalString pkgs.stdenv.hostPlatform.isDarwin ''
+            install_name_tool -change \
+              ${pkgs.libiconv}/lib/libiconv.2.dylib \
+              /usr/lib/libiconv.2.dylib \
+              $out/bin/timr-tui
+            ${pkgs.darwin.sigtool}/bin/codesign -f -s - $out/bin/timr-tui
+          '';
+        });
 
       # Linux build w/ statically linked binaries
       staticLinuxBuild = craneLib.buildPackage (commonArgs
@@ -89,7 +101,7 @@
               cargo-insta
             ]
             # pkgs needed to play sound on Linux
-            ++ lib.optionals stdenv.isLinux [
+            ++ lib.optionals stdenv.hostPlatform.isLinux [
               pkgs.pkg-config
               pkgs.pipewire
               pkgs.alsa-lib
@@ -98,8 +110,8 @@
           inherit (commonArgs) src;
 
           # Environment variables needed discover ALSA/PipeWire properly on Linux
-          LD_LIBRARY_PATH = lib.optionalString stdenv.isLinux "${pkgs.alsa-lib}/lib:${pkgs.pipewire}/lib";
-          ALSA_PLUGIN_DIR = lib.optionalString stdenv.isLinux "${pkgs.pipewire}/lib/alsa-lib";
+          LD_LIBRARY_PATH = lib.optionalString stdenv.hostPlatform.isLinux "${pkgs.alsa-lib}/lib:${pkgs.pipewire}/lib";
+          ALSA_PLUGIN_DIR = lib.optionalString stdenv.hostPlatform.isLinux "${pkgs.pipewire}/lib/alsa-lib";
         };
     });
 }
