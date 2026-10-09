@@ -201,7 +201,7 @@ impl AppTime {
             AppTimeFormat::Hh12Mm => "[hour repr:12 padding:none]:[minute] [period]",
         };
 
-        format_description::parse(parse_str)
+        format_description::parse_borrowed::<3>(parse_str)
             .map_err(|_| "parse error")
             .and_then(|fd| {
                 OffsetDateTime::from(*self)
@@ -212,7 +212,7 @@ impl AppTime {
     }
 
     pub fn format_date(&self) -> String {
-        format_description::parse("[year]-[month]-[day]")
+        format_description::parse_borrowed::<3>("[year]-[month]-[day]")
             .map_err(|_| "parse error")
             .and_then(|fd| {
                 OffsetDateTime::from(*self)
@@ -223,7 +223,7 @@ impl AppTime {
     }
 
     pub fn get_period(&self) -> String {
-        format_description::parse("[period]")
+        format_description::parse_borrowed::<3>("[period]")
             .map_err(|_| "parse error")
             .and_then(|fd| {
                 OffsetDateTime::from(*self)
