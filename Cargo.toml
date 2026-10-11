@@ -1,6 +1,6 @@
 [package]
 name = "timr-tui"
-version = "1.11.2-alpha.2"
+version = "1.11.2-alpha.3"
 description = "TUI to organize your time: Pomodoro, Tabata, Countdown, Timer, Event."
 edition = "2024"
 # Reminder: Always keep `channel` in `rust-toolchain.toml` in sync with `rust-version`.
@@ -15,7 +15,6 @@ exclude = [
     ".github/*",
     "demo/*.tape",
     "result/*",
-    "*.mp3",
     "src/**/*test*",
     "src/**/snapshots/*",
     ".agents",

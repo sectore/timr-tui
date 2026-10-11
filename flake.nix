@@ -35,7 +35,12 @@
       craneLib = (crane.mkLib pkgs).overrideToolchain toolchain;
 
       commonArgs = {
-        src = craneLib.cleanCargoSource ./.;
+        # keep `assets/*.mp3` (default sound)
+        src = pkgs.lib.cleanSourceWith {
+          src = ./.;
+          filter = path: type: (pkgs.lib.hasSuffix ".mp3" path) || (craneLib.filterCargoSources path type);
+          name = "source";
+        };
         strictDeps = true;
         doCheck = false; # skip tests during nix build
       };

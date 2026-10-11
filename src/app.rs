@@ -209,7 +209,7 @@ impl App {
         let app_time = AppTime::new();
 
         #[cfg(feature = "sound")]
-        let sound = sound_path.and_then(|path| Sound::new(path).ok());
+        let sound = Sound::new(sound_path).ok();
 
         Self {
             mode: Mode::Running,
