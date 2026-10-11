@@ -12,6 +12,7 @@
 
 ### Misc
 
+- (build) strip symbols from release binaries [#231](https://github.com/sectore/timr-tui/pull/231)
 - (deps) Update deps (09-10-2026) [#228](https://github.com/sectore/timr-tui/pull/228)
 - (deps) Rust 1.99.0 [#227](https://github.com/sectore/timr-tui/pull/227)
 
