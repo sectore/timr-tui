@@ -121,8 +121,10 @@ Options:
 Extra option (if `--features sound` is enabled, e.g. by using `timr-tui-sound-*` [release binaries](#release-binaries)):
 
 ```sh
---sound <SOUND>                Path to sound file (.mp3 or .wav) to play as notification. Experimental.
+--sound <SOUND>                Path to custom sound file (.mp3 or .wav) to play as notification. Default sound is used if not set. Experimental.
 ```
+
+A sound is always played when a clock is done. Use `--sound` to replace the default sound by a custom one.
 
 # Keybindings
 
@@ -291,6 +293,8 @@ Pre-built artifacts are available to download from [latest GitHub release](https
 | Windows (x86_64)                 | `timr-tui-<version>-windows_x86_64.zip`   | `timr-tui-sound-<version>-windows_x86_64.zip`   |
 | macOS (Apple Silicon, macOS 14+) | `timr-tui-<version>-macos_aarch64.tar.gz` | `timr-tui-sound-<version>-macos_aarch64.tar.gz` |
 
+Binaries w/ sound always play a sound (see [`--sound`](#cli)). For no sound, use binaries w/o sound.
+
 Linux w/ sound requires `ALSA` to be installed (`libasound2` or `libasound2t64` on Debian/Ubuntu, `alsa-lib` on Arch/Fedora). It's usually pre-installed on desktop systems.
 
 # Development
@@ -339,8 +343,7 @@ Available recipes:
     [dev]
     run                      # run app [alias: r]
     run-args args            # run app with arguments. It expects arguments as a string (e.g. "-c 5:00"). [alias: ra]
-    run-sound path           # run app while sound feature is enabled. It expects a path to a sound file. [alias: rs]
-    run-sound-args path args # run app while sound feature is enabled by adding a path to a sound file and other arguments as string (e.g. "-c 5:00"). [alias: rsa]
+    run-sound args=""        # run app while sound feature is enabled. Optional arguments as string (e.g. "--sound=custom.mp3 -c 5:00"). [alias: rs]
 
     [misc]
     format                   # format files [alias: f]
@@ -411,3 +414,5 @@ Optional: You can use a custom directory by passing it via `--log` arg.
 # License
 
 [MIT License](./LICENSE)
+
+Default sound: [`confirmation-004`](https://www.soundcn.xyz/?category=Feedback&sound=confirmation-004) via [soundcn](https://github.com/kapishdima/soundcn), [CC0](https://creativecommons.org/publicdomain/zero/1.0/).
