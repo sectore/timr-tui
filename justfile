@@ -72,14 +72,14 @@ demo-all:
 
 alias dp := demo-pomodoro
 
-# build demo: pomodoro + auto-switch + special pause
+# build demo: pomodoro
 [group('demo')]
 demo-pomodoro:
     vhs demo/pomodoro.tape
 
 alias dpas := demo-pomodoro-auto-special
 
-# build demo: pomodoro
+# build demo: pomodoro + auto-switch + special pause
 [group('demo')]
 demo-pomodoro-auto-special:
     vhs demo/pomodoro-auto-special.tape
@@ -107,7 +107,7 @@ demo-countdown-met:
 
 alias dcf := demo-countdown-finish
 
-# build demo: countdown + met
+# build demo: countdown + finish time
 [group('demo')]
 demo-countdown-finish:
     vhs demo/countdown-finish.tape
@@ -170,7 +170,7 @@ demo-event:
 
 alias dcmx := demo-countdown-max
 
-# build demo: timer-max
+# build demo: countdown-max
 [group('demo')]
 demo-countdown-max:
     vhs demo/countdown-max.tape

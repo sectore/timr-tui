@@ -321,36 +321,41 @@ If you have [`direnv`](https://direnv.net) installed, run `direnv allow` once to
 just
 
 Available recipes:
-    default                  # list commands
+    default                    # list commands
 
     [build]
-    build                    # build app [alias: b]
+    build                      # build app [alias: b]
 
     [demo]
-    demo-blink               # build demo: blink animation [alias: db]
-    demo-countdown           # build demo: countdown [alias: dc]
-    demo-countdown-met       # build demo: countdown + met [alias: dcm]
-    demo-decis               # build demo: deciseconds [alias: dd]
-    demo-event               # build demo: event [alias: de]
-    demo-local-time          # build demo: local time [alias: dlt]
-    demo-local-time-footer   # build demo: local time (footer) [alias: dltf]
-    demo-menu                # build demo: menu [alias: dm]
-    demo-pomodoro            # build demo: pomodoro [alias: dp]
-    demo-rocket-countdown    # build demo: rocket countdown [alias: drc]
-    demo-style               # build demo: styles [alias: ds]
-    demo-timer               # build demo: timer [alias: dt]
+    demo-all                   # build all demos [alias: da]
+    demo-blink                 # build demo: blink animation [alias: db]
+    demo-countdown             # build demo: countdown [alias: dc]
+    demo-countdown-finish      # build demo: countdown + finish time [alias: dcf]
+    demo-countdown-max         # build demo: countdown-max [alias: dcmx]
+    demo-countdown-met         # build demo: countdown + met [alias: dcm]
+    demo-decis                 # build demo: deciseconds [alias: dd]
+    demo-event                 # build demo: event [alias: de]
+    demo-local-time            # build demo: local time [alias: dlt]
+    demo-local-time-footer     # build demo: local time (footer) [alias: dltf]
+    demo-menu                  # build demo: menu [alias: dm]
+    demo-pomodoro              # build demo: pomodoro [alias: dp]
+    demo-pomodoro-auto-special # build demo: pomodoro + auto-switch + special pause [alias: dpas]
+    demo-rocket-countdown      # build demo: rocket countdown [alias: drc]
+    demo-style                 # build demo: styles [alias: ds]
+    demo-timer                 # build demo: timer [alias: dt]
+    demo-timer-max             # build demo: timer-max [alias: dtm]
 
     [dev]
-    run                      # run app [alias: r]
-    run-args args            # run app with arguments. It expects arguments as a string (e.g. "-c 5:00"). [alias: ra]
-    run-sound args=""        # run app while sound feature is enabled. Optional arguments as string (e.g. "--sound=custom.mp3 -c 5:00"). [alias: rs]
+    run                        # run app [alias: r]
+    run-args args              # run app with arguments. It expects arguments as a string (e.g. "-c 5:00"). [alias: ra]
+    run-sound args=""          # run app while sound feature is enabled. Optional arguments as string (e.g. "--sound=custom.mp3 -c 5:00"). [alias: rs]
 
     [misc]
-    format                   # format files [alias: f]
-    lint                     # lint [alias: l]
+    format                     # format files [alias: f]
+    lint                       # lint [alias: l]
 
     [test]
-    test                     # run tests [alias: t]
+    test                       # run tests [alias: t]
 ```
 
 ### Build
