@@ -42,20 +42,32 @@
 
       cargoArtifacts = craneLib.buildDepsOnly commonArgs;
 
+      # macOS: link system's `libiconv` instead of the one in Nix store to run w/o Nix.
+      # Re-sign (ad-hoc) is required, because `install_name_tool` invalidates the signature.
+      darwinPostFixup = pkgs.lib.optionalString pkgs.stdenv.hostPlatform.isDarwin ''
+        install_name_tool -change \
+          ${pkgs.libiconv}/lib/libiconv.2.dylib \
+          /usr/lib/libiconv.2.dylib \
+          $out/bin/timr-tui
+        ${pkgs.darwin.sigtool}/bin/codesign -f -s - $out/bin/timr-tui
+      '';
+
       # Native build
       timr = craneLib.buildPackage (commonArgs
         // {
           inherit cargoArtifacts;
-          # macOS: link system's `libiconv` instead of the one in Nix store to run w/o Nix.
-          # Re-sign (ad-hoc) is required, because `install_name_tool` invalidates the signature.
-          postFixup = pkgs.lib.optionalString pkgs.stdenv.hostPlatform.isDarwin ''
-            install_name_tool -change \
-              ${pkgs.libiconv}/lib/libiconv.2.dylib \
-              /usr/lib/libiconv.2.dylib \
-              $out/bin/timr-tui
-            ${pkgs.darwin.sigtool}/bin/codesign -f -s - $out/bin/timr-tui
-          '';
+          postFixup = darwinPostFixup;
         });
+
+      # macOS build w/ sound
+      macosSoundBuild = let
+        soundArgs = commonArgs // {cargoExtraArgs = "--locked --features sound";};
+      in
+        craneLib.buildPackage (soundArgs
+          // {
+            cargoArtifacts = craneLib.buildDepsOnly soundArgs;
+            postFixup = darwinPostFixup;
+          });
 
       # Linux build w/ statically linked binaries
       staticLinuxBuild = craneLib.buildPackage (commonArgs
@@ -65,28 +77,55 @@
           CARGO_BUILD_RUSTFLAGS = "-C target-feature=+crt-static";
         });
 
+      # Linux build w/ sound, dynamically linked against an older glibc to run on most distros
+      linuxSoundBuild = craneLib.buildPackage (commonArgs
+        // {
+          cargoExtraArgs = "--locked --features sound --target x86_64-unknown-linux-gnu.2.28";
+          cargoBuildCommand = "cargoWithProfile zigbuild";
+          # `cargo check` doesn't know the glibc suffix of the target
+          cargoCheckCommand = "true";
+          nativeBuildInputs = [pkgs.cargo-zigbuild pkgs.zig pkgs.pkg-config];
+          buildInputs = [pkgs.alsa-lib];
+          # Nix' `libasound` is used for linking only. At runtime system's `libasound` (w/ its own glibc) is loaded.
+          CARGO_BUILD_RUSTFLAGS = "-C link-arg=-Wl,--allow-shlib-undefined";
+          # zig needs a writable cache
+          preBuild = ''
+            export XDG_CACHE_HOME=$TMPDIR/cache
+          '';
+        });
+
       # Windows cross-compilation build
       # @see https://crane.dev/examples/cross-windows.html
-      windowsBuild = let
-        pkgsWindows = import nixpkgs {
-          localSystem = system;
-          crossSystem = {
-            config = "x86_64-w64-mingw32";
-            libc = "msvcrt";
-          };
+      pkgsWindows = import nixpkgs {
+        localSystem = system;
+        crossSystem = {
+          config = "x86_64-w64-mingw32";
+          libc = "msvcrt";
         };
-        craneLibWindows = (crane.mkLib pkgsWindows).overrideToolchain (p: toolchain);
-      in
-        craneLibWindows.buildPackage {
-          inherit (commonArgs) src strictDeps doCheck;
-        };
-    in {
-      packages = {
-        inherit timr;
-        default = timr;
-        linuxStatic = staticLinuxBuild;
-        windows = windowsBuild;
       };
+      craneLibWindows = (crane.mkLib pkgsWindows).overrideToolchain (p: toolchain);
+      windowsArgs = {inherit (commonArgs) src strictDeps doCheck;};
+
+      windowsBuild = craneLibWindows.buildPackage windowsArgs;
+
+      # Windows build w/ sound
+      windowsSoundBuild = craneLibWindows.buildPackage (windowsArgs
+        // {
+          cargoExtraArgs = "--locked --features sound";
+        });
+    in {
+      packages =
+        {
+          inherit timr;
+          default = timr;
+          linuxStatic = staticLinuxBuild;
+          linuxSound = linuxSoundBuild;
+          windows = windowsBuild;
+          windowsSound = windowsSoundBuild;
+        }
+        // pkgs.lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin {
+          macosSound = macosSoundBuild;
+        };
 
       devShells.default = with nixpkgs.legacyPackages.${system};
         craneLib.devShell {

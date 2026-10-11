@@ -17,10 +17,10 @@ jobs:
         id: version
         run: |
           VERSION=$(grep '^version =' Cargo.toml | cut -d '"' -f2)
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
   build:
-    name: Build ${{ matrix.os_target }} on ${{ matrix.os }}
+    name: Build ${{ matrix.os_target }}${{ matrix.variant }} on ${{ matrix.os }}
     needs: get-version
     runs-on: ${{ matrix.os }}
     strategy:
@@ -28,40 +28,45 @@ jobs:
         include:
           - os: ubuntu-latest
             os_target: linux
+            package: linuxStatic
             binary_name: timr-tui
             arch: x86_64 # based on target 'x86_64-unknown-linux-musl' defined by `CARGO_BUILD_TARGET` in flake.nix
           - os: ubuntu-latest
+            os_target: linux
+            variant: -sound
+            package: linuxSound
+            binary_name: timr-tui
+            arch: x86_64 # based on target 'x86_64-unknown-linux-gnu.2.28' defined by `cargoExtraArgs` in flake.nix
+          - os: ubuntu-latest
             os_target: windows
+            package: windows
             binary_name: timr-tui.exe
             arch: x86_64 # based on target 'x86_64-pc-windows-gnu' defined by `CARGO_BUILD_TARGET` in flake.nix
+          - os: ubuntu-latest
+            os_target: windows
+            variant: -sound
+            package: windowsSound
+            binary_name: timr-tui.exe
+            arch: x86_64
           - os: macOS-latest
             os_target: macos
+            package: timr
             binary_name: timr-tui
             arch: aarch64 # `macOS-latest` runs on Apple Silicon
+          - os: macOS-latest
+            os_target: macos
+            variant: -sound
+            package: macosSound
+            binary_name: timr-tui
+            arch: aarch64
+    env:
+      ARCHIVE: timr-tui${{ matrix.variant }}-${{ needs.get-version.outputs.version }}-${{ matrix.os_target }}_${{ matrix.arch }}
     steps:
       - uses: actions/checkout@v7
       - uses: DeterminateSystems/nix-installer-action@v23
 
-      - name: Build (windows)
-        if: matrix.os_target == 'windows'
-        run: nix build .#windows
-
-      - name: Build (linux)
-        if: matrix.os_target == 'linux'
-        run: nix build .#linuxStatic
-
-      - name: Build (macos)
-        if: matrix.os_target == 'macos'
-        run: nix build
-
-      - name: Check linked libraries (macos)
-        if: matrix.os_target == 'macos'
-        run: |
-          otool -L result/bin/${{ matrix.binary_name }}
-          if otool -L result/bin/${{ matrix.binary_name }} | grep /nix/store; then
-            echo "::error::Binary links libraries from Nix store"
-            exit 1
-          fi
+      - name: Build
+        run: nix build .#${{ matrix.package }}
 
       - name: Copy artifact
         run: |
@@ -76,41 +81,81 @@ jobs:
         if: matrix.os_target == 'windows'
         run: |
           cd artifacts
-          zip ${{ matrix.binary_name }}-${{ needs.get-version.outputs.version }}-${{ matrix.os_target }}_${{ matrix.arch }}.zip ${{ matrix.binary_name }}
+          zip "$ARCHIVE.zip" ${{ matrix.binary_name }}
 
       - name: Archive (linux/macos)
         if: matrix.os_target != 'windows'
         run: |
           cd artifacts
-          tar -czf ${{ matrix.binary_name }}-${{ needs.get-version.outputs.version }}-${{ matrix.os_target }}_${{ matrix.arch }}.tar.gz ${{ matrix.binary_name }}
+          tar -czf "$ARCHIVE.tar.gz" ${{ matrix.binary_name }}
 
       - name: Upload archive
         uses: actions/upload-artifact@v7
         with:
-          name: ${{ matrix.os_target }}-build
+          name: ${{ matrix.os_target }}${{ matrix.variant }}-build
           path: |
             artifacts/*.tar.gz
             artifacts/*.zip
           overwrite: true
 
-  smoke-test-macos:
-    name: Smoke test macos (w/o Nix)
-    needs: [get-version, build]
-    runs-on: macOS-latest
+  # Run binaries w/o Nix (as users do)
+  smoke-test:
+    name: Smoke test ${{ matrix.os_target }}${{ matrix.variant }} on ${{ matrix.container || matrix.os }}
+    needs: build
+    runs-on: ${{ matrix.os }}
+    container: ${{ matrix.container }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            os_target: linux
+            binary_name: timr-tui
+          - os: ubuntu-latest
+            # older distro to check glibc compatibility
+            container: ubuntu:22.04
+            os_target: linux
+            variant: -sound
+            binary_name: timr-tui
+            setup: apt-get update -qq && apt-get install -y -qq libasound2
+          - os: windows-latest
+            os_target: windows
+            binary_name: timr-tui.exe
+          - os: windows-latest
+            os_target: windows
+            variant: -sound
+            binary_name: timr-tui.exe
+          - os: macOS-latest
+            os_target: macos
+            binary_name: timr-tui
+          - os: macOS-latest
+            os_target: macos
+            variant: -sound
+            binary_name: timr-tui
+    defaults:
+      run:
+        shell: bash
     steps:
       - name: Download artifact
         uses: actions/download-artifact@v8
         with:
-          name: macos-build
+          name: ${{ matrix.os_target }}${{ matrix.variant }}-build
+
+      - name: Setup
+        if: matrix.setup
+        run: ${{ matrix.setup }}
 
       - name: Run binary
         run: |
-          tar -xzf timr-tui-${{ needs.get-version.outputs.version }}-macos_aarch64.tar.gz
-          ./timr-tui --version
+          ARCHIVE=$(ls timr-tui*)
+          case "$ARCHIVE" in
+            *.zip) 7z x "$ARCHIVE" ;;
+            *) tar -xzf "$ARCHIVE" ;;
+          esac
+          ./${{ matrix.binary_name }} --version
 
   create-release:
     name: Create draft release
-    needs: [get-version, build, smoke-test-macos]
+    needs: [get-version, build, smoke-test]
     runs-on: ubuntu-latest
     steps:
       - name: Download all artifacts

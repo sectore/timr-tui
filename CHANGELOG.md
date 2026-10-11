@@ -2,6 +2,10 @@
 
 ## [unreleased]
 
+### Features
+
+- (release) sound binaries for Linux, Windows, macOS [#230](https://github.com/sectore/timr-tui/pull/230)
+
 ### Fix
 
 - (macos) run release binary w/o Nix + correct arch (`aarch64`) [#229](https://github.com/sectore/timr-tui/pull/229)
