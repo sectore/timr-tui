@@ -118,7 +118,7 @@ Options:
   -V, --version                      Print version
 ```
 
-Extra option (if `--features sound` is enabled by local build only):
+Extra option (if `--features sound` is enabled, e.g. by using `timr-tui-sound-*` [release binaries](#release-binaries)):
 
 ```sh
 --sound <SOUND>                Path to sound file (.mp3 or .wav) to play as notification. Experimental.
@@ -284,6 +284,14 @@ Source at `nixpkgs`: <https://github.com/NixOS/nixpkgs/blob/nixos-unstable/pkgs/
 ## Release binaries
 
 Pre-built artifacts are available to download from [latest GitHub release](https://github.com/sectore/timr-tui/releases).
+
+| Platform                         | w/o sound                                 | w/ sound                                        |
+| -------------------------------- | ----------------------------------------- | ----------------------------------------------- |
+| Linux (x86_64)                   | `timr-tui-<version>-linux_x86_64.tar.gz`  | `timr-tui-sound-<version>-linux_x86_64.tar.gz`  |
+| Windows (x86_64)                 | `timr-tui-<version>-windows_x86_64.zip`   | `timr-tui-sound-<version>-windows_x86_64.zip`   |
+| macOS (Apple Silicon, macOS 14+) | `timr-tui-<version>-macos_aarch64.tar.gz` | `timr-tui-sound-<version>-macos_aarch64.tar.gz` |
+
+Linux w/ sound requires `ALSA` to be installed (`libasound2` or `libasound2t64` on Debian/Ubuntu, `alsa-lib` on Arch/Fedora). It's usually pre-installed on desktop systems.
 
 # Development
 
