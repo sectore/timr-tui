@@ -55,3 +55,6 @@ sound = ["dep:rodio", "dep:thiserror"]
 
 [dev-dependencies]
 insta = "1.49.0"
+
+[profile.release]
+strip = true
