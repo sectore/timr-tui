@@ -430,9 +430,7 @@ impl App {
 
                     #[cfg(feature = "sound")]
                     if let Some(sound) = &app.sound {
-                        if let Err(err) = sound.play() {
-                            error!("Sound error: {:?}", err);
-                        }
+                        sound.play();
                     }
                 }
                 events::AppEvent::SetCursor(position) => {
