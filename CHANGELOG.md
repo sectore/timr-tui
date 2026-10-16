@@ -9,6 +9,7 @@
 
 ### Fix
 
+- (sound) open output device on demand per play [#234](https://github.com/sectore/timr-tui/pull/234)
 - (macos) run release binary w/o Nix + correct arch (`aarch64`) [#229](https://github.com/sectore/timr-tui/pull/229)
 
 ### Misc
