@@ -232,6 +232,18 @@ Note: To enable Vim motions key binding, run with `--vim=on` once. It will be st
 
 ## Cargo
 
+On Linux, building w/ sound (default) requires the ALSA headers and `pkg-config`:
+
+| Distro          | Packages                               |
+| --------------- | -------------------------------------- |
+| Debian / Ubuntu | `libasound2-dev`, `pkg-config`         |
+| Fedora          | `alsa-lib-devel`, `pkgconf-pkg-config` |
+| Arch            | `alsa-lib`, `pkgconf`                  |
+| openSUSE        | `alsa-devel`, `pkg-config`             |
+| Others          | ALSA headers + `pkg-config`            |
+
+To build w/o sound, add `--no-default-features` to the commands below.
+
 ### From [crates.io](https://crates.io/crates/timr-tui)
 
 ```sh
@@ -297,15 +309,26 @@ Source at `nixpkgs`: <https://github.com/NixOS/nixpkgs/blob/nixos-unstable/pkgs/
 
 Pre-built artifacts are available to download from [latest GitHub release](https://github.com/sectore/timr-tui/releases).
 
-| Platform                         | w/o sound                                 | w/ sound                                        |
-| -------------------------------- | ----------------------------------------- | ----------------------------------------------- |
-| Linux (x86_64)                   | `timr-tui-<version>-linux_x86_64.tar.gz`  | `timr-tui-sound-<version>-linux_x86_64.tar.gz`  |
-| Windows (x86_64)                 | `timr-tui-<version>-windows_x86_64.zip`   | `timr-tui-sound-<version>-windows_x86_64.zip`   |
-| macOS (Apple Silicon, macOS 14+) | `timr-tui-<version>-macos_aarch64.tar.gz` | `timr-tui-sound-<version>-macos_aarch64.tar.gz` |
+| Platform                         | w/ sound                                  | w/o sound                                        |
+| -------------------------------- | ----------------------------------------- | ------------------------------------------------ |
+| Linux (x86_64)                   | `timr-tui-<version>-linux_x86_64.tar.gz`  | `timr-tui-nosound-<version>-linux_x86_64.tar.gz` |
+| Windows (x86_64)                 | `timr-tui-<version>-windows_x86_64.zip`   | -                                                |
+| macOS (Apple Silicon, macOS 14+) | `timr-tui-<version>-macos_aarch64.tar.gz` | -                                                |
 
 Binaries w/ sound play a sound by default. To turn it off, use [`--sound off`](#cli) or press `s`.
 
-Linux w/ sound requires `ALSA` to be installed (`libasound2` or `libasound2t64` on Debian/Ubuntu, `alsa-lib` on Arch/Fedora). It's usually pre-installed on desktop systems.
+Linux w/ sound requires glibc 2.28+ and `ALSA` to be installed. It's usually pre-installed on desktop systems. Without `ALSA` the binary doesn't start (`error while loading shared libraries: libasound.so.2`), so use `timr-tui-nosound-*` instead. It's statically linked and runs on any Linux (x86_64).
+
+| Distro                     | Package                         |
+| -------------------------- | ------------------------------- |
+| Debian 12 / Ubuntu ≤ 23.10 | `libasound2`                    |
+| Debian 13+ / Ubuntu 24.04+ | `libasound2t64`                 |
+| Fedora                     | `alsa-lib`                      |
+| Arch                       | `alsa-lib`                      |
+| openSUSE                   | `libasound2`                    |
+| Others                     | ALSA library (`libasound.so.2`) |
+
+Windows / macOS: nothing to install.
 
 # Development
 
