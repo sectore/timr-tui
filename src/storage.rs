@@ -93,7 +93,7 @@ impl Default for AppStorage {
             inital_value_work: DEFAULT_WORK,
             current_value_work: DEFAULT_WORK,
             // pomodoro -> pause
-            pause_duration: DEFAULT_PAUSE_DURATION,
+            pause_duration: default_pause_duration(),
             current_value_pause: DEFAULT_PAUSE,
             // countdown
             inital_value_countdown: DEFAULT_COUNTDOWN,
