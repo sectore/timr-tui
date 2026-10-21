@@ -230,9 +230,31 @@ Note: To enable Vim motions key binding, run with `--vim=on` once. It will be st
 
 # Installation
 
+## Requirements
+
+- Windows / macOS: nothing to install.
+- Linux w/ sound requires `ALSA` to be installed. It's usually pre-installed on desktop systems. Without `ALSA` the binary doesn't start (`error while loading shared libraries: libasound.so.2`). Use a build w/o sound instead (`timr-tui-nosound-*` [release binary](#release-binaries) or [`--no-default-features`](#cargo)).
+
+<details>
+<summary>Runtime packages per distro</summary>
+
+| Distro                     | Package                         |
+| -------------------------- | ------------------------------- |
+| Debian 12 / Ubuntu ≤ 23.10 | `libasound2`                    |
+| Debian 13+ / Ubuntu 24.04+ | `libasound2t64`                 |
+| Fedora                     | `alsa-lib`                      |
+| Arch                       | `alsa-lib`                      |
+| openSUSE                   | `libasound2`                    |
+| Others                     | ALSA library (`libasound.so.2`) |
+
+</details>
+
 ## Cargo
 
 On Linux, building w/ sound (default) requires the ALSA headers and `pkg-config`:
+
+<details>
+<summary>Build dependencies per distro</summary>
 
 | Distro          | Packages                               |
 | --------------- | -------------------------------------- |
@@ -241,6 +263,8 @@ On Linux, building w/ sound (default) requires the ALSA headers and `pkg-config`
 | Arch            | `alsa-lib`, `pkgconf`                  |
 | openSUSE        | `alsa-devel`, `pkg-config`             |
 | Others          | ALSA headers + `pkg-config`            |
+
+</details>
 
 To build w/o sound, add `--no-default-features` to the commands below.
 
@@ -319,18 +343,7 @@ Pre-built artifacts are available to download from [latest GitHub release](https
 
 Binaries w/ sound play a sound by default. To turn it off, use [`--sound off`](#cli) or press `s`.
 
-Linux w/ sound requires glibc 2.28+ and `ALSA` to be installed. It's usually pre-installed on desktop systems. Without `ALSA` the binary doesn't start (`error while loading shared libraries: libasound.so.2`), so use `timr-tui-nosound-*` instead. It's statically linked and runs on any Linux (x86_64).
-
-| Distro                     | Package                         |
-| -------------------------- | ------------------------------- |
-| Debian 12 / Ubuntu ≤ 23.10 | `libasound2`                    |
-| Debian 13+ / Ubuntu 24.04+ | `libasound2t64`                 |
-| Fedora                     | `alsa-lib`                      |
-| Arch                       | `alsa-lib`                      |
-| openSUSE                   | `libasound2`                    |
-| Others                     | ALSA library (`libasound.so.2`) |
-
-Windows / macOS: nothing to install.
+Linux w/ sound requires glibc 2.28+ and `ALSA` (see [Requirements](#requirements)). `timr-tui-nosound-*` is statically linked and runs on any Linux (x86_64).
 
 # Development
 
@@ -355,7 +368,12 @@ If you have [`direnv`](https://direnv.net) installed, run `direnv allow` once to
 
 ```sh
 just
+```
 
+<details>
+<summary>Available recipes (just)</summary>
+
+```sh
 Available recipes:
     default                    # list commands
 
@@ -396,6 +414,8 @@ Available recipes:
     test                       # run tests [alias: t]
     test-nosound               # run tests without sound feature [alias: tn]
 ```
+
+</details>
 
 ### Build
 
