@@ -121,10 +121,12 @@ Options:
 Extra option (if `--features sound` is enabled, e.g. by using `timr-tui-sound-*` [release binaries](#release-binaries)):
 
 ```sh
---sound <SOUND>                Path to custom sound file (.mp3 or .wav) to play as notification. Default sound is used if not set. Experimental.
+--sound [<SOUND>]              Sound notification: 'on', 'off' or path to a custom sound file (.mp3 or .wav).
 ```
 
-A sound is always played when a clock is done. Use `--sound` to replace the default sound by a custom one.
+A sound is played when a clock is done. Toggle it with `--sound on|off` or by pressing `s`. `--sound` without a value equals `--sound on`.
+
+A custom sound (`--sound <path>`) is used for the current session only. Every start without a path plays the default sound. To use a custom sound permanently, add an alias to your shell config, e.g. `alias timr='timr-tui --sound {path-to}/my-sound.mp3'`.
 
 # Keybindings
 
@@ -157,6 +159,7 @@ Note: To enable Vim motions key binding, run with `--vim=on` once. It will be st
 | <kbd>space</kbd> | start/stop      |
 | <kbd>r</kbd>     | reset           |
 | <kbd>e</kbd>     | enter edit mode |
+| <kbd>s</kbd>     | toggle sound    |
 | <kbd>q</kbd>     | quit            |
 
 **In `edit` mode only:**
@@ -293,7 +296,7 @@ Pre-built artifacts are available to download from [latest GitHub release](https
 | Windows (x86_64)                 | `timr-tui-<version>-windows_x86_64.zip`   | `timr-tui-sound-<version>-windows_x86_64.zip`   |
 | macOS (Apple Silicon, macOS 14+) | `timr-tui-<version>-macos_aarch64.tar.gz` | `timr-tui-sound-<version>-macos_aarch64.tar.gz` |
 
-Binaries w/ sound always play a sound (see [`--sound`](#cli)). For no sound, use binaries w/o sound.
+Binaries w/ sound play a sound by default. To turn it off, use [`--sound off`](#cli) or press `s`.
 
 Linux w/ sound requires `ALSA` to be installed (`libasound2` or `libasound2t64` on Debian/Ubuntu, `alsa-lib` on Arch/Fedora). It's usually pre-installed on desktop systems.
 
