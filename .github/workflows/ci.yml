@@ -19,6 +19,10 @@ jobs:
         env:
           CARGO_BUILD_WARNINGS: deny
         run: nix develop --command cargo clippy
+      - name: Run clippy (w/o sound)
+        env:
+          CARGO_BUILD_WARNINGS: deny
+        run: nix develop --command cargo clippy --no-default-features
       - name: Run alejandra
         run: nix develop --command alejandra --check flake.nix
 
@@ -29,6 +33,8 @@ jobs:
       - uses: DeterminateSystems/nix-installer-action@v23
       - name: Run tests
         run: nix develop --command cargo test
+      - name: Run tests (w/o sound)
+        run: nix develop --command cargo test --no-default-features
 
   build:
     runs-on: ubuntu-latest
@@ -37,3 +43,5 @@ jobs:
       - uses: DeterminateSystems/nix-installer-action@v23
       - name: Build project
         run: nix build .#timr
+      - name: Build project (w/o sound)
+        run: nix build .#linuxNoSound

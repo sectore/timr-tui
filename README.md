@@ -114,16 +114,13 @@ Options:
   -r, --reset                        Reset stored values to defaults.
   -n, --notification <NOTIFICATION>  Enable/disable desktop notifications. Experimental. [possible values: on, off]
       --blink <BLINK>                Enable/disable blink mode to animate a clock when it reaches its finished mode. [possible values: on, off]
+      --sound [<SOUND>]              Sound notification: 'on', 'off' or path to a custom sound file (.mp3 or .wav).
       --log [<LOG>]                  Directory for log file. If not set, standard application log directory is used (check README for details).
   -h, --help                         Print help
   -V, --version                      Print version
 ```
 
-Extra option (if `--features sound` is enabled, e.g. by using `timr-tui-sound-*` [release binaries](#release-binaries)):
-
-```sh
---sound [<SOUND>]              Sound notification: 'on', 'off' or path to a custom sound file (.mp3 or .wav).
-```
+`--sound` is not available in builds w/o sound (`timr-tui-nosound-*` [release binaries](#release-binaries) or built with `--no-default-features`).
 
 # Notification
 
@@ -133,7 +130,7 @@ Toggle desktop notifications with `--notification on|off` or by pressing `d` (se
 
 ## Sound
 
-A sound is played when a clock is done. Toggle it with `--sound on|off` or by pressing `s` (see [Keybindings](#keybindings)). `--sound` without a value equals `--sound on`.
+A sound is played by default when a clock is done. Toggle it with `--sound on|off` or by pressing `s` (see [Keybindings](#keybindings)). `--sound` without a value equals `--sound on`.
 
 A custom sound (`--sound <path>`) is used for the current session only. Every start without a path plays the default sound. To use a custom sound permanently, add an alias to your shell config, e.g. `alias timr='timr-tui --sound {path-to}/my-sound.mp3'`.
 
@@ -233,7 +230,43 @@ Note: To enable Vim motions key binding, run with `--vim=on` once. It will be st
 
 # Installation
 
+## Requirements
+
+- Windows / macOS: nothing to install.
+- Linux w/ sound requires `ALSA` to be installed. It's usually pre-installed on desktop systems. Without `ALSA` the binary doesn't start (`error while loading shared libraries: libasound.so.2`). Use a build w/o sound instead (`timr-tui-nosound-*` [release binary](#release-binaries) or [`--no-default-features`](#cargo)).
+
+<details>
+<summary>Runtime packages per distro</summary>
+
+| Distro                     | Package                         |
+| -------------------------- | ------------------------------- |
+| Debian 12 / Ubuntu ≤ 23.10 | `libasound2`                    |
+| Debian 13+ / Ubuntu 24.04+ | `libasound2t64`                 |
+| Fedora                     | `alsa-lib`                      |
+| Arch                       | `alsa-lib`                      |
+| openSUSE                   | `libasound2`                    |
+| Others                     | ALSA library (`libasound.so.2`) |
+
+</details>
+
 ## Cargo
+
+On Linux, building w/ sound (default) requires the ALSA headers and `pkg-config`:
+
+<details>
+<summary>Build dependencies per distro</summary>
+
+| Distro          | Packages                               |
+| --------------- | -------------------------------------- |
+| Debian / Ubuntu | `libasound2-dev`, `pkg-config`         |
+| Fedora          | `alsa-lib-devel`, `pkgconf-pkg-config` |
+| Arch            | `alsa-lib`, `pkgconf`                  |
+| openSUSE        | `alsa-devel`, `pkg-config`             |
+| Others          | ALSA headers + `pkg-config`            |
+
+</details>
+
+To build w/o sound, add `--no-default-features` to the commands below.
 
 ### From [crates.io](https://crates.io/crates/timr-tui)
 
@@ -259,38 +292,40 @@ paru -S timr
 
 _Note:_ Currently `timr-tui` is [available on the `unstable` channel](https://search.nixos.org/packages?channel=unstable&query=timr-tui) only.
 
+_Note:_ Since `v1.12.0` sound is enabled by default. Use `enableSound = false` to disable it. Before `v1.12.0` sound was disabled by default and had to be enabled by `enableSound = true`.
+
 ### Command line
 
 ```sh
-# default (w/o sound)
+# default (w/ sound)
 nix-env -iA nixpkgs.timr-tui
-# or w/ sound enabled
-nix-env -iA nixpkgs.timr-tui --arg timr-tui '(timr-tui.override { enableSound = true; })'
+# or w/o sound
+nix-env -iA nixpkgs.timr-tui --arg timr-tui '(timr-tui.override { enableSound = false; })'
 ```
 
 ### Configuration
 
 ```nix
-# default (w/o sound)
+# default (w/ sound)
 environment.systemPackages = with pkgs; [
   timr-tui
 ];
-# or w/ sound enabled
+# or w/o sound
 environment.systemPackages = with pkgs; [
-  (timr-tui.override { enableSound = true; })
+  (timr-tui.override { enableSound = false; })
 ];
 ```
 
 ### Home Manager
 
 ```nix
-# default (w/o sound)
+# default (w/ sound)
 home.packages = with pkgs; [
   timr-tui
 ];
-# or w/ sound enabled
+# or w/o sound
 home.packages = with pkgs; [
-  (timr-tui.override { enableSound = true; })
+  (timr-tui.override { enableSound = false; })
 ];
 ```
 
@@ -300,15 +335,15 @@ Source at `nixpkgs`: <https://github.com/NixOS/nixpkgs/blob/nixos-unstable/pkgs/
 
 Pre-built artifacts are available to download from [latest GitHub release](https://github.com/sectore/timr-tui/releases).
 
-| Platform                         | w/o sound                                 | w/ sound                                        |
-| -------------------------------- | ----------------------------------------- | ----------------------------------------------- |
-| Linux (x86_64)                   | `timr-tui-<version>-linux_x86_64.tar.gz`  | `timr-tui-sound-<version>-linux_x86_64.tar.gz`  |
-| Windows (x86_64)                 | `timr-tui-<version>-windows_x86_64.zip`   | `timr-tui-sound-<version>-windows_x86_64.zip`   |
-| macOS (Apple Silicon, macOS 14+) | `timr-tui-<version>-macos_aarch64.tar.gz` | `timr-tui-sound-<version>-macos_aarch64.tar.gz` |
+| Platform                         | w/ sound                                  | w/o sound                                        |
+| -------------------------------- | ----------------------------------------- | ------------------------------------------------ |
+| Linux (x86_64)                   | `timr-tui-<version>-linux_x86_64.tar.gz`  | `timr-tui-nosound-<version>-linux_x86_64.tar.gz` |
+| Windows (x86_64)                 | `timr-tui-<version>-windows_x86_64.zip`   | -                                                |
+| macOS (Apple Silicon, macOS 14+) | `timr-tui-<version>-macos_aarch64.tar.gz` | -                                                |
 
 Binaries w/ sound play a sound by default. To turn it off, use [`--sound off`](#cli) or press `s`.
 
-Linux w/ sound requires `ALSA` to be installed (`libasound2` or `libasound2t64` on Debian/Ubuntu, `alsa-lib` on Arch/Fedora). It's usually pre-installed on desktop systems.
+Linux w/ sound requires glibc 2.28+ and `ALSA` (see [Requirements](#requirements)). `timr-tui-nosound-*` is statically linked and runs on any Linux (x86_64).
 
 # Development
 
@@ -327,17 +362,24 @@ If you have [`direnv`](https://direnv.net) installed, run `direnv allow` once to
 - [`rustfmt`](https://github.com/rust-lang/rustfmt)
 - [`dprint`](https://dprint.dev)
 - [`just`](https://just.systems)
+- Linux only: ALSA headers + `pkg-config` (see [Cargo](#cargo)) to build w/ sound
 
 ### Commands
 
 ```sh
 just
+```
 
+<details>
+<summary>Available recipes (just)</summary>
+
+```sh
 Available recipes:
     default                    # list commands
 
     [build]
     build                      # build app [alias: b]
+    build-nosound              # build app without sound feature [alias: bn]
 
     [demo]
     demo-all                   # build all demos [alias: da]
@@ -361,24 +403,31 @@ Available recipes:
     [dev]
     run                        # run app [alias: r]
     run-args args              # run app with arguments. It expects arguments as a string (e.g. "-c 5:00"). [alias: ra]
-    run-sound args=""          # run app while sound feature is enabled. Optional arguments as string (e.g. "--sound=custom.mp3 -c 5:00"). [alias: rs]
+    run-nosound args=""        # run app without sound feature. Optional arguments as string (e.g. "-c 5:00"). [alias: rn]
 
     [misc]
     format                     # format files [alias: f]
     lint                       # lint [alias: l]
+    lint-nosound               # lint without sound feature [alias: ln]
 
     [test]
     test                       # run tests [alias: t]
+    test-nosound               # run tests without sound feature [alias: tn]
 ```
+
+</details>
 
 ### Build
 
 - Linux
 
 ```sh
+# w/ sound, for Nix only
 nix build
-# or for bulding w/ statically linked binaries
-nix build .#linuxStatic
+# or w/ sound, dynamically linked against glibc 2.28+ (non Nix distros)
+nix build .#linux
+# or w/o sound, statically linked
+nix build .#linuxNoSound
 ```
 
 - Windows (cross-compilation)
@@ -391,6 +440,8 @@ nix build .#windows
 
 ```sh
 cargo test
+# or w/o sound
+cargo test --no-default-features
 ```
 
 # Misc

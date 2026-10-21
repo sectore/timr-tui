@@ -4,6 +4,7 @@
 
 ### Features
 
+- (sound) sound by default [#238](https://github.com/sectore/timr-tui/pull/238)
 - (notification) toggle desktop notification with key `d` [#237](https://github.com/sectore/timr-tui/pull/237)
 - (sound) toggle sound by `--sound on|off|<path>` or key `s` [#236](https://github.com/sectore/timr-tui/pull/236)
 - (sound) default sound for sound binaries [#232](https://github.com/sectore/timr-tui/pull/232)
