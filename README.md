@@ -13,6 +13,7 @@ TUI to organize your time: Pomodoro, Tabata, Countdown, Timer, Event.
 
 - [Preview](#preview)
 - [CLI](#cli)
+- [Notification](#notification)
 - [Keybindings](#keybindings)
 - [Installation](#installation)
 - [Development](#development)
@@ -124,7 +125,15 @@ Extra option (if `--features sound` is enabled, e.g. by using `timr-tui-sound-*`
 --sound [<SOUND>]              Sound notification: 'on', 'off' or path to a custom sound file (.mp3 or .wav).
 ```
 
-A sound is played when a clock is done. Toggle it with `--sound on|off` or by pressing `s`. `--sound` without a value equals `--sound on`.
+# Notification
+
+## Desktop
+
+Toggle desktop notifications with `--notification on|off` or by pressing `d` (see [Keybindings](#keybindings)).
+
+## Sound
+
+A sound is played when a clock is done. Toggle it with `--sound on|off` or by pressing `s` (see [Keybindings](#keybindings)). `--sound` without a value equals `--sound on`.
 
 A custom sound (`--sound <path>`) is used for the current session only. Every start without a path plays the default sound. To use a custom sound permanently, add an alias to your shell config, e.g. `alias timr='timr-tui --sound {path-to}/my-sound.mp3'`.
 
@@ -154,13 +163,14 @@ Note: To enable Vim motions key binding, run with `--vim=on` once. It will be st
 
 ## Controls
 
-| Key              | Description     |
-| ---------------- | --------------- |
-| <kbd>space</kbd> | start/stop      |
-| <kbd>r</kbd>     | reset           |
-| <kbd>e</kbd>     | enter edit mode |
-| <kbd>s</kbd>     | toggle sound    |
-| <kbd>q</kbd>     | quit            |
+| Key              | Description                 |
+| ---------------- | --------------------------- |
+| <kbd>space</kbd> | start/stop                  |
+| <kbd>r</kbd>     | reset                       |
+| <kbd>e</kbd>     | enter edit mode             |
+| <kbd>d</kbd>     | toggle desktop notification |
+| <kbd>s</kbd>     | toggle sound                |
+| <kbd>q</kbd>     | quit                        |
 
 **In `edit` mode only:**
 
