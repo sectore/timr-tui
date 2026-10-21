@@ -129,7 +129,7 @@ Extra option (if `--features sound` is enabled, e.g. by using `timr-tui-sound-*`
 
 ## Desktop
 
-Toggle desktop notifications with `--notification on|off` or by pressing `n` (see [Keybindings](#keybindings)).
+Toggle desktop notifications with `--notification on|off` or by pressing `d` (see [Keybindings](#keybindings)).
 
 ## Sound
 
@@ -168,7 +168,7 @@ Note: To enable Vim motions key binding, run with `--vim=on` once. It will be st
 | <kbd>space</kbd> | start/stop                  |
 | <kbd>r</kbd>     | reset                       |
 | <kbd>e</kbd>     | enter edit mode             |
-| <kbd>n</kbd>     | toggle desktop notification |
+| <kbd>d</kbd>     | toggle desktop notification |
 | <kbd>s</kbd>     | toggle sound                |
 | <kbd>q</kbd>     | quit                        |
 

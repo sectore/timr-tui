@@ -377,7 +377,7 @@ impl App {
                 }
                 // toogle menu
                 KeyCode::Char('m') => app.footer.set_show_menu(!app.footer.get_show_menu()),
-                KeyCode::Char('n') => app.notification = !app.notification,
+                KeyCode::Char('d') => app.notification = !app.notification,
                 #[cfg(feature = "sound")]
                 KeyCode::Char('s') => app.sound_toggle = !app.sound_toggle,
                 _ => {}

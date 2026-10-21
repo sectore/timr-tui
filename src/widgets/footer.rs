@@ -219,7 +219,7 @@ impl StatefulWidget for Footer {
                     Cell::from(Span::from("notify")),
                     Cell::from(Line::from({
                         let mut spans = vec![
-                            Span::styled("n", BOLD),
+                            Span::styled("d", BOLD),
                             Span::from(SPACE),
                             Span::styled(format!("toggle desktop {}", !self.notification), ITALIC),
                         ];

@@ -5,6 +5,6 @@ expression: t.backend()
 " m hide menu ───────────────────────────────────────────────────────────────────────────────────────────────────────────"
 " screens      1 countdown   2 timer   3 pomodoro   4 event   5 local time   ← or → switch screens                       "
 " appearance   , change style   . toggle deciseconds   : toggle local time                                               "
-" notify       n toggle desktop off   s toggle sound off                                                                 "
+" notify       d toggle desktop off   s toggle sound off                                                                 "
 " controls     space start   e edit   r reset clock   ^r reset clocks/rounds   a disable auto switch                     "
 "              ^← or ^→ switch work/pause   ↑ next round   ↓ previous round   ^↑ max rounds up   ^↓ max rounds down      "
