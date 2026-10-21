@@ -349,6 +349,7 @@ If you have [`direnv`](https://direnv.net) installed, run `direnv allow` once to
 - [`rustfmt`](https://github.com/rust-lang/rustfmt)
 - [`dprint`](https://dprint.dev)
 - [`just`](https://just.systems)
+- Linux only: ALSA headers + `pkg-config` (see [Cargo](#cargo)) to build w/ sound
 
 ### Commands
 
@@ -401,9 +402,12 @@ Available recipes:
 - Linux
 
 ```sh
+# w/ sound, for Nix only
 nix build
-# or for bulding w/ statically linked binaries
-nix build .#linuxStatic
+# or w/ sound, dynamically linked against glibc 2.28+ (non Nix distros)
+nix build .#linux
+# or w/o sound, statically linked
+nix build .#linuxNoSound
 ```
 
 - Windows (cross-compilation)
@@ -416,6 +420,8 @@ nix build .#windows
 
 ```sh
 cargo test
+# or w/o sound
+cargo test --no-default-features
 ```
 
 # Misc
