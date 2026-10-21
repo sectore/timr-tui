@@ -40,8 +40,10 @@ pub fn validate_sound_file(path: &PathBuf) -> Result<&PathBuf, SoundError> {
     Ok(path)
 }
 
+type SoundBuffer = Buffered<Decoder<Cursor<Cow<'static, [u8]>>>>;
+
 pub struct Sound {
-    buffer: Arc<Buffered<Decoder<Cursor<Cow<'static, [u8]>>>>>,
+    buffer: Arc<SoundBuffer>,
 }
 
 impl Sound {

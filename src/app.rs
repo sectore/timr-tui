@@ -24,7 +24,7 @@ use crossterm::event::Event as CrosstermEvent;
 use time::OffsetDateTime;
 
 #[cfg(feature = "sound")]
-use crate::sound::Sound;
+use crate::{args::SoundArg, sound::Sound};
 #[cfg(feature = "sound")]
 use std::path::PathBuf;
 
@@ -50,6 +50,7 @@ pub struct App {
     mode: Mode,
     notification: Toggle,
     blink: Toggle,
+    sound_toggle: Toggle,
     #[cfg(feature = "sound")]
     sound: Option<Sound>,
     app_time: AppTime,
@@ -71,6 +72,7 @@ pub struct AppArgs {
     pub with_decis: bool,
     pub notification: Toggle,
     pub blink: Toggle,
+    pub sound_toggle: Toggle,
     pub show_menu: bool,
     pub vim_motions: bool,
     pub app_time_format: AppTimeFormat,
@@ -171,7 +173,15 @@ impl From<FromAppArgs> for App {
             event: args.event.unwrap_or(stg.event),
             app_tx,
             #[cfg(feature = "sound")]
-            sound_path: args.sound,
+            sound_toggle: args.sound.as_ref().map_or(stg.sound, SoundArg::toggle),
+            // without sound: keep the stored value for builds with sound
+            #[cfg(not(feature = "sound"))]
+            sound_toggle: stg.sound,
+            #[cfg(feature = "sound")]
+            sound_path: match args.sound {
+                Some(SoundArg::File(path)) => Some(path),
+                _ => None,
+            },
             footer_toggle_app_time: stg.footer_app_time,
         })
     }
@@ -201,6 +211,7 @@ impl App {
             event,
             notification,
             blink,
+            sound_toggle,
             app_tx,
             footer_toggle_app_time,
             #[cfg(feature = "sound")]
@@ -215,6 +226,7 @@ impl App {
             mode: Mode::Running,
             notification,
             blink,
+            sound_toggle,
             #[cfg(feature = "sound")]
             sound,
             content,
@@ -365,6 +377,8 @@ impl App {
                 }
                 // toogle menu
                 KeyCode::Char('m') => app.footer.set_show_menu(!app.footer.get_show_menu()),
+                #[cfg(feature = "sound")]
+                KeyCode::Char('s') => app.sound_toggle = !app.sound_toggle,
                 _ => {}
             };
         };
@@ -429,7 +443,9 @@ impl App {
                     };
 
                     #[cfg(feature = "sound")]
-                    if let Some(sound) = &app.sound {
+                    if app.sound_toggle == Toggle::On
+                        && let Some(sound) = &app.sound
+                    {
                         sound.play();
                     }
                 }
@@ -543,6 +559,7 @@ impl App {
             vim: self.vim_motions.into(),
             notification: self.notification,
             blink: self.blink,
+            sound: self.sound_toggle,
             app_time_format: self.app_time_format,
             style: self.style,
             with_decis: self.with_decis,
@@ -608,7 +625,7 @@ impl StatefulWidget for AppWidget {
         let [v0, v1, v2] = Layout::vertical([
             Constraint::Length(1),
             Constraint::Percentage(100),
-            Constraint::Length(if state.footer.get_show_menu() { 5 } else { 1 }),
+            Constraint::Length(if state.footer.get_show_menu() { 6 } else { 1 }),
         ])
         .areas(area);
 
@@ -627,6 +644,10 @@ impl StatefulWidget for AppWidget {
             app_time: state.app_time,
             pomodoro_auto_switch: state.pomodoro.get_auto_switch(),
             is_tabata: state.pomodoro.is_tabata(),
+            #[cfg(feature = "sound")]
+            sound: Some(state.sound_toggle),
+            #[cfg(not(feature = "sound"))]
+            sound: None,
         }
         .render(v2, buf, &mut state.footer);
     }

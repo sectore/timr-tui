@@ -7,6 +7,8 @@ use crate::{
 #[cfg(feature = "sound")]
 use crate::{sound, sound::SoundError};
 use clap::Parser;
+#[cfg(feature = "sound")]
+use clap::ValueEnum;
 use std::path::PathBuf;
 use std::time::Duration;
 
@@ -86,12 +88,13 @@ pub struct Args {
     #[cfg(feature = "sound")]
     #[arg(
         long,
-        value_enum,
-        help = "Path to custom sound file (.mp3 or .wav) to play as notification. Default sound is used if not set.",
+        num_args = 0..=1,
+        default_missing_value = "on",
+        help = "Sound notification: 'on', 'off' or path to a custom sound file (.mp3 or .wav).",
         value_hint = clap::ValueHint::FilePath,
-        value_parser = sound_file_parser,
+        value_parser = sound_arg_parser,
     )]
-    pub sound: Option<PathBuf>,
+    pub sound: Option<SoundArg>,
 
     #[arg(
         long,
@@ -175,9 +178,85 @@ mod tests {
 }
 
 #[cfg(feature = "sound")]
-/// Custom parser for sound file
-fn sound_file_parser(s: &str) -> Result<PathBuf, SoundError> {
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum SoundArg {
+    Toggle(Toggle),
+    File(PathBuf),
+}
+
+#[cfg(feature = "sound")]
+impl SoundArg {
+    /// A custom sound file implies `on`
+    pub fn toggle(&self) -> Toggle {
+        match self {
+            Self::Toggle(toggle) => *toggle,
+            Self::File(_) => Toggle::On,
+        }
+    }
+}
+
+#[cfg(feature = "sound")]
+fn sound_arg_parser(s: &str) -> Result<SoundArg, SoundError> {
+    if let Ok(toggle) = Toggle::from_str(s, false) {
+        return Ok(SoundArg::Toggle(toggle));
+    }
     let path = PathBuf::from(s);
     sound::validate_sound_file(&path)?;
-    Ok(path)
+    Ok(SoundArg::File(path))
+}
+
+#[cfg(all(test, feature = "sound"))]
+mod sound_tests {
+    use super::*;
+
+    fn parse(args: &[&str]) -> Result<Option<SoundArg>, clap::Error> {
+        Args::try_parse_from([&["timr-tui"], args].concat()).map(|a| a.sound)
+    }
+
+    #[test]
+    fn sound_not_set() {
+        assert_eq!(parse(&[]).unwrap(), None);
+    }
+
+    #[test]
+    fn sound_bare() {
+        assert_eq!(
+            parse(&["--sound"]).unwrap(),
+            Some(SoundArg::Toggle(Toggle::On))
+        );
+    }
+
+    #[test]
+    fn sound_on_off() {
+        assert_eq!(
+            parse(&["--sound", "on"]).unwrap(),
+            Some(SoundArg::Toggle(Toggle::On))
+        );
+        assert_eq!(
+            parse(&["--sound=off"]).unwrap(),
+            Some(SoundArg::Toggle(Toggle::Off))
+        );
+    }
+
+    #[test]
+    fn sound_file() {
+        let path = "assets/confirmation-004.mp3";
+        assert_eq!(
+            parse(&["--sound", path]).unwrap(),
+            Some(SoundArg::File(PathBuf::from(path)))
+        );
+    }
+
+    #[test]
+    fn sound_toggle() {
+        assert_eq!(SoundArg::Toggle(Toggle::Off).toggle(), Toggle::Off);
+        assert_eq!(SoundArg::File(PathBuf::new()).toggle(), Toggle::On);
+    }
+
+    #[test]
+    fn sound_invalid() {
+        assert!(parse(&["--sound", ""]).is_err());
+        assert!(parse(&["--sound", "missing.mp3"]).is_err());
+        assert!(parse(&["--sound", "Cargo.toml"]).is_err());
+    }
 }
