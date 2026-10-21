@@ -50,6 +50,7 @@ tui-input = "0.15.5"
 
 
 [features]
+default = ["sound"]
 sound = ["dep:rodio", "dep:thiserror"]
 
 [dev-dependencies]

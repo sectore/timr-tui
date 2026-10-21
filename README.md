@@ -338,6 +338,7 @@ Available recipes:
 
     [build]
     build                      # build app [alias: b]
+    build-nosound              # build app without sound feature [alias: bn]
 
     [demo]
     demo-all                   # build all demos [alias: da]
@@ -361,14 +362,16 @@ Available recipes:
     [dev]
     run                        # run app [alias: r]
     run-args args              # run app with arguments. It expects arguments as a string (e.g. "-c 5:00"). [alias: ra]
-    run-sound args=""          # run app while sound feature is enabled. Optional arguments as string (e.g. "--sound=custom.mp3 -c 5:00"). [alias: rs]
+    run-nosound args=""        # run app without sound feature. Optional arguments as string (e.g. "-c 5:00"). [alias: rn]
 
     [misc]
     format                     # format files [alias: f]
     lint                       # lint [alias: l]
+    lint-nosound               # lint without sound feature [alias: ln]
 
     [test]
     test                       # run tests [alias: t]
+    test-nosound               # run tests without sound feature [alias: tn]
 ```
 
 ### Build

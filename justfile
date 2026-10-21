@@ -13,12 +13,26 @@ alias b := build
 build:
     cargo build
 
+alias bn := build-nosound
+
+# build app without sound feature
+[group('build')]
+build-nosound:
+    cargo build --no-default-features
+
 alias t := test
 
 # run tests
 [group('test')]
 test:
     cargo test
+
+alias tn := test-nosound
+
+# run tests without sound feature
+[group('test')]
+test-nosound:
+    cargo test --no-default-features
 
 alias f := format
 
@@ -36,6 +50,13 @@ alias l := lint
 lint:
     cargo clippy --no-deps
 
+alias ln := lint-nosound
+
+# lint without sound feature
+[group('misc')]
+lint-nosound:
+    cargo clippy --no-deps --no-default-features
+
 alias r := run
 
 # run app
@@ -50,12 +71,12 @@ alias ra := run-args
 run-args args:
     cargo run -- {{ args }}
 
-alias rs := run-sound
+alias rn := run-nosound
 
-# run app while sound feature is enabled. Optional arguments as string (e.g. "--sound=custom.mp3 -c 5:00").
+# run app without sound feature. Optional arguments as string (e.g. "-c 5:00").
 [group('dev')]
-run-sound args="":
-    cargo run --features sound -- {{ args }}
+run-nosound args="":
+    cargo run --no-default-features -- {{ args }}
 
 # demos
 
