@@ -24,7 +24,7 @@ use crossterm::event::Event as CrosstermEvent;
 use time::OffsetDateTime;
 
 #[cfg(feature = "sound")]
-use crate::sound::Sound;
+use crate::{args::SoundArg, sound::Sound};
 #[cfg(feature = "sound")]
 use std::path::PathBuf;
 
@@ -171,7 +171,10 @@ impl From<FromAppArgs> for App {
             event: args.event.unwrap_or(stg.event),
             app_tx,
             #[cfg(feature = "sound")]
-            sound_path: args.sound,
+            sound_path: match args.sound {
+                Some(SoundArg::File(path)) => Some(path),
+                _ => None,
+            },
             footer_toggle_app_time: stg.footer_app_time,
         })
     }
