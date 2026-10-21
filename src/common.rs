@@ -282,11 +282,28 @@ impl From<Toggle> for bool {
     }
 }
 
+impl std::ops::Not for Toggle {
+    type Output = Self;
+
+    fn not(self) -> Self {
+        match self {
+            Toggle::On => Toggle::Off,
+            Toggle::Off => Toggle::On,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
 
     use super::*;
     use time::{Date, Month, PrimitiveDateTime, Time};
+
+    #[test]
+    fn test_toggle_not() {
+        assert_eq!(!Toggle::On, Toggle::Off);
+        assert_eq!(!Toggle::Off, Toggle::On);
+    }
 
     #[test]
     fn test_format_app_time() {

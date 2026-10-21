@@ -377,6 +377,8 @@ impl App {
                 }
                 // toogle menu
                 KeyCode::Char('m') => app.footer.set_show_menu(!app.footer.get_show_menu()),
+                #[cfg(feature = "sound")]
+                KeyCode::Char('s') => app.sound_toggle = !app.sound_toggle,
                 _ => {}
             };
         };
@@ -441,7 +443,9 @@ impl App {
                     };
 
                     #[cfg(feature = "sound")]
-                    if let Some(sound) = &app.sound {
+                    if app.sound_toggle == Toggle::On
+                        && let Some(sound) = &app.sound
+                    {
                         sound.play();
                     }
                 }
