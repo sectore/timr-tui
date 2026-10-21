@@ -377,6 +377,7 @@ impl App {
                 }
                 // toogle menu
                 KeyCode::Char('m') => app.footer.set_show_menu(!app.footer.get_show_menu()),
+                KeyCode::Char('n') => app.notification = !app.notification,
                 #[cfg(feature = "sound")]
                 KeyCode::Char('s') => app.sound_toggle = !app.sound_toggle,
                 _ => {}
@@ -644,6 +645,7 @@ impl StatefulWidget for AppWidget {
             app_time: state.app_time,
             pomodoro_auto_switch: state.pomodoro.get_auto_switch(),
             is_tabata: state.pomodoro.is_tabata(),
+            notification: state.notification,
             #[cfg(feature = "sound")]
             sound: Some(state.sound_toggle),
             #[cfg(not(feature = "sound"))]

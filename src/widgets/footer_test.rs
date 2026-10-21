@@ -19,6 +19,7 @@ fn w() -> Footer {
         app_time: AppTime::Local(FIXED_TIME),
         pomodoro_auto_switch: false,
         is_tabata: false,
+        notification: Toggle::On,
         sound: Some(Toggle::On),
     }
 }
@@ -235,7 +236,17 @@ fn test_menu_time_format_hh_12_mm() {
     assert_snapshot!("menu_time_format_hh_12_mm", t.backend());
 }
 
-// sound
+// notify
+
+#[test]
+fn test_menu_notification_off() {
+    let w = Footer {
+        notification: Toggle::Off,
+        ..w()
+    };
+    let t = terminal(w, st());
+    assert_snapshot!("menu_notification_off", t.backend());
+}
 
 #[test]
 fn test_menu_sound_off() {

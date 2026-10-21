@@ -72,6 +72,7 @@ pub struct Footer {
     pub app_time: AppTime,
     pub pomodoro_auto_switch: bool,
     pub is_tabata: bool,
+    pub notification: Toggle,
     /// `None` = build without sound
     pub sound: Option<Toggle>,
 }
@@ -216,17 +217,22 @@ impl StatefulWidget for Footer {
                 // notify
                 Row::new(vec![
                     Cell::from(Span::from("notify")),
-                    Cell::from(Line::from(
-                        self.sound
-                            .map(|sound| {
-                                vec![
-                                    Span::styled("s", BOLD),
-                                    Span::from(SPACE),
-                                    Span::styled(format!("toggle sound {}", !sound), ITALIC),
-                                ]
-                            })
-                            .unwrap_or_default(),
-                    )),
+                    Cell::from(Line::from({
+                        let mut spans = vec![
+                            Span::styled("n", BOLD),
+                            Span::from(SPACE),
+                            Span::styled(format!("toggle desktop {}", !self.notification), ITALIC),
+                        ];
+                        if let Some(sound) = self.sound {
+                            spans.extend([
+                                Span::from(WIDE_SPACE),
+                                Span::styled("s", BOLD),
+                                Span::from(SPACE),
+                                Span::styled(format!("toggle sound {}", !sound), ITALIC),
+                            ]);
+                        }
+                        spans
+                    })),
                 ]),
             ];
 
