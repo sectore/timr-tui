@@ -19,6 +19,10 @@ fn default_pause_duration() -> PauseDuration {
     DEFAULT_PAUSE_DURATION
 }
 
+fn default_sound() -> Toggle {
+    Toggle::On
+}
+
 fn deserialize_app_time_format<'de, D>(deserializer: D) -> Result<AppTimeFormat, D::Error>
 where
     D: Deserializer<'de>,
@@ -39,6 +43,8 @@ pub struct AppStorage {
     pub vim: Toggle,
     pub notification: Toggle,
     pub blink: Toggle,
+    #[serde(default = "default_sound")]
+    pub sound: Toggle,
     #[serde(deserialize_with = "deserialize_app_time_format")]
     pub app_time_format: AppTimeFormat,
     pub style: Style,
@@ -75,6 +81,7 @@ impl Default for AppStorage {
             vim: Toggle::Off,
             notification: Toggle::Off,
             blink: Toggle::Off,
+            sound: default_sound(),
             app_time_format: AppTimeFormat::default(),
             style: Style::default(),
             with_decis: false,
@@ -125,5 +132,29 @@ impl Storage {
         let file = fs::File::open(self.get_storage_path())?;
         let data = serde_json::from_reader(file)?;
         Ok(data)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn sound_round_trip() {
+        let stg = AppStorage {
+            sound: Toggle::Off,
+            ..AppStorage::default()
+        };
+        let json = serde_json::to_string(&stg).unwrap();
+        let stg: AppStorage = serde_json::from_str(&json).unwrap();
+        assert_eq!(stg.sound, Toggle::Off);
+    }
+
+    #[test]
+    fn sound_missing_defaults_to_on() {
+        let mut json = serde_json::to_value(AppStorage::default()).unwrap();
+        json.as_object_mut().unwrap().remove("sound");
+        let stg: AppStorage = serde_json::from_value(json).unwrap();
+        assert_eq!(stg.sound, Toggle::On);
     }
 }

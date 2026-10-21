@@ -50,6 +50,7 @@ pub struct App {
     mode: Mode,
     notification: Toggle,
     blink: Toggle,
+    sound_toggle: Toggle,
     #[cfg(feature = "sound")]
     sound: Option<Sound>,
     app_time: AppTime,
@@ -71,6 +72,7 @@ pub struct AppArgs {
     pub with_decis: bool,
     pub notification: Toggle,
     pub blink: Toggle,
+    pub sound_toggle: Toggle,
     pub show_menu: bool,
     pub vim_motions: bool,
     pub app_time_format: AppTimeFormat,
@@ -171,6 +173,11 @@ impl From<FromAppArgs> for App {
             event: args.event.unwrap_or(stg.event),
             app_tx,
             #[cfg(feature = "sound")]
+            sound_toggle: args.sound.as_ref().map_or(stg.sound, SoundArg::toggle),
+            // without sound: keep the stored value for builds with sound
+            #[cfg(not(feature = "sound"))]
+            sound_toggle: stg.sound,
+            #[cfg(feature = "sound")]
             sound_path: match args.sound {
                 Some(SoundArg::File(path)) => Some(path),
                 _ => None,
@@ -204,6 +211,7 @@ impl App {
             event,
             notification,
             blink,
+            sound_toggle,
             app_tx,
             footer_toggle_app_time,
             #[cfg(feature = "sound")]
@@ -218,6 +226,7 @@ impl App {
             mode: Mode::Running,
             notification,
             blink,
+            sound_toggle,
             #[cfg(feature = "sound")]
             sound,
             content,
@@ -546,6 +555,7 @@ impl App {
             vim: self.vim_motions.into(),
             notification: self.notification,
             blink: self.blink,
+            sound: self.sound_toggle,
             app_time_format: self.app_time_format,
             style: self.style,
             with_decis: self.with_decis,

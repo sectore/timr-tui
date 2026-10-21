@@ -185,6 +185,17 @@ pub enum SoundArg {
 }
 
 #[cfg(feature = "sound")]
+impl SoundArg {
+    /// A custom sound file implies `on`
+    pub fn toggle(&self) -> Toggle {
+        match self {
+            Self::Toggle(toggle) => *toggle,
+            Self::File(_) => Toggle::On,
+        }
+    }
+}
+
+#[cfg(feature = "sound")]
 fn sound_arg_parser(s: &str) -> Result<SoundArg, SoundError> {
     if let Ok(toggle) = Toggle::from_str(s, false) {
         return Ok(SoundArg::Toggle(toggle));
@@ -234,6 +245,12 @@ mod sound_tests {
             parse(&["--sound", path]).unwrap(),
             Some(SoundArg::File(PathBuf::from(path)))
         );
+    }
+
+    #[test]
+    fn sound_toggle() {
+        assert_eq!(SoundArg::Toggle(Toggle::Off).toggle(), Toggle::Off);
+        assert_eq!(SoundArg::File(PathBuf::new()).toggle(), Toggle::On);
     }
 
     #[test]
