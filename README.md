@@ -268,38 +268,40 @@ paru -S timr
 
 _Note:_ Currently `timr-tui` is [available on the `unstable` channel](https://search.nixos.org/packages?channel=unstable&query=timr-tui) only.
 
+_Note:_ Since `v1.12.0` sound is enabled by default. Use `enableSound = false` to disable it. Before `v1.12.0` sound was disabled by default and had to be enabled by `enableSound = true`.
+
 ### Command line
 
 ```sh
-# default (w/o sound)
+# default (w/ sound)
 nix-env -iA nixpkgs.timr-tui
-# or w/ sound enabled
-nix-env -iA nixpkgs.timr-tui --arg timr-tui '(timr-tui.override { enableSound = true; })'
+# or w/o sound
+nix-env -iA nixpkgs.timr-tui --arg timr-tui '(timr-tui.override { enableSound = false; })'
 ```
 
 ### Configuration
 
 ```nix
-# default (w/o sound)
+# default (w/ sound)
 environment.systemPackages = with pkgs; [
   timr-tui
 ];
-# or w/ sound enabled
+# or w/o sound
 environment.systemPackages = with pkgs; [
-  (timr-tui.override { enableSound = true; })
+  (timr-tui.override { enableSound = false; })
 ];
 ```
 
 ### Home Manager
 
 ```nix
-# default (w/o sound)
+# default (w/ sound)
 home.packages = with pkgs; [
   timr-tui
 ];
-# or w/ sound enabled
+# or w/o sound
 home.packages = with pkgs; [
-  (timr-tui.override { enableSound = true; })
+  (timr-tui.override { enableSound = false; })
 ];
 ```
 
