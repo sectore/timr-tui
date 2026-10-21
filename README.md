@@ -114,16 +114,13 @@ Options:
   -r, --reset                        Reset stored values to defaults.
   -n, --notification <NOTIFICATION>  Enable/disable desktop notifications. Experimental. [possible values: on, off]
       --blink <BLINK>                Enable/disable blink mode to animate a clock when it reaches its finished mode. [possible values: on, off]
+      --sound [<SOUND>]              Sound notification: 'on', 'off' or path to a custom sound file (.mp3 or .wav).
       --log [<LOG>]                  Directory for log file. If not set, standard application log directory is used (check README for details).
   -h, --help                         Print help
   -V, --version                      Print version
 ```
 
-Extra option (if `--features sound` is enabled, e.g. by using `timr-tui-sound-*` [release binaries](#release-binaries)):
-
-```sh
---sound [<SOUND>]              Sound notification: 'on', 'off' or path to a custom sound file (.mp3 or .wav).
-```
+`--sound` is not available in builds w/o sound (`timr-tui-nosound-*` [release binaries](#release-binaries) or built with `--no-default-features`).
 
 # Notification
 
@@ -133,7 +130,7 @@ Toggle desktop notifications with `--notification on|off` or by pressing `d` (se
 
 ## Sound
 
-A sound is played when a clock is done. Toggle it with `--sound on|off` or by pressing `s` (see [Keybindings](#keybindings)). `--sound` without a value equals `--sound on`.
+A sound is played by default when a clock is done. Toggle it with `--sound on|off` or by pressing `s` (see [Keybindings](#keybindings)). `--sound` without a value equals `--sound on`.
 
 A custom sound (`--sound <path>`) is used for the current session only. Every start without a path plays the default sound. To use a custom sound permanently, add an alias to your shell config, e.g. `alias timr='timr-tui --sound {path-to}/my-sound.mp3'`.
 
