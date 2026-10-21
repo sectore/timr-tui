@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use crate::common::{AppEditMode, AppTime, AppTimeFormat, Content};
+use crate::common::{AppEditMode, AppTime, AppTimeFormat, Content, Toggle};
 use ratatui::{
     buffer::Buffer,
     layout::{Constraint, Layout, Rect},
@@ -72,6 +72,8 @@ pub struct Footer {
     pub app_time: AppTime,
     pub pomodoro_auto_switch: bool,
     pub is_tabata: bool,
+    /// `None` = build without sound
+    pub sound: Option<Toggle>,
 }
 
 const SPACE: &str = " "; // single (empty) SPACE
@@ -210,6 +212,21 @@ impl StatefulWidget for Footer {
                             ITALIC,
                         ),
                     ])),
+                ]),
+                // notify
+                Row::new(vec![
+                    Cell::from(Span::from("notify")),
+                    Cell::from(Line::from(
+                        self.sound
+                            .map(|sound| {
+                                vec![
+                                    Span::styled("s", BOLD),
+                                    Span::from(SPACE),
+                                    Span::styled(format!("toggle sound {}", !sound), ITALIC),
+                                ]
+                            })
+                            .unwrap_or_default(),
+                    )),
                 ]),
             ];
 

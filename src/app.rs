@@ -625,7 +625,7 @@ impl StatefulWidget for AppWidget {
         let [v0, v1, v2] = Layout::vertical([
             Constraint::Length(1),
             Constraint::Percentage(100),
-            Constraint::Length(if state.footer.get_show_menu() { 5 } else { 1 }),
+            Constraint::Length(if state.footer.get_show_menu() { 6 } else { 1 }),
         ])
         .areas(area);
 
@@ -644,6 +644,10 @@ impl StatefulWidget for AppWidget {
             app_time: state.app_time,
             pomodoro_auto_switch: state.pomodoro.get_auto_switch(),
             is_tabata: state.pomodoro.is_tabata(),
+            #[cfg(feature = "sound")]
+            sound: Some(state.sound_toggle),
+            #[cfg(not(feature = "sound"))]
+            sound: None,
         }
         .render(v2, buf, &mut state.footer);
     }

@@ -1,7 +1,7 @@
 use ratatui::{Terminal, backend::TestBackend};
 
 use crate::{
-    common::{AppEditMode, AppTime, AppTimeFormat, Content},
+    common::{AppEditMode, AppTime, AppTimeFormat, Content, Toggle},
     widgets::{
         footer::{Footer, FooterState},
         test_utils::{DrawArgs, FIXED_TIME, draw},
@@ -19,6 +19,7 @@ fn w() -> Footer {
         app_time: AppTime::Local(FIXED_TIME),
         pomodoro_auto_switch: false,
         is_tabata: false,
+        sound: Some(Toggle::On),
     }
 }
 
@@ -232,4 +233,23 @@ fn test_menu_time_format_hh_12_mm() {
     let st = st().with_app_time_format(AppTimeFormat::Hh12Mm);
     let t = terminal(w(), st);
     assert_snapshot!("menu_time_format_hh_12_mm", t.backend());
+}
+
+// sound
+
+#[test]
+fn test_menu_sound_off() {
+    let w = Footer {
+        sound: Some(Toggle::Off),
+        ..w()
+    };
+    let t = terminal(w, st());
+    assert_snapshot!("menu_sound_off", t.backend());
+}
+
+#[test]
+fn test_menu_no_sound() {
+    let w = Footer { sound: None, ..w() };
+    let t = terminal(w, st());
+    assert_snapshot!("menu_no_sound", t.backend());
 }

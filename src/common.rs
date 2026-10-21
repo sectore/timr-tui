@@ -282,6 +282,15 @@ impl From<Toggle> for bool {
     }
 }
 
+impl fmt::Display for Toggle {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.write_str(match self {
+            Toggle::On => "on",
+            Toggle::Off => "off",
+        })
+    }
+}
+
 impl std::ops::Not for Toggle {
     type Output = Self;
 
