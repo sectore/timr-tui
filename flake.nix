@@ -45,7 +45,15 @@
         doCheck = false; # skip tests during nix build
       };
 
-      cargoArtifacts = craneLib.buildDepsOnly commonArgs;
+      # sound (enabled by default) needs ALSA on Linux
+      nativeArgs =
+        commonArgs
+        // {
+          nativeBuildInputs = pkgs.lib.optionals pkgs.stdenv.hostPlatform.isLinux [pkgs.pkg-config];
+          buildInputs = pkgs.lib.optionals pkgs.stdenv.hostPlatform.isLinux [pkgs.alsa-lib];
+        };
+
+      cargoArtifacts = craneLib.buildDepsOnly nativeArgs;
 
       # macOS: link system's `libiconv` instead of the one in Nix store to run w/o Nix.
       # Re-sign (ad-hoc) is required, because `install_name_tool` invalidates the signature.
@@ -58,34 +66,31 @@
       '';
 
       # Native build
-      timr = craneLib.buildPackage (commonArgs
+      timr = craneLib.buildPackage (nativeArgs
         // {
           inherit cargoArtifacts;
           postFixup = darwinPostFixup;
         });
 
-      # macOS build w/ sound
-      macosSoundBuild = let
-        soundArgs = commonArgs // {cargoExtraArgs = "--locked --features sound";};
-      in
-        craneLib.buildPackage (soundArgs
+      # Linux build w/ statically linked binaries, w/o sound
+      staticLinuxBuild = let
+        staticArgs =
+          commonArgs
           // {
-            cargoArtifacts = craneLib.buildDepsOnly soundArgs;
-            postFixup = darwinPostFixup;
+            cargoExtraArgs = "--locked --no-default-features";
+            CARGO_BUILD_TARGET = "x86_64-unknown-linux-musl";
+            CARGO_BUILD_RUSTFLAGS = "-C target-feature=+crt-static";
+          };
+      in
+        craneLib.buildPackage (staticArgs
+          // {
+            cargoArtifacts = craneLib.buildDepsOnly staticArgs;
           });
 
-      # Linux build w/ statically linked binaries
-      staticLinuxBuild = craneLib.buildPackage (commonArgs
-        // {
-          inherit cargoArtifacts;
-          CARGO_BUILD_TARGET = "x86_64-unknown-linux-musl";
-          CARGO_BUILD_RUSTFLAGS = "-C target-feature=+crt-static";
-        });
-
       # Linux build w/ sound, dynamically linked against an older glibc to run on most distros
-      linuxSoundBuild = craneLib.buildPackage (commonArgs
+      linuxBuild = craneLib.buildPackage (commonArgs
         // {
-          cargoExtraArgs = "--locked --features sound --target x86_64-unknown-linux-gnu.2.28";
+          cargoExtraArgs = "--locked --target x86_64-unknown-linux-gnu.2.28";
           cargoBuildCommand = "cargoWithProfile zigbuild";
           # `cargo check` doesn't know the glibc suffix of the target
           cargoCheckCommand = "true";
@@ -112,25 +117,14 @@
       windowsArgs = {inherit (commonArgs) src strictDeps doCheck;};
 
       windowsBuild = craneLibWindows.buildPackage windowsArgs;
-
-      # Windows build w/ sound
-      windowsSoundBuild = craneLibWindows.buildPackage (windowsArgs
-        // {
-          cargoExtraArgs = "--locked --features sound";
-        });
     in {
-      packages =
-        {
-          inherit timr;
-          default = timr;
-          linuxStatic = staticLinuxBuild;
-          linuxSound = linuxSoundBuild;
-          windows = windowsBuild;
-          windowsSound = windowsSoundBuild;
-        }
-        // pkgs.lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin {
-          macosSound = macosSoundBuild;
-        };
+      packages = {
+        inherit timr;
+        default = timr;
+        linux = linuxBuild;
+        linuxNoSound = staticLinuxBuild;
+        windows = windowsBuild;
+      };
 
       devShells.default = with nixpkgs.legacyPackages.${system};
         craneLib.devShell {
