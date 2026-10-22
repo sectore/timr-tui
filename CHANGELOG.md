@@ -1,19 +1,19 @@
 # Changelog
 
-## [unreleased]
+## v1.12.0 - 2026-10-22
 
 ### Features
 
-- (sound) sound by default [#238](https://github.com/sectore/timr-tui/pull/238)
+- (build) sound by default [#238](https://github.com/sectore/timr-tui/pull/238)
 - (notification) toggle desktop notification with key `d` [#237](https://github.com/sectore/timr-tui/pull/237)
 - (sound) toggle sound by `--sound on|off|<path>` or key `s` [#236](https://github.com/sectore/timr-tui/pull/236)
-- (sound) default sound for sound binaries [#232](https://github.com/sectore/timr-tui/pull/232)
-- (release) sound binaries for Linux, Windows, macOS [#230](https://github.com/sectore/timr-tui/pull/230)
+- (sound) default sound [#232](https://github.com/sectore/timr-tui/pull/232)
+- (pre-release) sound binaries for Linux, Windows, macOS [#230](https://github.com/sectore/timr-tui/pull/230)
 
 ### Fix
 
 - (sound) open output device on demand per play [#234](https://github.com/sectore/timr-tui/pull/234)
-- (macos) run release binary w/o Nix + correct arch (`aarch64`) [#229](https://github.com/sectore/timr-tui/pull/229)
+- (build) run release binary w/o Nix + correct arch (`aarch64`) [#229](https://github.com/sectore/timr-tui/pull/229)
 
 ### Misc
 

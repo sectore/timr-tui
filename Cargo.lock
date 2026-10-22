@@ -2745,7 +2745,7 @@ dependencies = [
 
 [[package]]
 name = "timr-tui"
-version = "1.12.0-alpha.1"
+version = "1.12.0"
 dependencies = [
  "clap",
  "color-eyre",
