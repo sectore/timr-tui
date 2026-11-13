@@ -460,7 +460,7 @@ impl TuiEventHandler for PomodoroState {
                 }
                 // toggle autoswitch
                 KeyCode::Char('a') => {
-                    self.auto_switch = !self.auto_switch;
+                    self.auto_switch.toggle();
                 }
                 // reset rounds AND clocks
                 KeyCode::Char('r') if key.modifiers.contains(KeyModifiers::CONTROL) => {
