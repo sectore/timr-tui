@@ -368,7 +368,7 @@ impl App {
                     app.style = app.style.next();
                 }
                 KeyCode::Char('.') => {
-                    app.with_decis = !app.with_decis;
+                    app.with_decis.toggle();
                     // update clocks
                     app.timer.set_with_decis(app.with_decis);
                     app.countdown.set_with_decis(app.with_decis);

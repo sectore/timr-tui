@@ -39,6 +39,12 @@ cargo upgrade --compatible
 cargo update
 ```
 
+Versions published less than 3 days ago are skipped (`global-min-publish-age` in `.cargo/config.toml`). To pick one anyway:
+
+```bash
+CARGO_RESOLVER_INCOMPATIBLE_PUBLISH_AGE=allow cargo update {crate} --precise {version}
+```
+
 ### 6. Verify the build
 
 ```bash

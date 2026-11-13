@@ -1,5 +1,11 @@
 # Changelog
 
+## [unreleased]
+
+### Misc
+
+- (deps) Rust 1.100.0 [#243](https://github.com/sectore/timr-tui/pull/243)
+
 ## v1.12.0 - 2026-10-22
 
 ### Features
