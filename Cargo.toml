@@ -54,5 +54,8 @@ sound = ["dep:rodio", "dep:thiserror"]
 [dev-dependencies]
 insta = "1.49.0"
 
+[lints.cargo]
+unused_dependencies = "deny"
+
 [profile.release]
 strip = true
