@@ -1,5 +1,11 @@
 # Changelog
 
+## [unreleased]
+
+### Misc
+
+- (deps) Rust 1.100.0 [blog](https://blog.rust-lang.org/2026/11/12/Rust-1.100.0/)
+
 ## v1.12.0 - 2026-10-22
 
 ### Features
