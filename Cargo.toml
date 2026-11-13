@@ -5,7 +5,6 @@ description = "TUI to organize your time: Pomodoro, Tabata, Countdown, Timer, Ev
 edition = "2024"
 # Reminder: Always keep `channel` in `rust-toolchain.toml` in sync with `rust-version`.
 rust-version = "1.100.0"
-homepage = "https://github.com/sectore/timr-tui"
 repository = "https://github.com/sectore/timr-tui"
 readme = "README.md"
 license = "MIT"
@@ -33,7 +32,6 @@ serde_json = "1.0"
 strum = { version = "0.28.0", features = ["derive"] }
 tokio = { version = "1.53.2", features = ["full"] }
 tokio-stream = "0.1.19"
-tokio-util = "0.7.19"
 tracing = "0.1.44"
 tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
 directories = "6.0.0"
